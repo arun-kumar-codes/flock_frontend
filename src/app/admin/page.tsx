@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import profileImg from "@/assets/profile.png";
+import { inviteUser } from "@/api/user";
 interface AdminData {
   email: string
   username: string
@@ -131,19 +132,18 @@ export default function AdminDashboard() {
 
     try {
       // Placeholder API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+  const response=await inviteUser({email: inviteEmail});
 
-      // Simulate API call success
-      console.log("Sending invite to:", inviteEmail)
-      console.log("Message:", inviteMessage)
-
+   if(response.status===200){
       // Reset form
       setInviteEmail("")
       setInviteMessage("")
       setShowInviteModal(false)
+     
+   }else{
+      console.log(response.response.data)
+   }
 
-      // Show success message (you can replace with toast notification)
-      alert(`Invitation sent successfully to ${inviteEmail}!`)
     } catch (error) {
       console.error("Error sending invite:", error)
       alert("Failed to send invitation. Please try again.")
@@ -515,7 +515,7 @@ export default function AdminDashboard() {
             </div>
 
             <form onSubmit={handleInviteSubmit} className="p-6">
-              <div className="mb-4">
+              <div className="mb-10">
                 <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
                   Email Address *
                 </label>
@@ -540,28 +540,9 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <div className="mb-6">
-                <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-2">
-                  Personal Message (Optional)
-                </label>
-                <textarea
-                  id="message"
-                  value={inviteMessage}
-                  onChange={(e) => setInviteMessage(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  placeholder="Add a personal message to the invitation..."
-                />
-              </div>
 
               <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowInviteModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
+             
                 <button
                   type="submit"
                   disabled={isInviting}

@@ -209,7 +209,7 @@ export default function Signup() {
                     }`}
                   >
                     {step < currentStep ? <CheckIcon className="w-3 h-3" /> : step}
-                  </div>
+                  </div>+
                   {step < totalSteps && (
                     <div
                       className={`w-32 h-1 mx-2 transition-all duration-300 ${

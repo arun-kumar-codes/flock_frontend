@@ -45,7 +45,7 @@ export default function Dashboard() {
     imageUrl: "",
     content: [],
   })
-  const [isLoading, setIsLoading] = useState(false)
+
   const [showUserDetails, setShowUserDetails] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
@@ -55,7 +55,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      setIsLoading(true)
       const token = localStorage.getItem("access_token")
       if (!token) {
         router.push("/login")
@@ -74,7 +73,6 @@ export default function Dashboard() {
         alert("An error occurred while fetching your profile.")
         router.push("/login")
       } finally {
-        setIsLoading(false)
       }
     }
     // fetchUserData()
@@ -124,16 +122,7 @@ export default function Dashboard() {
       return matchesSearch && matchesFilter
     }) || []
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-lg font-medium text-slate-600">Loading your dashboard...</p>
-        </div>
-      </div>
-    )
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">

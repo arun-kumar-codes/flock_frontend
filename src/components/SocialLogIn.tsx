@@ -7,11 +7,19 @@ import google from "@/assets/google.svg"
 import facebook from "@/assets/facebook.svg"
 import x from "@/assets/x.svg"
 import Image from "next/image"
-import { LogOutIcon } from "lucide-react"
+import { LogOutIcon, Router } from "lucide-react"
+import { useSearchParams,useRouter } from "next/navigation"
+import { logInWithSocial } from "@/api/auth"
+import { log } from "console"
 
 const SocialLogin = () => {
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState<string | null>(null)
+
+  const params = useSearchParams()
+  const token  = params.get("token");
+  const router = useRouter()
+  // console.log("Token from params:", token);
 
   const loginWithProvider = async (provider: any, providerName: string) => {
     setIsLoading(providerName)
@@ -20,8 +28,27 @@ const SocialLogin = () => {
       const loggedInUser = result.user
       setUser(loggedInUser)
       // Optional: get Firebase token for backend auth
-      const token = await loggedInUser.getIdToken()
-      console.log("Firebase ID Token:", token)
+      const fireBaseIdtoken = await loggedInUser.getIdToken()
+
+     const response= await logInWithSocial({
+        idToken: fireBaseIdtoken,
+        token: token || ""});
+
+        if(response.status === 200) {
+          // Handle successful login, e.g., redirect or update state
+          console.log("Login successful:", response.data);
+          const access_token = response.data.access_token;
+          const refresh_token = response.data.refresh_token;
+
+          localStorage.setItem("access_token", access_token);
+          localStorage.setItem("refresh_token", refresh_token);
+        router.push("dasbhoard/profile")
+        }else{
+          // Handle login error
+          console.error("Login failed:", response.data);
+          alert("Login failed. Please try again.");
+        }
+
     } catch (error) {
       console.error("Login error:", error)
     } finally {
@@ -43,7 +70,6 @@ const SocialLogin = () => {
 
   return (
     <div className="w-full">
-      {!user ? (
         <div className="space-y-3">
           <button
             onClick={() => loginWithProvider(new GoogleAuthProvider(), "google")}
@@ -84,47 +110,6 @@ const SocialLogin = () => {
             <span className="font-medium">{isLoading === "twitter" ? "Connecting..." : "Continue with Twitter"}</span>
           </button>
         </div>
-      ) : (
-        <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/20 p-6 text-center shadow-sm">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative">
-              <img
-                src={user.photoURL || "/placeholder.svg"}
-                alt={user.displayName}
-                className="w-16 h-16 rounded-full border-3 border-white shadow-lg"
-              />
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 border-2 border-white rounded-full"></div>
-            </div>
-
-            <div>
-              <p className="font-semibold text-slate-800 text-lg">{user.displayName}</p>
-              <p className="text-sm text-slate-600">{user.email}</p>
-              <div className="flex items-center justify-center space-x-1 mt-1">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                <span className="text-xs text-slate-500">Connected</span>
-              </div>
-            </div>
-
-            <button
-              onClick={logout}
-              disabled={isLoading === "logout"}
-              className="flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-            >
-              {isLoading === "logout" ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Signing out...</span>
-                </>
-              ) : (
-                <>
-                  <LogOutIcon className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
