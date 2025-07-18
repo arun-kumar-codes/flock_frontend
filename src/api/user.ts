@@ -42,3 +42,45 @@ export async function changePassword(data: any) {
     return error.response;
   }
 }
+
+export async function getAllUser() {
+  try {
+    const response = await axiosInstance.get('/auth/all-users');
+    return response;
+  } catch (error:any) {
+    console.error("Error changing password:", error);
+    return error.response;
+  }
+}
+
+
+export async function getAllCreator() {
+  try {
+    const response = await axiosInstance.get('/auth/all-users');
+    return response;
+  } catch (error:any) {
+    console.error("Error changing password:", error);
+    return error.response;
+  }
+}
+
+export async function getAllViewer() {
+  try {
+    const response = await axiosInstance.get('/auth/all-users');
+    return response;
+  } catch (error:any) {
+    console.error("Error changing password:", error);
+    return error.response;
+  }
+}
+
+
+export async function deleteUser(data: any) {
+  try {
+    const response = await axiosInstance.delete(`/auth/delete-user/${data}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error changing password:", error);
+    return error.response;
+  }
+}

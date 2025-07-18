@@ -50,7 +50,7 @@ export async function logInWithSocial(userData:logInWithSocialData){
 
 export async function logIn(userData:userLoginData){
     try{
-        const response = await axios.post('/auth/login', userData);
+        const response = await axios.post('/auth/login-password', userData);
         return response;
     }catch(error:any){
         console.error("Error during log in:", error);

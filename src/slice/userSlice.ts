@@ -6,6 +6,7 @@ interface User {
     email: string;
     role:string
     profileImage?: string;
+    is_profile_completed?:boolean
 }
 
 const initialState: User = {
@@ -13,7 +14,8 @@ const initialState: User = {
   username:"",
   email:"",
   role:"",
-  profileImage: ""
+  profileImage: "",
+  is_profile_completed:true,
 };
 
 const userSlice = createSlice({
@@ -25,12 +27,19 @@ const userSlice = createSlice({
   state.username = action.payload.username;
   state.email = action.payload.email;
   state.role = action.payload.role;
+  state.is_profile_completed=action.payload.is_profile_completed;
     },
-    getUser(state) {
-      return state;
+    logOut(state){
+      state.id=""
+      state.username=""
+      state.email=""
+      state.role=""
+      state.profileImage=""
+      state.is_profile_completed=true
+
     }
   },
 });
 
-export const { setUser, getUser } = userSlice.actions;
+export const { setUser,logOut } = userSlice.actions;
 export default userSlice.reducer;

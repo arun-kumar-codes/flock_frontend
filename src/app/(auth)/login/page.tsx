@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { LogInIcon, MailIcon, LockIcon } from "lucide-react"
 import SocialLogIn from "@/components/SocialLogIn"
+import { logIn } from "@/api/auth"
+import { useRouter } from "next/navigation"
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -12,6 +14,7 @@ export default function Login() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const router = useRouter()
 
   const handleChange = (name: string, value: string) => {
     setFormData({
@@ -46,11 +49,23 @@ export default function Login() {
 
     try {
       // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+     const response= await logIn(formData);
 
       // Simulate successful login
-      if (formData.username_or_email === "test" && formData.password === "password") {
-        window.location.href = "/" // Redirect to home page
+      if (response.status === 200) {
+
+        localStorage.setItem("access_token",response.data.access_token);
+        localStorage.setItem("refresh_token",response.data.refresh_token);
+
+        const user= response.data.user
+        console.log(user);
+        
+        if(user.role.toLowerCase() === "admin"){
+          router.push("/admin");
+        }else{
+          router.push("/dashboard");
+        }
+        
       } else {
         setErrorMessage("Invalid credentials")
       }

@@ -42,7 +42,7 @@ const SocialLogin = () => {
 
           localStorage.setItem("access_token", access_token);
           localStorage.setItem("refresh_token", refresh_token);
-        router.push("dasbhoard/profile")
+        router.push("dashboard/profile")
         }else{
           // Handle login error
           console.error("Login failed:", response.data);
