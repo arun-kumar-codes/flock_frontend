@@ -5,12 +5,12 @@ import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthP
 import { auth } from "@/lib/firebase"
 import google from "@/assets/google.svg"
 import facebook from "@/assets/facebook.svg"
-import x from "@/assets/x.svg"
+// import x from "@/assets/x.svg"
 import Image from "next/image"
-import { LogOutIcon, Router } from "lucide-react"
+// import { LogOutIcon, Router } from "lucide-react"
 import { useSearchParams,useRouter } from "next/navigation"
 import { logInWithSocial } from "@/api/auth"
-import { log } from "console"
+// import { log } from "console"
 
 const SocialLogin = () => {
   const [user, setUser] = useState<any>(null)
@@ -84,7 +84,7 @@ const SocialLogin = () => {
             <span className="font-medium">{isLoading === "google" ? "Connecting..." : "Continue with Google"}</span>
           </button>
 
-          <button
+          {/* <button
             onClick={() => loginWithProvider(new FacebookAuthProvider(), "facebook")}
             disabled={isLoading !== null}
             className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-blue-600 text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -95,8 +95,8 @@ const SocialLogin = () => {
               <Image src={facebook || "/placeholder.svg"} alt="Facebook" className="w-5 h-5" />
             )}
             <span className="font-medium">{isLoading === "facebook" ? "Connecting..." : "Continue with Facebook"}</span>
-          </button>
-
+          </button> */}
+{/* 
           <button
             onClick={() => loginWithProvider(new TwitterAuthProvider(), "twitter")}
             disabled={isLoading !== null}
@@ -108,7 +108,7 @@ const SocialLogin = () => {
               <Image src={x || "/placeholder.svg"} alt="Twitter" className="w-5 h-5" />
             )}
             <span className="font-medium">{isLoading === "twitter" ? "Connecting..." : "Continue with Twitter"}</span>
-          </button>
+          </button> */}
         </div>
     </div>
   )

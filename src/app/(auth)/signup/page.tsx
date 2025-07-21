@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react" // Import useEffect
 import { signUp } from "@/api/auth"
 import { useRouter } from "next/navigation"
+import SocialLogin from "@/components/SocialLogIn"
 import {
   UserPlusIcon,
   MailIcon,
@@ -209,7 +210,7 @@ export default function Signup() {
                     }`}
                   >
                     {step < currentStep ? <CheckIcon className="w-3 h-3" /> : step}
-                  </div>+
+                  </div>
                   {step < totalSteps && (
                     <div
                       className={`w-32 h-1 mx-2 transition-all duration-300 ${
@@ -446,6 +447,8 @@ export default function Signup() {
               </div>
             )}
 
+              
+
             {/* Navigation Buttons */}
             <div className="flex space-x-3 pt-4">
               {currentStep > 1 && (
@@ -489,6 +492,8 @@ export default function Signup() {
                 </button>
               )}
             </div>
+
+              <SocialLogin></SocialLogin>
           </form>
 
           {/* Footer */}

@@ -22,3 +22,14 @@ export async function getBlog() {
     return error.response;
   }
 }
+
+
+export async function deleteBlog(blogId:any) {
+  try {
+    const response = await axiosInstance.delete(`/blog/delete/${blogId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error deleting blog:", error);
+    return error.response;
+  }
+}

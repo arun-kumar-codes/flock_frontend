@@ -22,6 +22,8 @@ import {
 import Image from "next/image"
 import profileImg from "@/assets/profile.png"
 import { getBlog } from "@/api/content"
+import { useSelector, UseSelector } from "react-redux"
+import Loader from "@/components/Loader"
 
 interface ViewerData {
   email: string
@@ -118,6 +120,25 @@ export default function ViewerDashboard() {
   const contentMenuRef = useRef<HTMLDivElement>(null)
   const settingsModalRef = useRef<HTMLDivElement>(null)
   const blogModalRef = useRef<HTMLDivElement>(null)
+
+  const user=useSelector((state:any)=> state.user)
+
+  useEffect(() => {
+    if (!user || !user.role) return; // Wait until user is available
+
+    const role = user.role.toLowerCase();
+
+    if (role === "creator") {
+      router.push("/dashboard");
+      return;
+    } else if (role === "admin") {
+      router.push("/admin");
+      return;
+    }
+
+    setIsLoading(false); // Allow rendering if no redirect
+  }, [user, router]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -342,6 +363,11 @@ export default function ViewerDashboard() {
       month: "short",
       day: "numeric",
     })
+  }
+
+  
+  if (isLoading) {
+    return <Loader />;
   }
 
   if (isLoading && recentBlogs.length === 0) {
@@ -612,7 +638,7 @@ export default function ViewerDashboard() {
                           alt={blog.title}
                           width={300}
                           height={200}
-                          className="w-full h-48 md:h-full object-cover"
+                          className="w-full md:h-full object-cover"
                         />
                       </div>
                       <div className="md:w-2/3 p-6">
@@ -849,13 +875,13 @@ export default function ViewerDashboard() {
                 {/* Add Comment Form */}
                 <form onSubmit={handleCommentSubmit} className="mb-6">
                   <div className="flex space-x-3">
-                    <Image
+                    {/* <Image
                       src={profileImg || "/placeholder.svg"}
                       alt="Your avatar"
                       width={40}
-                      height={40}
+                      height={10}
                       className="rounded-full flex-shrink-0"
-                    />
+                    /> */}
                     <div className="flex-1">
                       <textarea
                         value={newComment}

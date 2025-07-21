@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { createBlog, getBlog } from "@/api/content"
 import { useDispatch } from "react-redux"
 import { logOut } from "@/slice/userSlice"
+import { UseSelector } from "react-redux"
 import {
   PlusIcon,
   LogOutIcon,
@@ -88,7 +89,6 @@ export default function Dashboard() {
   const [createError, setCreateError] = useState("")
   const [createSuccess, setCreateSuccess] = useState("")
   const [fetchError, setFetchError] = useState("")
-
   // Create blog form state
   const [blogForm, setBlogForm] = useState<CreateBlogData>({
     title: "",
@@ -102,6 +102,16 @@ export default function Dashboard() {
   const createModalRef = useRef<HTMLDivElement>(null)
 
   const user = useSelector((state: any) => state.user)
+
+  useEffect(()=>{
+
+      if(user.role.toLowerCase()==="admin"){
+        router.replace("/admin")
+      }else if(user.role.toLowerCase()==="viewer"){
+        router.replace("/viewer")
+      }
+
+  }),[];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
