@@ -60,6 +60,7 @@ interface Blog {
   comments_count: number
   liked_by: number[]
   likes: number
+  image?: string // Added image property
   // UI-specific fields
   excerpt?: string
   thumbnail?: string
@@ -85,6 +86,7 @@ interface ApiResponse {
 
 export default function ViewerDashboard() {
   const router = useRouter()
+  const base_url="http://116.202.210.102:5055/"
   const [viewerData, setViewerData] = useState<ViewerData>({
     email: "viewer@example.com",
     username: "John Viewer",
@@ -107,14 +109,14 @@ export default function ViewerDashboard() {
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null)
   const [newComment, setNewComment] = useState("")
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
-  const [pagination, setPagination] = useState({
-    has_next: false,
-    has_prev: false,
-    page: 1,
-    pages: 1,
-    per_page: 10,
-    total: 0,
-  })
+  // const [pagination, setPagination] = useState({
+  //   has_next: false,
+  //   has_prev: false,
+  //   page: 1,
+  //   pages: 1,
+  //   per_page: 10,
+  //   total: 0,
+  // })
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const contentMenuRef = useRef<HTMLDivElement>(null)
@@ -184,7 +186,7 @@ export default function ViewerDashboard() {
         }))
 
         setRecentBlogs(blogsWithUIFields)
-        setPagination(response.data.pagination)
+        // setPagination(response.data.pagination)
       } else {
         console.error("Unexpected response structure:", response)
         setFetchError("Failed to fetch blogs - unexpected response structure")
@@ -548,7 +550,7 @@ export default function ViewerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Articles Available</p>
-                <p className="text-2xl font-bold text-slate-800">{pagination.total}</p>
+                {/* <p className="text-2xl font-bold text-slate-800">{pagination.total}</p> */}
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <BookOpenIcon className="w-6 h-6 text-blue-600" />
@@ -634,7 +636,7 @@ export default function ViewerDashboard() {
                     <div className="md:flex">
                       <div className="md:w-1/3">
                         <Image
-                          src={blog.thumbnail || "/placeholder.svg"}
+                          src={base_url+blog.image}
                           alt={blog.title}
                           width={300}
                           height={200}

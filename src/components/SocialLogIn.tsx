@@ -1,14 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, signOut } from "firebase/auth"
+import { signInWithPopup, GoogleAuthProvider, 
+  // FacebookAuthProvider,
+  //  TwitterAuthProvider,
+    signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import google from "@/assets/google.svg"
-import facebook from "@/assets/facebook.svg"
+// import facebook from "@/assets/facebook.svg"
 // import x from "@/assets/x.svg"
 import Image from "next/image"
 // import { LogOutIcon, Router } from "lucide-react"
-import { useSearchParams,useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { logInWithSocial } from "@/api/auth"
 // import { log } from "console"
 
@@ -16,8 +19,6 @@ const SocialLogin = () => {
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState<string | null>(null)
 
-  const params = useSearchParams()
-  const token  = params.get("token");
   const router = useRouter()
   // console.log("Token from params:", token);
 
@@ -31,8 +32,7 @@ const SocialLogin = () => {
       const fireBaseIdtoken = await loggedInUser.getIdToken()
 
      const response= await logInWithSocial({
-        idToken: fireBaseIdtoken,
-        token: token || ""});
+        idToken: fireBaseIdtoken});
 
         if(response.status === 200) {
           // Handle successful login, e.g., redirect or update state

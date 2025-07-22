@@ -1,12 +1,11 @@
 
 import axios from "@/lib/axiosInstance";
 interface userSignUpData{
-
     email:string,
     username:string,
     password:string,
-    role:string
-
+    token?:string,
+    recaptchaToken?:string
 }
 
 interface userLoginData{

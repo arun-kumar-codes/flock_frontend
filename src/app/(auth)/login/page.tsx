@@ -1,20 +1,28 @@
 "use client"
+import { useState, useRef } from "react"
+import type React from "react"
 
-import { useState } from "react"
-import { LogInIcon, MailIcon, LockIcon } from "lucide-react"
+import { LogInIcon, MailIcon, LockIcon, ShieldCheckIcon } from "lucide-react"
 import SocialLogIn from "@/components/SocialLogIn"
 import { logIn } from "@/api/auth"
 import { useRouter } from "next/navigation"
+import ReCAPTCHA from "react-google-recaptcha"
 
 export default function Login() {
   const [formData, setFormData] = useState({
     username_or_email: "",
     password: "",
+    recaptchaToken: "", // Add reCAPTCHA token field
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const router = useRouter()
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+
+  // reCAPTCHA site key - you should set this in your environment variables
+  const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ;
+
 
   const handleChange = (name: string, value: string) => {
     setFormData({
@@ -28,17 +36,29 @@ export default function Login() {
     setErrorMessage("")
   }
 
-  const handleSubmit = async (e: any) => {
+  const handleRecaptchaChange = (token: string | null) => {
+    setFormData((prev) => ({ ...prev, recaptchaToken: token || "" }))
+    if (token && errors.recaptcha) {
+      setErrors((prev) => ({ ...prev, recaptcha: "" }))
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Basic client-side validation
-    const newErrors: any = {}
+    const newErrors: Record<string, string> = {}
+
     if (!formData.username_or_email) {
       newErrors.username_or_email = "Email or Username is required"
     }
+
     if (!formData.password) {
       newErrors.password = "Password is required"
+    }
+
+    if (!formData.recaptchaToken) {
+      newErrors.recaptcha = "Please complete the reCAPTCHA verification"
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -48,24 +68,17 @@ export default function Login() {
     }
 
     try {
-      // Simulate an API call
-     const response= await logIn(formData);
-
-      // Simulate successful login
+      const response = await logIn(formData)
       if (response.status === 200) {
-
-        localStorage.setItem("access_token",response.data.access_token);
-        localStorage.setItem("refresh_token",response.data.refresh_token);
-
-        const user= response.data.user
-        console.log(user);
-        
-        if(user.role.toLowerCase() === "admin"){
-          router.push("/admin");
-        }else{
-          router.push("/dashboard");
+        localStorage.setItem("access_token", response.data.access_token)
+        localStorage.setItem("refresh_token", response.data.refresh_token)
+        const user = response.data.user
+        console.log(user)
+        if (user.role.toLowerCase() === "admin") {
+          router.push("/admin")
+        } else {
+          router.push("/dashboard")
         }
-        
       } else {
         setErrorMessage("Invalid credentials")
       }
@@ -73,15 +86,18 @@ export default function Login() {
       setErrorMessage("An error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
+      // Reset reCAPTCHA after submission
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset()
+        setFormData((prev) => ({ ...prev, recaptchaToken: "" }))
+      }
     }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
       <div className="w-full max-w-md">
-        {/* Login Card */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 p-8 shadow-xl">
-          {/* Header */}
           <div className="mb-8 text-center">
             <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
               <LogInIcon className="h-8 w-8 text-white" />
@@ -90,8 +106,8 @@ export default function Login() {
             <p className="text-slate-600">Sign in to your account to continue</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email/Username Field */}
             <div>
               <label htmlFor="username_or_email" className="mb-2 flex items-center text-sm font-medium text-slate-700">
                 <div className="w-5 h-5 bg-blue-100 rounded-md flex items-center justify-center mr-2">
@@ -112,13 +128,14 @@ export default function Login() {
                 }`}
               />
               {errors.username_or_email && (
-                <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                  <div className="w-1 h-1 bg-red-600 rounded-full"></div>
+                <div className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-600 rounded-full inline-block"></span>
                   <span>{errors.username_or_email}</span>
-                </p>
+                </div>
               )}
             </div>
 
+            {/* Password Field */}
             <div>
               <label htmlFor="password" className="mb-2 flex items-center text-sm font-medium text-slate-700">
                 <div className="w-5 h-5 bg-purple-100 rounded-md flex items-center justify-center mr-2">
@@ -137,22 +154,49 @@ export default function Login() {
                 }`}
               />
               {errors.password && (
+                <div className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-600 rounded-full inline-block"></span>
+                  <span>{errors.password}</span>
+                </div>
+              )}
+            </div>
+
+            {/* reCAPTCHA */}
+            <div>
+              <label className="mb-3 flex items-center text-sm font-medium text-slate-700">
+                <div className="w-5 h-5 bg-red-100 rounded-md flex items-center justify-center mr-2">
+                  <ShieldCheckIcon className="h-3 w-3 text-red-600" />
+                </div>
+                Security Verification
+              </label>
+              <div className="flex justify-center">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={RECAPTCHA_SITE_KEY||""}
+                  onChange={handleRecaptchaChange}
+                  theme="light"
+                  size="normal"
+                />
+              </div>
+              {errors.recaptcha && (
                 <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-red-600 rounded-full"></div>
-                  <span>{errors.password}</span>
+                  <span>{errors.recaptcha}</span>
                 </p>
               )}
             </div>
 
+            {/* Error Message */}
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                <p className="text-sm text-red-700 flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="text-sm text-red-700 flex items-center space-x-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
                   <span>{errorMessage}</span>
-                </p>
+                </div>
               </div>
             )}
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -179,7 +223,6 @@ export default function Login() {
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
           </div>
 
-          {/* Social Login */}
           <SocialLogIn />
 
           {/* Footer */}
