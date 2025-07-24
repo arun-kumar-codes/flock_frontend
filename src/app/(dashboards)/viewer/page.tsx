@@ -18,11 +18,13 @@ import {
   SendIcon,
   CalendarIcon,
   AlertCircleIcon,
+  EditIcon,
+  CheckIcon,
 } from "lucide-react"
 import Image from "next/image"
 import profileImg from "@/assets/profile.png"
-import { getBlog } from "@/api/content"
-import { useSelector, UseSelector } from "react-redux"
+import { getBlog, toggleBlogLike, editComments, addComment } from "@/api/content"
+import { useSelector } from "react-redux"
 import Loader from "@/components/Loader"
 
 interface ViewerData {
@@ -41,15 +43,24 @@ interface Author {
   username: string
 }
 
+interface Commenter {
+  email: string
+  id: number
+  role: string
+  username: string
+}
+
 interface Comment {
   id: number
-  author: string
-  content: string
-  created_at: string
-  avatar: string
+  blog_id: number
+  comment: string
+  commented_at: string
+  commented_by: number
+  commenter: Commenter
 }
 
 interface Blog {
+  is_liked: boolean
   id: number
   title: string
   content: string
@@ -60,7 +71,9 @@ interface Blog {
   comments_count: number
   liked_by: number[]
   likes: number
-  image?: string // Added image property
+  image?: string
+  archived: boolean
+  status: string
   // UI-specific fields
   excerpt?: string
   thumbnail?: string
@@ -68,7 +81,6 @@ interface Blog {
   readTime?: string
   category?: string
   isFavorite?: boolean
-  isLiked?: boolean
   publishedAt?: string
 }
 
@@ -86,7 +98,7 @@ interface ApiResponse {
 
 export default function ViewerDashboard() {
   const router = useRouter()
-  const base_url="http://116.202.210.102:5055/"
+  const base_url = "http://116.202.210.102:5055/"
   const [viewerData, setViewerData] = useState<ViewerData>({
     email: "viewer@example.com",
     username: "John Viewer",
@@ -95,7 +107,6 @@ export default function ViewerDashboard() {
     joinedAt: "2024-01-15",
     role: "Viewer",
   })
-
   const [recentBlogs, setRecentBlogs] = useState<Blog[]>([])
   const [favorites, setFavorites] = useState<Blog[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -109,38 +120,29 @@ export default function ViewerDashboard() {
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null)
   const [newComment, setNewComment] = useState("")
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
-  // const [pagination, setPagination] = useState({
-  //   has_next: false,
-  //   has_prev: false,
-  //   page: 1,
-  //   pages: 1,
-  //   per_page: 10,
-  //   total: 0,
-  // })
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+  const [editCommentText, setEditCommentText] = useState("")
+  const [isEditingComment, setIsEditingComment] = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const contentMenuRef = useRef<HTMLDivElement>(null)
   const settingsModalRef = useRef<HTMLDivElement>(null)
   const blogModalRef = useRef<HTMLDivElement>(null)
 
-  const user=useSelector((state:any)=> state.user)
+  const user = useSelector((state: any) => state.user)
 
   useEffect(() => {
-    if (!user || !user.role) return; // Wait until user is available
-
-    const role = user.role.toLowerCase();
-
+    if (!user || !user.role) return
+    const role = user.role.toLowerCase()
     if (role === "creator") {
-      router.push("/dashboard");
-      return;
+      router.push("/dashboard")
+      return
     } else if (role === "admin") {
-      router.push("/admin");
-      return;
+      router.push("/admin")
+      return
     }
-
-    setIsLoading(false); // Allow rendering if no redirect
-  }, [user, router]);
-
+    setIsLoading(false)
+  }, [user, router])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -165,28 +167,22 @@ export default function ViewerDashboard() {
 
   // Fetch blogs from API
   const fetchBlogs = async () => {
-    setIsLoading(true)
     setFetchError("")
     try {
       const response = await getBlog()
-      console.log("Fetch blogs response:", response) // Debug log
-
+      console.log("Fetch blogs response:", response)
       if (response?.data?.blogs) {
         const blogsWithUIFields = response.data.blogs.map((blog: Blog) => ({
           ...blog,
-          // Generate UI-specific fields
           excerpt: generateExcerpt(blog.content),
           thumbnail: "/placeholder.svg?height=200&width=300",
           readAt: new Date().toISOString().split("T")[0],
           readTime: calculateReadTime(blog.content),
           category: blog.author.role === "Creator" ? "Programming" : "General",
-          isFavorite: false, // You can implement favorite logic based on user preferences
-          isLiked: false, // You can check if current user ID is in liked_by array
+          isFavorite: false,
           publishedAt: blog.created_at,
         }))
-
         setRecentBlogs(blogsWithUIFields)
-        // setPagination(response.data.pagination)
       } else {
         console.error("Unexpected response structure:", response)
         setFetchError("Failed to fetch blogs - unexpected response structure")
@@ -199,14 +195,11 @@ export default function ViewerDashboard() {
     }
   }
 
-  // Helper function to generate excerpt from content
   const generateExcerpt = (content: string, maxLength = 150): string => {
-    // Remove HTML tags if any
     const textContent = content.replace(/<[^>]*>/g, "")
     return textContent.length > maxLength ? textContent.substring(0, maxLength) + "..." : textContent
   }
 
-  // Helper function to calculate read time
   const calculateReadTime = (content: string): string => {
     const wordsPerMinute = 200
     const wordCount = content.split(/\s+/).length
@@ -219,7 +212,6 @@ export default function ViewerDashboard() {
   }, [])
 
   useEffect(() => {
-    // Filter favorites from recent blogs
     setFavorites(recentBlogs.filter((blog) => blog.isFavorite))
   }, [recentBlogs])
 
@@ -236,31 +228,18 @@ export default function ViewerDashboard() {
     )
   }
 
-  const toggleLike = (blogId: number) => {
-    // TODO: Implement API call to like/unlike blog
-    setRecentBlogs((prev) =>
-      prev.map((blog) =>
-        blog.id === blogId
-          ? {
-              ...blog,
-              isLiked: !blog.isLiked,
-              likes: blog.isLiked ? blog.likes - 1 : blog.likes + 1,
-            }
-          : blog,
-      ),
-    )
-
-    // Update selected blog if it's currently open
-    if (selectedBlog && selectedBlog.id === blogId) {
-      setSelectedBlog((prev) =>
-        prev
-          ? {
-              ...prev,
-              isLiked: !prev.isLiked,
-              likes: prev.isLiked ? prev.likes - 1 : prev.likes + 1,
-            }
-          : null,
-      )
+  const toggleLike = async (blogId: number) => {
+    try {
+      const response = await toggleBlogLike(blogId)
+      if (response.status === 200) {
+        console.log("Blog like toggled successfully")
+        // Refresh blogs to get updated like status
+        fetchBlogs()
+      } else {
+        console.error("Error toggling blog like:", response.data)
+      }
+    } catch (error) {
+      console.error("Error toggling blog like:", error)
     }
   }
 
@@ -289,51 +268,75 @@ export default function ViewerDashboard() {
     if (!newComment.trim() || !selectedBlog) return
 
     setIsSubmittingComment(true)
-
     try {
-      // TODO: Implement API call to add comment
-      // Simulate API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await addComment(selectedBlog.id, newComment.trim())
 
-      const comment: Comment = {
-        id: Date.now(),
-        author: viewerData.username,
-        content: newComment,
-        created_at: new Date().toISOString(),
-        avatar: "/placeholder.svg?height=32&width=32",
+      if (response.status === 200 || response.status === 201) {
+        console.log("Comment added successfully")
+        // Refresh blogs to get updated comments
+        await fetchBlogs()
+
+        // Update selected blog with new comment data
+        const updatedBlogs = await getBlog()
+        const updatedBlog = updatedBlogs.data.blogs.find((blog: Blog) => blog.id === selectedBlog.id)
+        if (updatedBlog) {
+          setSelectedBlog(updatedBlog)
+        }
+
+        setNewComment("")
+      } else {
+        console.error("Error adding comment:", response.data)
+        alert("Failed to add comment. Please try again.")
       }
-
-      // Update the blog in the main list
-      setRecentBlogs((prev) =>
-        prev.map((blog) =>
-          blog.id === selectedBlog.id
-            ? {
-                ...blog,
-                comments: [...blog.comments, comment],
-                comments_count: blog.comments_count + 1,
-              }
-            : blog,
-        ),
-      )
-
-      // Update the selected blog
-      setSelectedBlog((prev) =>
-        prev
-          ? {
-              ...prev,
-              comments: [...prev.comments, comment],
-              comments_count: prev.comments_count + 1,
-            }
-          : null,
-      )
-
-      setNewComment("")
     } catch (error) {
       console.error("Error adding comment:", error)
-      // Handle error - show toast or error message
+      alert("Failed to add comment. Please try again.")
     } finally {
       setIsSubmittingComment(false)
     }
+  }
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id)
+    setEditCommentText(comment.comment)
+  }
+
+  const handleSaveEditComment = async (commentId: number) => {
+    if (!editCommentText.trim()) return
+
+    setIsEditingComment(true)
+    try {
+      const response = await editComments(commentId, editCommentText.trim())
+
+      if (response.status === 200) {
+        console.log("Comment updated successfully")
+        // Refresh blogs to get updated comments
+        await fetchBlogs()
+
+        // Update selected blog with updated comment data
+        const updatedBlogs = await getBlog()
+        const updatedBlog = updatedBlogs.data.blogs.find((blog: Blog) => blog.id === selectedBlog?.id)
+        if (updatedBlog) {
+          setSelectedBlog(updatedBlog)
+        }
+
+        setEditingCommentId(null)
+        setEditCommentText("")
+      } else {
+        console.error("Error updating comment:", response.data)
+        alert("Failed to update comment. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error updating comment:", error)
+      alert("Failed to update comment. Please try again.")
+    } finally {
+      setIsEditingComment(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null)
+    setEditCommentText("")
   }
 
   const filteredBlogs = recentBlogs.filter((blog) => {
@@ -358,7 +361,6 @@ export default function ViewerDashboard() {
 
   const categories = ["all", ...Array.from(new Set(recentBlogs.map((blog) => blog.category).filter(Boolean)))]
 
-  // Format date helper
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -367,9 +369,8 @@ export default function ViewerDashboard() {
     })
   }
 
-  
   if (isLoading) {
-    return <Loader />;
+    return <Loader />
   }
 
   if (isLoading && recentBlogs.length === 0) {
@@ -550,7 +551,7 @@ export default function ViewerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Articles Available</p>
-                {/* <p className="text-2xl font-bold text-slate-800">{pagination.total}</p> */}
+                <p className="text-2xl font-bold text-slate-800">{recentBlogs.length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <BookOpenIcon className="w-6 h-6 text-blue-600" />
@@ -636,7 +637,7 @@ export default function ViewerDashboard() {
                     <div className="md:flex">
                       <div className="md:w-1/3">
                         <Image
-                          src={base_url+blog.image}
+                          src={blog.image ? base_url + blog.image : "/placeholder.svg?height=200&width=300"}
                           alt={blog.title}
                           width={300}
                           height={200}
@@ -685,7 +686,6 @@ export default function ViewerDashboard() {
                             )}
                           </div>
                         </div>
-
                         <div className="flex items-center justify-between text-sm text-slate-500 mb-3">
                           <div className="flex items-center space-x-4">
                             <span>by {blog.author.username}</span>
@@ -699,7 +699,6 @@ export default function ViewerDashboard() {
                             </span>
                           </div>
                         </div>
-
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
@@ -707,7 +706,6 @@ export default function ViewerDashboard() {
                             </span>
                             {blog.isFavorite && <HeartIcon className="w-4 h-4 text-red-500 fill-current" />}
                           </div>
-
                           <div className="flex items-center space-x-4 text-sm text-slate-500">
                             <button
                               onClick={(e) => {
@@ -715,10 +713,10 @@ export default function ViewerDashboard() {
                                 toggleLike(blog.id)
                               }}
                               className={`flex items-center space-x-1 hover:text-blue-600 transition-colors ${
-                                blog.isLiked ? "text-blue-600" : ""
+                                blog.is_liked ? "text-blue-600" : ""
                               }`}
                             >
-                              <ThumbsUpIcon className={`w-4 h-4 ${blog.isLiked ? "fill-current" : ""}`} />
+                              <ThumbsUpIcon className={`w-4 h-4 ${blog.is_liked ? "fill-current" : ""}`} />
                               <span>{blog.likes}</span>
                             </button>
                             <div className="flex items-center space-x-1">
@@ -830,16 +828,25 @@ export default function ViewerDashboard() {
                 </button>
               </div>
             </div>
-
             {/* Modal Content - Scrollable */}
             <div className="flex-1 overflow-y-auto">
+              {/* Blog Image */}
+              {selectedBlog.image && (
+                <div className="p-6 border-b border-slate-200">
+                  <Image
+                    src={base_url + selectedBlog.image || "/placeholder.svg"}
+                    alt={selectedBlog.title}
+                    width={800}
+                    className="w-full  object-cover rounded-lg"
+                  />
+                </div>
+              )}
               {/* Blog Content */}
               <div className="p-6 border-b border-slate-200">
                 <div className="prose prose-slate max-w-none">
                   <div className="whitespace-pre-wrap text-slate-700 leading-relaxed">{selectedBlog.content}</div>
                 </div>
               </div>
-
               {/* Engagement Section */}
               <div className="p-6 border-b border-slate-200">
                 <div className="flex items-center justify-between">
@@ -847,12 +854,12 @@ export default function ViewerDashboard() {
                     <button
                       onClick={() => toggleLike(selectedBlog.id)}
                       className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                        selectedBlog.isLiked
+                        selectedBlog.is_liked
                           ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
-                      <ThumbsUpIcon className={`w-5 h-5 ${selectedBlog.isLiked ? "fill-current" : ""}`} />
+                      <ThumbsUpIcon className={`w-5 h-5 ${selectedBlog.is_liked ? "fill-current" : ""}`} />
                       <span>{selectedBlog.likes} Likes</span>
                     </button>
                     <button
@@ -869,21 +876,17 @@ export default function ViewerDashboard() {
                   </div>
                 </div>
               </div>
-
               {/* Comments Section */}
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-slate-800 mb-4">Comments ({selectedBlog.comments_count})</h3>
-
                 {/* Add Comment Form */}
                 <form onSubmit={handleCommentSubmit} className="mb-6">
                   <div className="flex space-x-3">
-                    {/* <Image
+                    <Image
                       src={profileImg || "/placeholder.svg"}
                       alt="Your avatar"
-                      width={40}
-                      height={10}
-                      className="rounded-full flex-shrink-0"
-                    /> */}
+                      className="rounded-full w-10 h-10 flex-shrink-0"
+                    />
                     <div className="flex-1">
                       <textarea
                         value={newComment}
@@ -914,31 +917,75 @@ export default function ViewerDashboard() {
                     </div>
                   </div>
                 </form>
-
                 {/* Comments List */}
                 <div className="space-y-4">
                   {selectedBlog.comments.map((comment) => (
                     <div key={comment.id} className="flex space-x-3">
                       <Image
-                        src={comment.avatar || "/placeholder.svg"}
-                        alt={comment.author}
-                        width={32}
-                        height={32}
-                        className="rounded-full flex-shrink-0"
+                        src={profileImg || "/placeholder.svg"}
+                        alt={comment.commenter.username}
+
+                        className="rounded-full w-10 h-10 flex-shrink-0"
                       />
                       <div className="flex-1">
                         <div className="bg-slate-50 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-medium text-slate-800 text-sm">{comment.author}</span>
-                            <span className="text-xs text-slate-500">{formatDate(comment.created_at)}</span>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-slate-800 text-sm">{comment.commenter.username}</span>
+                              <span className="text-xs text-slate-500">{formatDate(comment.commented_at)}</span>
+                            </div>
+                            {/* Show edit button only for user's own comments */}
+                            {user && comment.commented_by === user.id && (
+                              <button
+                                onClick={() => handleEditComment(comment)}
+                                className="p-1 hover:bg-slate-200 rounded transition-colors"
+                              >
+                                <EditIcon className="w-3 h-3 text-slate-500" />
+                              </button>
+                            )}
                           </div>
-                          <p className="text-slate-700 text-sm">{comment.content}</p>
+                          {editingCommentId === comment.id ? (
+                            <div className="space-y-2">
+                              <textarea
+                                value={editCommentText}
+                                onChange={(e) => setEditCommentText(e.target.value)}
+                                className="w-full p-2 border border-slate-300 rounded text-sm resize-none"
+                                rows={2}
+                              />
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleSaveEditComment(comment.id)}
+                                  disabled={isEditingComment || !editCommentText.trim()}
+                                  className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-1"
+                                >
+                                  {isEditingComment ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                      <span>Saving...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckIcon className="w-3 h-3" />
+                                      <span>Save</span>
+                                    </>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={handleCancelEdit}
+                                  className="px-3 py-1 bg-slate-300 text-slate-700 rounded text-xs hover:bg-slate-400 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-slate-700 text-sm">{comment.comment}</p>
+                          )}
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-
                 {selectedBlog.comments.length === 0 && (
                   <div className="text-center py-8">
                     <MessageCircleIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
