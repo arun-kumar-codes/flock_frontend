@@ -1,6 +1,7 @@
 "use client"
-
 import { useState, useEffect, useRef } from "react"
+import type React from "react"
+
 import Image from "next/image"
 import { getVideoByStatus, deleteVideo } from "@/api/content"
 import {
@@ -12,10 +13,21 @@ import {
   EyeIcon,
   MoreVerticalIcon,
   TrashIcon,
-  UserIcon,
   CalendarIcon,
   XIcon,
   PlayIcon,
+  FilterIcon,
+  RefreshCwIcon,
+  BarChart3Icon,
+  ClockIcon,
+  CheckCircleIcon,
+  PlusIcon,
+  DownloadIcon,
+  EditIcon,
+  PauseIcon,
+  Volume2Icon,
+  VolumeXIcon,
+  MaximizeIcon,
 } from "lucide-react"
 
 interface Commenter {
@@ -67,7 +79,7 @@ interface Video {
 
 const IMAGE_BASE_URL = "http://116.202.210.102:5055/"
 
-export default function VideosPage() {
+export default function AdminVideosPage() {
   const [videos, setVideos] = useState<Video[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -78,12 +90,20 @@ export default function VideosPage() {
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState("")
-  const [showViewModal, setShowViewModal] = useState(false)
+  const [showVideoModal, setShowVideoModal] = useState(false)
   const [videoToView, setVideoToView] = useState<Video | null>(null)
+
+  // Video player states
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(1)
 
   const deleteModalRef = useRef<HTMLDivElement>(null)
   const actionMenuRef = useRef<HTMLDivElement>(null)
-  const viewModalRef = useRef<HTMLDivElement>(null)
+  const videoModalRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     fetchVideos()
@@ -94,17 +114,23 @@ export default function VideosPage() {
       if (deleteModalRef.current && !deleteModalRef.current.contains(event.target as Node) && showDeleteModal) {
         setShowDeleteModal(false)
       }
-      if (viewModalRef.current && !viewModalRef.current.contains(event.target as Node) && showViewModal) {
-        setShowViewModal(false)
+      if (videoModalRef.current && !videoModalRef.current.contains(event.target as Node) && showVideoModal) {
+        setShowVideoModal(false)
       }
       if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
         setShowActionMenu(null)
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showDeleteModal, showViewModal])
+  }, [showDeleteModal, showVideoModal])
+
+  // Initialize video when component mounts
+  useEffect(() => {
+    if (videoRef.current && videoToView?.video) {
+      videoRef.current.load()
+    }
+  }, [videoToView?.video])
 
   const fetchVideos = async () => {
     setIsLoading(true)
@@ -168,10 +194,14 @@ export default function VideosPage() {
     setDeleteError("")
   }
 
-  const handleViewClick = (video: Video) => {
+  const handleVideoDoubleClick = (video: Video) => {
     setVideoToView(video)
-    setShowViewModal(true)
+    setShowVideoModal(true)
     setShowActionMenu(null)
+    // Reset video player states
+    setIsPlaying(false)
+    setCurrentTime(0)
+    setDuration(0)
   }
 
   const getImageUrl = (imagePath: string) => {
@@ -192,6 +222,84 @@ export default function VideosPage() {
     })
   }
 
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00"
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`
+  }
+
+  // Video player functions
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play().catch((error) => {
+          console.error("Error playing video:", error)
+        })
+      }
+    }
+  }
+
+  const handleVideoPlay = () => {
+    setIsPlaying(true)
+  }
+
+  const handleVideoPause = () => {
+    setIsPlaying(false)
+  }
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime)
+    }
+  }
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration)
+      videoRef.current.volume = volume
+    }
+  }
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = Number.parseFloat(e.target.value)
+    if (videoRef.current && !isNaN(time)) {
+      videoRef.current.currentTime = time
+      setCurrentTime(time)
+    }
+  }
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = Number.parseFloat(e.target.value)
+    setVolume(newVolume)
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume
+    }
+    setIsMuted(newVolume === 0)
+  }
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      if (isMuted) {
+        videoRef.current.volume = volume
+        setIsMuted(false)
+      } else {
+        videoRef.current.volume = 0
+        setIsMuted(true)
+      }
+    }
+  }
+
+  const handleFullscreen = () => {
+    if (videoRef.current) {
+      if (videoRef.current.requestFullscreen) {
+        videoRef.current.requestFullscreen()
+      }
+    }
+  }
+
   const filteredVideos = videos.filter((video) => {
     const matchesSearch =
       video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -202,482 +310,713 @@ export default function VideosPage() {
   })
 
   const authors = ["all", ...Array.from(new Set(videos.map((video) => video.creator.username)))]
+
   const totalVideos = videos.length
   const totalLikes = videos.reduce((sum, video) => sum + video.likes, 0)
   const totalComments = videos.reduce((sum, video) => sum + video.comments_count, 0)
   const totalViews = videos.reduce((sum, video) => sum + (video.views || 0), 0)
+  const totalDuration = videos.reduce((sum, video) => sum + (video.duration || 0), 0)
+
+  // Format total duration
+  const formatTotalDuration = () => {
+    const hours = Math.floor(totalDuration / 3600)
+    const minutes = Math.floor((totalDuration % 3600) / 60)
+    return `${hours}h ${minutes}m`
+  }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-800 mb-2">Video Management</h2>
-        <p className="text-slate-600">Manage published videos and content</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-600 to-purple-600 rounded-2xl mb-6 shadow-lg">
+            <VideoIcon className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-red-800 to-purple-900 bg-clip-text text-transparent mb-4">
+            Video Management
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Monitor and manage all video content across the platform
+          </p>
+        </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600">Total Videos</p>
-              <p className="text-2xl font-bold text-slate-800">{totalVideos}</p>
-            </div>
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <VideoIcon className="w-6 h-6 text-red-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600">Total Views</p>
-              <p className="text-2xl font-bold text-slate-800">{totalViews}</p>
-            </div>
-            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <EyeIcon className="w-6 h-6 text-indigo-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600">Total Likes</p>
-              <p className="text-2xl font-bold text-slate-800">{totalLikes}</p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <ThumbsUpIcon className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-600">Total Comments</p>
-              <p className="text-2xl font-bold text-slate-800">{totalComments}</p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <MessageCircleIcon className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <AlertCircleIcon className="w-5 h-5 text-red-600" />
-            <p className="text-red-800">{error}</p>
-            <button
-              onClick={fetchVideos}
-              className="ml-auto px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-            >
-              Retry
+        {/* Quick Actions */}
+        {/* <div className="flex justify-center mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <button className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-purple-600 text-white rounded-2xl hover:from-red-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium">
+              <PlusIcon className="w-5 h-5 mr-2" />
+              Add New Video
+            </button>
+            <button className="inline-flex items-center px-6 py-3 bg-white text-gray-700 rounded-2xl hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl font-medium border border-gray-200">
+              <BarChart3Icon className="w-5 h-5 mr-2" />
+              Analytics Dashboard
+            </button>
+            <button className="inline-flex items-center px-6 py-3 bg-white text-gray-700 rounded-2xl hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl font-medium border border-gray-200">
+              <DownloadIcon className="w-5 h-5 mr-2" />
+              Export Data
             </button>
           </div>
-        </div>
-      )}
+        </div> */}
 
-      {/* Video Management */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h3 className="text-xl font-semibold text-slate-800">Published Videos</h3>
-            <button
-              onClick={fetchVideos}
-              disabled={isLoading}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? "Refreshing..." : "Refresh Videos"}
-            </button>
-          </div>
-
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search videos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              />
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+          <div className="group relative overflow-hidden bg-white backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <VideoIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-gray-900">{totalVideos}</div>
+                  <div className="text-sm font-medium text-red-600">Total Videos</div>
+                </div>
+              </div>
             </div>
-            <select
-              value={filterAuthor}
-              onChange={(e) => setFilterAuthor(e.target.value)}
-              className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            >
-              {authors.map((author) => (
-                <option key={author} value={author}>
-                  {author === "all" ? "All Authors" : author}
-                </option>
-              ))}
-            </select>
+          </div>
+          <div className="group relative overflow-hidden bg-white backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <EyeIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-gray-900">{totalViews.toLocaleString()}</div>
+                  <div className="text-sm font-medium text-indigo-600">Total Views</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="group relative overflow-hidden bg-white backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <ThumbsUpIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-gray-900">{totalLikes.toLocaleString()}</div>
+                  <div className="text-sm font-medium text-purple-600">Total Likes</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="group relative overflow-hidden bg-white backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <MessageCircleIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-gray-900">{totalComments.toLocaleString()}</div>
+                  <div className="text-sm font-medium text-green-600">Total Comments</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="group relative overflow-hidden bg-white backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <ClockIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-gray-900">{formatTotalDuration()}</div>
+                  <div className="text-sm font-medium text-amber-600">Total Duration</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="p-6">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-4"></div>
-              <p className="text-slate-600">Loading videos...</p>
+        {/* Error Message */}
+        {error && (
+          <div className="mb-8 p-6 bg-red-50/80 backdrop-blur-sm border border-red-200/50 rounded-2xl shadow-lg">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertCircleIcon className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-red-800 font-medium">{error}</p>
+              </div>
+              <button
+                onClick={fetchVideos}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+              >
+                Retry
+              </button>
             </div>
-          ) : filteredVideos.length > 0 ? (
-            <div className="space-y-4">
-              {filteredVideos.map((video) => (
-                <div
-                  key={video.id}
-                  className="flex items-start justify-between p-4 border border-slate-200 rounded-lg hover:border-red-300 hover:shadow-sm transition-all duration-200"
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="bg-white backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-8 border-b border-gray-200/50">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Published Videos</h2>
+                <p className="text-gray-600">
+                  Manage and monitor all published video content. Double-click any video to view details.
+                </p>
+              </div>
+              <button
+                onClick={fetchVideos}
+                disabled={isLoading}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-purple-600 text-white rounded-2xl hover:from-red-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-xl font-medium"
+              >
+                <RefreshCwIcon className={`w-5 h-5 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                {isLoading ? "Refreshing..." : "Refresh Videos"}
+              </button>
+            </div>
+            {/* Search and Filter */}
+            <div className="flex flex-col lg:flex-row gap-4 mt-8">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search videos by title, description, or creator..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 bg-white/80 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+                />
+              </div>
+              <div className="relative">
+                <FilterIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <select
+                  value={filterAuthor}
+                  onChange={(e) => setFilterAuthor(e.target.value)}
+                  className="pl-12 pr-8 py-4 bg-white/80 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 min-w-[200px]"
                 >
-                  <div className="flex space-x-4 flex-1">
-                    {video.thumbnail && (
-                      <div className="flex-shrink-0 relative">
-                        <Image
-                          src={getImageUrl(video.thumbnail) || "/placeholder.svg"}
-                          alt={video.title}
-                          width={120}
-                          height={80}
-                          className="rounded-lg object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-                          <PlayIcon className="w-8 h-8 text-white" />
-                        </div>
-                        {video.duration_formatted && (
-                          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                            {video.duration_formatted}
+                  {authors.map((author) => (
+                    <option key={author} value={author}>
+                      {author === "all" ? "All Creators" : author}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8">
+            {isLoading ? (
+              <div className="text-center py-20">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-600 to-purple-600 rounded-2xl mb-6 animate-pulse">
+                  <VideoIcon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Loading videos...</h3>
+                <p className="text-gray-600">Please wait while we fetch the video content</p>
+              </div>
+            ) : filteredVideos.length > 0 ? (
+              <div className="grid gap-8">
+                {filteredVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 hover:shadow-2xl hover:border-red-200 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                    onDoubleClick={() => handleVideoDoubleClick(video)}
+                  >
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      {/* Thumbnail */}
+                      {video.thumbnail && (
+                        <div className="lg:w-64 lg:h-36 w-full h-48 flex-shrink-0 relative overflow-hidden rounded-xl shadow-md">
+                          <Image
+                            src={getImageUrl(video.thumbnail) || "/placeholder.svg"}
+                            alt={video.title}
+                            width={256}
+                            height={144}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-center">
+                            <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
+                              <PlayIcon className="w-6 h-6 text-white" />
+                            </div>
                           </div>
-                        )}
+                          {video.duration_formatted && (
+                            <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded">
+                              {video.duration_formatted}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
+                              {video.title}
+                            </h3>
+                            <p className="text-gray-600 leading-relaxed mb-4 line-clamp-2">
+                              {generateExcerpt(video.description, 180)}
+                            </p>
+                          </div>
+
+                          {/* Action Menu */}
+                          <div className="relative ml-4">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowActionMenu(showActionMenu === video.id.toString() ? null : video.id.toString())
+                              }}
+                              className="p-2 hover:bg-gray-100 rounded-xl transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              <MoreVerticalIcon className="w-5 h-5 text-gray-500" />
+                            </button>
+                            {showActionMenu === video.id.toString() && (
+                              <div
+                                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-20"
+                                ref={actionMenuRef}
+                              >
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    /* Add edit functionality */
+                                  }}
+                                  className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                                >
+                                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                                    <EditIcon className="w-4 h-4 text-amber-600" />
+                                  </div>
+                                  <span className="font-medium text-gray-900">Edit Video</span>
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDeleteClick(video)
+                                  }}
+                                  className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-red-50 transition-colors"
+                                >
+                                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <TrashIcon className="w-4 h-4 text-red-600" />
+                                  </div>
+                                  <span className="font-medium text-red-600">Delete Video</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Meta Info */}
+                        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <span className="text-white font-semibold text-xs">
+                                {video.creator.username.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="font-medium">by {video.creator.username}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <CalendarIcon className="w-4 h-4" />
+                            <span>{formatDate(video.created_at)}</span>
+                          </div>
+                          <div className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            ID: {video.id}
+                          </div>
+                          <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex items-center">
+                            <CheckCircleIcon className="w-3 h-3 mr-1" />
+                            Published
+                          </div>
+                        </div>
+
+                        {/* Engagement Stats */}
+                        <div className="flex flex-wrap items-center gap-4">
+                          <div className="flex items-center space-x-2 px-3 py-2 bg-indigo-50 rounded-xl">
+                            <EyeIcon className="w-4 h-4 text-indigo-500" />
+                            <span className="text-sm font-medium text-indigo-700">{video.views || 0} views</span>
+                          </div>
+                          <div className="flex items-center space-x-2 px-3 py-2 bg-purple-50 rounded-xl">
+                            <ThumbsUpIcon className="w-4 h-4 text-purple-500" />
+                            <span className="text-sm font-medium text-purple-700">{video.likes} likes</span>
+                          </div>
+                          <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 rounded-xl">
+                            <MessageCircleIcon className="w-4 h-4 text-green-500" />
+                            <span className="text-sm font-medium text-green-700">{video.comments_count} comments</span>
+                          </div>
+                          <div className="flex items-center space-x-2 px-3 py-2 bg-amber-50 rounded-xl">
+                            <ClockIcon className="w-4 h-4 text-amber-500" />
+                            <span className="text-sm font-medium text-amber-700">{video.duration_formatted}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-2xl mb-6">
+                  <VideoIcon className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">No videos found</h3>
+                <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                  {searchTerm || filterAuthor !== "all"
+                    ? "Try adjusting your search criteria or filters to find what you're looking for"
+                    : "No published videos are available at the moment."}
+                </p>
+                {(searchTerm || filterAuthor !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm("")
+                      setFilterAuthor("all")
+                    }}
+                    className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Delete Modal */}
+        {showDeleteModal && videoToDelete && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+            <div
+              ref={deleteModalRef}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg transform transition-all duration-200 overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 p-8 border-b border-red-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                      <AlertCircleIcon className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">Delete Video</h3>
+                      <p className="text-red-600 text-sm">This action cannot be undone</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(false)
+                      setVideoToDelete(null)
+                      setDeleteError("")
+                    }}
+                    className="p-2 hover:bg-red-100 rounded-xl transition-colors"
+                  >
+                    <XIcon className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-8">
+                <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+                  <div className="flex items-start space-x-4">
+                    {videoToDelete.thumbnail && (
+                      <div className="w-24 h-16 relative flex-shrink-0 rounded-lg overflow-hidden">
+                        <Image
+                          src={getImageUrl(videoToDelete.thumbnail) || "/placeholder.svg"}
+                          alt={videoToDelete.title}
+                          width={96}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <PlayIcon className="w-6 h-6 text-white" />
+                        </div>
                       </div>
                     )}
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="font-semibold text-slate-800 text-lg">{video.title}</h4>
-                      </div>
-                      <p className="text-slate-600 text-sm mb-3 line-clamp-2">
-                        {generateExcerpt(video.description, 150)}
-                      </p>
-                      <div className="flex items-center space-x-6 text-sm text-slate-500 mb-2">
-                        <span className="flex items-center space-x-1">
-                          <UserIcon className="w-4 h-4" />
-                          <span>by {video.creator.username}</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <CalendarIcon className="w-4 h-4" />
-                          <span>{formatDate(video.created_at)}</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-4 text-xs text-slate-500">
-                        <span className="flex items-center space-x-1">
-                          <EyeIcon className="w-3 h-3" />
-                          <span>{video.views || 0} views</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <ThumbsUpIcon className="w-3 h-3" />
-                          <span>{video.likes} likes</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <MessageCircleIcon className="w-3 h-3" />
-                          <span>{video.comments_count} comments</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <span>ID: {video.id}</span>
-                        </span>
+                      <h4 className="font-bold text-gray-900 mb-2">{videoToDelete.title}</h4>
+                      <p className="text-gray-600 text-sm mb-2">{generateExcerpt(videoToDelete.description, 100)}</p>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span>by {videoToDelete.creator.username}</span>
+                        <span>{formatDate(videoToDelete.created_at)}</span>
+                        <span>{videoToDelete.views || 0} views</span>
+                        <span>{videoToDelete.likes} likes</span>
+                        <span>{videoToDelete.comments_count} comments</span>
                       </div>
                     </div>
                   </div>
-                  <div className="relative ml-4" >
-                    <button
-                      onClick={() =>
-                        setShowActionMenu(showActionMenu === video.id.toString() ? null : video.id.toString())
-                      }
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    >
-                      <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
-                    </button>
-                    {showActionMenu === video.id.toString() && (
-                      <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20" ref={actionMenuRef}>
-                        <button
-                          onClick={() => handleViewClick(video)}
-                          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
-                        >
-                          <EyeIcon className="w-4 h-4" />
-                          <span>View Video</span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(video)}
-                          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                          <span>Delete Video</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <VideoIcon className="w-8 h-8 text-slate-400" />
-              </div>
-              <h3 className="text-lg font-medium text-slate-800 mb-2">No videos found</h3>
-              <p className="text-slate-600 mb-4">
-                {searchTerm || filterAuthor !== "all"
-                  ? "Try adjusting your search or filter criteria"
-                  : "No videos available at the moment"}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Delete Video Modal */}
-      {showDeleteModal && videoToDelete && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-          <div
-            ref={deleteModalRef}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200"
-          >
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-800">Confirm Video Deletion</h3>
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false)
-                    setVideoToDelete(null)
-                    setDeleteError("")
-                  }}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <XIcon className="w-5 h-5 text-slate-500" />
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertCircleIcon className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-slate-800">Delete Video</h4>
-                  <p className="text-slate-600 text-sm">This action cannot be undone</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-50 rounded-lg p-4 mb-6">
-                <div>
-                  <p className="font-medium text-slate-800 mb-1">{videoToDelete.title}</p>
-                  <p className="text-sm text-slate-600 mb-2">{generateExcerpt(videoToDelete.description, 100)}</p>
-                  <div className="flex items-center space-x-4 text-xs text-slate-500">
-                    <span>by {videoToDelete.creator.username}</span>
-                    <span>{formatDate(videoToDelete.created_at)}</span>
-                    <span>{videoToDelete.views || 0} views</span>
-                    <span>{videoToDelete.likes} likes</span>
-                    <span>{videoToDelete.comments_count} comments</span>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-slate-600 text-sm mb-6">
-                Are you sure you want to delete <strong>"{videoToDelete.title}"</strong>? This will permanently remove
-                the video and all associated data including comments and likes.
-              </p>
-
-              {deleteError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <AlertCircleIcon className="w-4 h-4 text-red-600" />
-                    <p className="text-red-800 text-sm">{deleteError}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDeleteModal(false)
-                    setVideoToDelete(null)
-                    setDeleteError("")
-                  }}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteVideo(videoToDelete.id)}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {isDeleting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <TrashIcon className="w-4 h-4 mr-2" />
-                      Delete Video
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* View Video Modal */}
-      {showViewModal && videoToView && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-          <div
-            ref={viewModalRef}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden transform transition-all duration-200"
-          >
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-800">Video Details</h3>
-                <button
-                  onClick={() => {
-                    setShowViewModal(false)
-                    setVideoToView(null)
-                  }}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <XIcon className="w-5 h-5 text-slate-500" />
-                </button>
-              </div>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {/* Video Header */}
-              <div className="mb-6">
-                {videoToView.thumbnail && (
-                  <div className="mb-4 relative">
-                    <Image
-                      src={getImageUrl(videoToView.thumbnail) || "/placeholder.svg"}
-                      alt={videoToView.title}
-                      width={800}
-                      height={450}
-                      className="w-full h-64 object-cover rounded-lg"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-                      <PlayIcon className="w-16 h-16 text-white" />
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  Are you sure you want to delete <strong>"{videoToDelete.title}"</strong>? This will permanently remove
+                  the video and all associated data including comments and likes.
+                </p>
+                {deleteError && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircleIcon className="w-4 h-4 text-red-600" />
+                      <p className="text-red-800 text-sm">{deleteError}</p>
                     </div>
-                    {videoToView.duration_formatted && (
-                      <div className="absolute bottom-4 right-4 bg-black/80 text-white text-sm px-3 py-1 rounded">
-                        {videoToView.duration_formatted}
-                      </div>
-                    )}
                   </div>
                 )}
-                <h1 className="text-3xl font-bold text-slate-800 mb-4">{videoToView.title}</h1>
-                <div className="flex items-center space-x-6 text-sm text-slate-500 mb-4">
-                  <span className="flex items-center space-x-2">
-                    <UserIcon className="w-4 h-4" />
-                    <span>by {videoToView.creator.username}</span>
-                  </span>
-                  <span className="flex items-center space-x-2">
-                    <CalendarIcon className="w-4 h-4" />
-                    <span>{formatDate(videoToView.created_at)}</span>
-                  </span>
-                </div>
-                <div className="flex items-center space-x-6 text-sm text-slate-600">
-                  <span className="flex items-center space-x-1">
-                    <EyeIcon className="w-4 h-4" />
-                    <span>{videoToView.views || 0} views</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <ThumbsUpIcon className="w-4 h-4" />
-                    <span>{videoToView.likes} likes</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <MessageCircleIcon className="w-4 h-4" />
-                    <span>{videoToView.comments_count} comments</span>
-                  </span>
-                  <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                    ID: {videoToView.id}
-                  </span>
-                </div>
-              </div>
-
-              {/* Video Description */}
-              <div className="mb-8">
-                <h4 className="font-semibold text-slate-800 mb-3">Description</h4>
-                <div className="prose prose-slate max-w-none">
-                  <p className="text-slate-700 leading-relaxed">{videoToView.description}</p>
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteModal(false)
+                      setVideoToDelete(null)
+                      setDeleteError("")
+                    }}
+                    disabled={isDeleting}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl hover:bg-gray-50 transition-colors disabled:opacity-50 font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleDeleteVideo(videoToDelete.id)}
+                    disabled={isDeleting}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-2xl hover:from-red-700 hover:to-red-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium shadow-lg"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <TrashIcon className="w-4 h-4 mr-2" />
+                        Delete Video
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
-
-              {/* Creator Info */}
-              <div className="mb-8 p-4 bg-slate-50 rounded-lg">
-                <h4 className="font-semibold text-slate-800 mb-2">About the Creator</h4>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">
-                      {videoToView.creator.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-800">{videoToView.creator.username}</p>
-                    <p className="text-sm text-slate-600">{videoToView.creator.email}</p>
-                    <span className="inline-block px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium mt-1">
-                      {videoToView.creator.role}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comments Section */}
-              {videoToView.comments && videoToView.comments.length > 0 && (
-                <div className="mt-8">
-                  <h4 className="font-semibold text-slate-800 mb-4 flex items-center space-x-2">
-                    <MessageCircleIcon className="w-5 h-5" />
-                    <span>Comments ({videoToView.comments_count})</span>
-                  </h4>
-                  <div className="space-y-4 max-h-64 overflow-y-auto">
-                    {videoToView.comments
-                      .sort((a, b) => new Date(b.commented_at).getTime() - new Date(a.commented_at).getTime())
-                      .map((comment) => (
-                        <div key={comment.id} className="bg-white border border-slate-200 rounded-lg p-4">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-white font-semibold text-xs">
-                                {comment.commenter.username.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <span className="font-medium text-slate-800 text-sm">{comment.commenter.username}</span>
-                                <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
-                                  {comment.commenter.role}
-                                </span>
-                                <span className="text-xs text-slate-500">{formatDate(comment.commented_at)}</span>
-                              </div>
-                              <p className="text-slate-700 text-sm leading-relaxed">{comment.comment}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-
-              {/* No Comments State */}
-              {(!videoToView.comments || videoToView.comments.length === 0) && (
-                <div className="mt-8 p-6 bg-slate-50 rounded-lg text-center">
-                  <MessageCircleIcon className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                  <p className="text-slate-600 text-sm">No comments yet</p>
-                </div>
-              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Video Modal */}
+        {showVideoModal && videoToView && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+            <div
+              ref={videoModalRef}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden transform transition-all duration-200"
+            >
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-8 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 pr-4">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{videoToView.title}</h2>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span>by {videoToView.creator.username}</span>
+                      <span className="flex items-center space-x-1">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span>{formatDate(videoToView.created_at)}</span>
+                      </span>
+                      <span className="flex items-center space-x-1">
+                        <EyeIcon className="w-4 h-4" />
+                        <span>{videoToView.views || 0} views</span>
+                      </span>
+                      <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">Admin View</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowVideoModal(false)
+                      setVideoToView(null)
+                      setIsPlaying(false)
+                    }}
+                    className="p-2 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0"
+                  >
+                    <XIcon className="w-6 h-6 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+                {/* Video Player */}
+                <div className="mb-8">
+                  <div className="relative bg-black rounded-2xl overflow-hidden">
+                    <video
+                      ref={videoRef}
+                      className="w-full aspect-video object-contain"
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onPlay={handleVideoPlay}
+                      onPause={handleVideoPause}
+                      poster={videoToView.thumbnail}
+                      preload="metadata"
+                      crossOrigin="anonymous"
+                    >
+                      <source src={videoToView.video} type="video/mp4" />
+                      <source src={videoToView.video} type="video/webm" />
+                      <source src={videoToView.video} type="video/ogg" />
+                      Your browser does not support the video tag.
+                    </video>
+
+                    {/* Video Controls */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={handlePlayPause}
+                          className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                        >
+                          {isPlaying ? (
+                            <PauseIcon className="w-5 h-5 text-white" />
+                          ) : (
+                            <PlayIcon className="w-5 h-5 text-white" />
+                          )}
+                        </button>
+
+                        <div className="flex-1 flex items-center space-x-2">
+                          <span className="text-white text-sm min-w-[40px]">{formatTime(currentTime)}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max={duration || 0}
+                            value={currentTime}
+                            onChange={handleSeek}
+                            className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                            style={{
+                              background: `linear-gradient(to right, #ffffff ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 1)) * 100}%)`,
+                            }}
+                          />
+                          <span className="text-white text-sm min-w-[40px]">{formatTime(duration)}</span>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <button onClick={toggleMute} className="p-1 hover:bg-white/20 rounded transition-colors">
+                            {isMuted ? (
+                              <VolumeXIcon className="w-4 h-4 text-white" />
+                            ) : (
+                              <Volume2Icon className="w-4 h-4 text-white" />
+                            )}
+                          </button>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={isMuted ? 0 : volume}
+                            onChange={handleVolumeChange}
+                            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <button
+                            onClick={handleFullscreen}
+                            className="p-1 hover:bg-white/20 rounded transition-colors"
+                          >
+                            <MaximizeIcon className="w-4 h-4 text-white" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Video Description */}
+                <div className="mb-8">
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Description</h4>
+                  <div className="prose prose-lg prose-slate max-w-none bg-gray-50 p-6 rounded-2xl">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{videoToView.description}</p>
+                  </div>
+                </div>
+
+                {/* Video Details */}
+                <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <h4 className="font-semibold text-gray-900 mb-4">Video Information</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Format:</span>
+                        <span className="font-medium text-gray-900">{videoToView.format || "Unknown"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Duration:</span>
+                        <span className="font-medium text-gray-900">{videoToView.duration_formatted}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Status:</span>
+                        <span className="font-medium text-green-600">Published</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Archived:</span>
+                        <span className="font-medium text-gray-900">{videoToView.archived ? "Yes" : "No"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <h4 className="font-semibold text-gray-900 mb-4">Creator Information</h4>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <span className="text-white font-bold">
+                          {videoToView.creator.username.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{videoToView.creator.username}</p>
+                        <p className="text-gray-600">{videoToView.creator.email}</p>
+                        <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium mt-2">
+                          {videoToView.creator.role}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comments Section */}
+                {videoToView.comments && videoToView.comments.length > 0 ? (
+                  <div>
+                    <h4 className="text-xl font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+                      <MessageCircleIcon className="w-5 h-5" />
+                      <span>Comments ({videoToView.comments_count})</span>
+                    </h4>
+                    <div className="space-y-4 max-h-80 overflow-y-auto">
+                      {videoToView.comments
+                        .sort((a, b) => new Date(b.commented_at).getTime() - new Date(a.commented_at).getTime())
+                        .map((comment) => (
+                          <div key={comment.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <div className="flex items-start space-x-4">
+                              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white font-semibold text-sm">
+                                  {comment.commenter.username.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <span className="font-semibold text-gray-900">{comment.commenter.username}</span>
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                                    {comment.commenter.role}
+                                  </span>
+                                  <span className="text-xs text-gray-500">{formatDate(comment.commented_at)}</span>
+                                </div>
+                                <p className="text-gray-700 leading-relaxed">{comment.comment}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-2xl">
+                    <MessageCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h4 className="font-semibold text-gray-900 mb-2">No comments yet</h4>
+                    <p className="text-gray-600">This video has not received any comments.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <style jsx>{`
+              .slider::-webkit-slider-thumb {
+                appearance: none;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: #ffffff;
+                cursor: pointer;
+                border: 2px solid #ffffff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              }
+
+              .slider::-moz-range-thumb {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: #ffffff;
+                cursor: pointer;
+                border: 2px solid #ffffff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              }
+            `}</style>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

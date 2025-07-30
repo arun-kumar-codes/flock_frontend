@@ -1,7 +1,5 @@
 "use client"
-
 import type React from "react"
-
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { archiveBlog, createBlog, getMyBlog, sendForApproval, unarchiveBlog, updateBlog } from "@/api/content"
@@ -27,6 +25,8 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
+import TipTapEditor from "@/components/tiptap-editor"
+import TipTapContentDisplay from "@/components/tiptap-content-display"
 
 interface UserData {
   email: string
@@ -149,6 +149,7 @@ export default function BlogsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editFileInputRef = useRef<HTMLInputElement>(null)
   const viewModalRef = useRef<HTMLDivElement>(null)
+
   const user = useSelector((state: any) => state.user)
 
   useEffect(() => {
@@ -337,6 +338,7 @@ export default function BlogsPage() {
             views: Math.floor(Math.random() * 1000),
             category: blog.author?.role === "Creator" ? "Programming" : "General",
           }))
+
         setUserData((prev) => ({
           ...prev,
           content: userBlogs,
@@ -472,13 +474,6 @@ export default function BlogsPage() {
     }
   }
 
-  // const getImageUrl = (imagePath: string | null | undefined): string | null => {
-  //   if (!imagePath) return null
-  //   if (imagePath.startsWith("static")) return `http://116.202.210.102:5055/${imagePath}`
-  //   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
-  //   return `${baseUrl}/${imagePath}`
-  // }
-
   // Enhanced edit blog handler
   const handleEditBlog = (blog: Blog) => {
     console.log("Edit blog clicked:", blog.id)
@@ -501,7 +496,7 @@ export default function BlogsPage() {
     setEditBlogForm(editData)
     setOriginalEditData(editData) // Store original data for comparison
 
-    const imageUrl =blog.image
+    const imageUrl = blog.image
     if (imageUrl) {
       setEditImagePreview(imageUrl)
     } else {
@@ -611,7 +606,6 @@ export default function BlogsPage() {
         }))
 
         setUpdateSuccess("Blog updated successfully!")
-
         setTimeout(() => {
           setShowEditModal(false)
           setUpdateSuccess("")
@@ -674,7 +668,6 @@ export default function BlogsPage() {
       const formData = new FormData()
       formData.append("title", blogForm.title.trim())
       formData.append("content", blogForm.content.trim())
-
       if (blogForm.image) {
         formData.append("image", blogForm.image)
       }
@@ -718,7 +711,6 @@ export default function BlogsPage() {
       ...prev,
       [field]: value,
     }))
-
     if (createError) {
       setCreateError("")
     }
@@ -729,7 +721,6 @@ export default function BlogsPage() {
       ...prev,
       [field]: value,
     }))
-
     if (updateError) {
       setUpdateError("")
     }
@@ -794,6 +785,7 @@ export default function BlogsPage() {
   // Filter content based on active tab and search/filter criteria
   const getFilteredContent = () => {
     const sourceBlogs = activeTab === "active" ? activeBlogs : archivedBlogs
+
     return sourceBlogs.filter((item) => {
       const matchesSearch =
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -805,6 +797,7 @@ export default function BlogsPage() {
 
       // For active tab, also apply status filter
       const matchesFilter = filterStatus === "all" || item.status === filterStatus
+
       return matchesSearch && matchesFilter
     })
   }
@@ -868,6 +861,7 @@ export default function BlogsPage() {
               </div>
             </div>
           </div>
+
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
@@ -881,6 +875,7 @@ export default function BlogsPage() {
               </div>
             </div>
           </div>
+
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
@@ -894,6 +889,7 @@ export default function BlogsPage() {
               </div>
             </div>
           </div>
+
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
@@ -971,7 +967,6 @@ export default function BlogsPage() {
                   className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
-            
             </div>
           </div>
 
@@ -988,7 +983,7 @@ export default function BlogsPage() {
                       {item.image && (
                         <div className="flex-shrink-0">
                           <Image
-                            src={item.image}
+                            src={item.image || "/placeholder.svg"}
                             alt={item.title}
                             width={80}
                             height={60}
@@ -996,7 +991,13 @@ export default function BlogsPage() {
                           />
                         </div>
                       )}
-                      <div className="flex-1">
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleViewBlog(item)
+                        }}
+                      >
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="font-semibold text-slate-800">{item.title}</h4>
                           <span
@@ -1009,7 +1010,6 @@ export default function BlogsPage() {
                             <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
                           </span>
                         </div>
-                        <p className="text-slate-600 text-sm mb-2">{item.description}</p>
                         <div className="flex items-center space-x-4 text-xs text-slate-500">
                           <span className="flex items-center space-x-1">
                             <CalendarIcon className="w-3 h-3" />
@@ -1186,7 +1186,7 @@ export default function BlogsPage() {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div
               ref={createModalRef}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
             >
               {/* Modal Header */}
               <div className="p-6 border-b border-slate-200 flex-shrink-0">
@@ -1210,7 +1210,6 @@ export default function BlogsPage() {
                   </button>
                 </div>
               </div>
-
               {/* Modal Content - Scrollable */}
               <div className="flex-1 overflow-y-auto">
                 <form onSubmit={handleCreateBlog} className="p-6">
@@ -1223,7 +1222,6 @@ export default function BlogsPage() {
                       </div>
                     </div>
                   )}
-
                   {/* Error Message */}
                   {createError && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1233,7 +1231,6 @@ export default function BlogsPage() {
                       </div>
                     </div>
                   )}
-
                   <div className="space-y-6">
                     {/* Title */}
                     <div>
@@ -1251,7 +1248,6 @@ export default function BlogsPage() {
                       />
                       <p className="text-xs text-slate-500 mt-1">{blogForm.title.length}/200 characters</p>
                     </div>
-
                     {/* Image Upload */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Blog Image (Optional)</label>
@@ -1274,7 +1270,6 @@ export default function BlogsPage() {
                           </button>
                         </div>
                       )}
-
                       {/* Upload Area */}
                       {!imagePreview && (
                         <div
@@ -1300,7 +1295,7 @@ export default function BlogsPage() {
                                 </button>{" "}
                                 or drag and drop
                               </p>
-                              <p className="text-xs text-slate-500">PNG, JPG, GIF, WebP up to 5MB</p>
+                              <p className="text-xs text-slate-500">PNG, JPG,JPEG, GIF, WebP up to 5MB</p>
                             </div>
                           </div>
                           <input
@@ -1312,7 +1307,6 @@ export default function BlogsPage() {
                           />
                         </div>
                       )}
-
                       {/* Image Error */}
                       {imageError && (
                         <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
@@ -1320,27 +1314,20 @@ export default function BlogsPage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Content */}
+                    {/* Content - TipTap Editor */}
                     <div>
-                      <label htmlFor="content" className="block text-sm font-medium text-slate-700 mb-2">
-                        Blog Content *
-                      </label>
-                      <textarea
-                        id="content"
-                        value={blogForm.content}
-                        onChange={(e) => handleFormChange("content", e.target.value)}
-                        className="w-full px-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                        placeholder="Write your blog content here..."
-                        rows={12}
-                        minLength={10}
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Blog Content *</label>
+                      <TipTapEditor
+                        content={blogForm.content}
+                        onChange={(content) => handleFormChange("content", content)}
+                        placeholder="Start writing your blog content..."
+                        className="min-h-[300px]"
                       />
                       <p className="text-xs text-slate-500 mt-1">
-                        {blogForm.content.length} characters (minimum 10 required)
+                        {blogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
                       </p>
                     </div>
                   </div>
-
                   {/* Form Actions */}
                   <div className="flex space-x-3 mt-8 pt-6 border-t border-slate-200">
                     <button
@@ -1384,12 +1371,13 @@ export default function BlogsPage() {
             </div>
           </div>
         )}
+
         {/* Edit Blog Modal */}
         {showEditModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div
               ref={editModalRef}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
             >
               {/* Modal Header */}
               <div className="p-6 border-b border-slate-200 flex-shrink-0">
@@ -1422,7 +1410,6 @@ export default function BlogsPage() {
                   </button>
                 </div>
               </div>
-
               {/* Modal Content - Scrollable */}
               <div className="flex-1 overflow-y-auto">
                 <form onSubmit={handleUpdateBlog} className="p-6">
@@ -1435,7 +1422,6 @@ export default function BlogsPage() {
                       </div>
                     </div>
                   )}
-
                   {/* Error Message */}
                   {updateError && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1445,7 +1431,6 @@ export default function BlogsPage() {
                       </div>
                     </div>
                   )}
-
                   <div className="space-y-6">
                     {/* Title */}
                     <div>
@@ -1463,11 +1448,9 @@ export default function BlogsPage() {
                       />
                       <p className="text-xs text-slate-500 mt-1">{editBlogForm.title.length}/200 characters</p>
                     </div>
-
                     {/* Image Upload */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Blog Image (Optional)</label>
-
                       {/* Current/Preview Image */}
                       {editImagePreview && !removeExistingImage && (
                         <div className="mb-4 relative">
@@ -1487,7 +1470,6 @@ export default function BlogsPage() {
                           </button>
                         </div>
                       )}
-
                       {/* Upload Area */}
                       {(!editImagePreview || removeExistingImage) && (
                         <div
@@ -1527,7 +1509,6 @@ export default function BlogsPage() {
                           />
                         </div>
                       )}
-
                       {/* Image Error */}
                       {imageError && (
                         <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
@@ -1535,30 +1516,20 @@ export default function BlogsPage() {
                         </div>
                       )}
                     </div>
-
-
-                 
-
-                    {/* Content */}
+                    {/* Content - TipTap Editor */}
                     <div>
-                      <label htmlFor="edit-content" className="block text-sm font-medium text-slate-700 mb-2">
-                        Blog Content *
-                      </label>
-                      <textarea
-                        id="edit-content"
-                        value={editBlogForm.content}
-                        onChange={(e) => handleEditFormChange("content", e.target.value)}
-                        className="w-full px-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                        placeholder="Write your blog content here..."
-                        rows={12}
-                        minLength={10}
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Blog Content *</label>
+                      <TipTapEditor
+                        content={editBlogForm.content}
+                        onChange={(content) => handleEditFormChange("content", content)}
+                        placeholder="Edit your blog content..."
+                        className="min-h-[300px]"
                       />
                       <p className="text-xs text-slate-500 mt-1">
-                        {editBlogForm.content.length} characters (minimum 10 required)
+                        {editBlogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
                       </p>
                     </div>
                   </div>
-
                   {/* Form Actions */}
                   <div className="flex space-x-3 mt-8 pt-6 border-t border-slate-200">
                     <button
@@ -1611,6 +1582,7 @@ export default function BlogsPage() {
             </div>
           </div>
         )}
+
         {/* View Blog Modal */}
         {showViewModal && viewBlog && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -1633,7 +1605,6 @@ export default function BlogsPage() {
                   </button>
                 </div>
               </div>
-
               {/* Modal Content - Scrollable */}
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="space-y-6">
@@ -1641,7 +1612,7 @@ export default function BlogsPage() {
                   {viewBlog.image && (
                     <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden">
                       <Image
-                        src={viewBlog.image}
+                        src={viewBlog.image || "/placeholder.svg"}
                         alt={viewBlog.title}
                         width={800}
                         height={400}
@@ -1649,7 +1620,6 @@ export default function BlogsPage() {
                       />
                     </div>
                   )}
-
                   {/* Blog Info */}
                   <div>
                     <h4 className="text-3xl font-bold text-slate-800 mb-4">{viewBlog.title}</h4>
@@ -1681,7 +1651,6 @@ export default function BlogsPage() {
                       </span>
                     </div>
                   </div>
-
                   {/* Author Info */}
                   <div className="border-t border-slate-200 pt-6 mb-6">
                     <div className="flex items-center space-x-3">
@@ -1697,19 +1666,13 @@ export default function BlogsPage() {
                       </div>
                     </div>
                   </div>
-
                   {/* Blog Content */}
-                  <div className="prose max-w-none">
-                    <div
-                      className="text-slate-700 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: viewBlog.content }}
-                    />
+                  <div className="max-w-none">
+                    <TipTapContentDisplay content={viewBlog.content} className="text-slate-700" />
                   </div>
-
                   {/* Comments Section */}
                   <div className="border-t border-slate-200 pt-6">
                     <h5 className="text-lg font-semibold text-slate-800 mb-4">Comments ({viewBlog.comments_count})</h5>
-
                     {viewBlog.comments && viewBlog.comments.length > 0 ? (
                       <div className="space-y-4">
                         {viewBlog.comments.map((comment: any, index: number) => (
@@ -1752,7 +1715,6 @@ export default function BlogsPage() {
                       </div>
                     )}
                   </div>
-
                   {/* Blog Stats */}
                   <div className="border-t border-slate-200 pt-6">
                     <div className="grid grid-cols-3 gap-4 text-center">

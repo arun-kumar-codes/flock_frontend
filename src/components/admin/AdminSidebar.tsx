@@ -2,8 +2,20 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { UsersIcon, FileTextIcon, VideoIcon, ClockIcon, BarChart3Icon, HomeIcon, LayersIcon } from "lucide-react"
-import { useSelector } from "react-redux"
+import img from "@/assets/profile.png"
+import {
+  UsersIcon,
+  FileTextIcon,
+  VideoIcon,
+  ClockIcon,
+  BarChart3Icon,
+  HomeIcon,
+  LayersIcon,
+  LogOutIcon,
+} from "lucide-react"
+import { useSelector, useDispatch } from "react-redux"
+import { logOut } from "@/slice/userSlice"
+import Image from "next/image"
 
 const navigationItems = [
   { name: "Dashboard", href: "/admin", icon: HomeIcon },
@@ -11,13 +23,18 @@ const navigationItems = [
   { name: "Blogs", href: "/admin/blogs", icon: FileTextIcon },
   { name: "Videos", href: "/admin/videos", icon: VideoIcon },
   { name: "Pending", href: "/admin/pending", icon: ClockIcon },
-  { name: "Analytics", href: "/admin/analytics", icon: BarChart3Icon },
+  // { name: "Analytics", href: "/admin/analytics", icon: BarChart3Icon },
 ]
 
 export default function AdminSidebar() {
   const pathname = usePathname()
   const [isExpanded, setIsExpanded] = useState(false)
   const user = useSelector((state: any) => state.user)
+  const dispatch = useDispatch()
+
+  const handleLogout = () => {
+    dispatch(logOut())
+  }
 
   return (
     <div
@@ -78,26 +95,40 @@ export default function AdminSidebar() {
 
       {/* User Profile Footer */}
       <div className="p-3 border-t border-gray-200 relative group">
-        <div className="flex items-center min-w-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-            <img
-              src="/placeholder.svg?height=32&width=32"
-              alt="Admin Avatar"
-              className="w-full h-full rounded-full object-cover"
-            />
-          </div>
-          {isExpanded && (
-            <div className="ml-3 min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-700 truncate">Administrator</p>
-              <p className="text-xs text-gray-500 truncate">admin@flock.com</p>
+        <div className="flex items-center justify-between min-w-0">
+          <div className="flex items-center min-w-0 flex-1">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <Image
+                src={img}                alt="Admin Avatar"
+                className="w-full h-full rounded-full object-cover"
+              />
             </div>
-          )}
+            {isExpanded && (
+              <div className="ml-3 min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-700 truncate">Administrator</p>
+                <p className="text-xs text-gray-500 truncate">admin@flock.com</p>
+              </div>
+            )}
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className={`flex items-center justify-center transition-colors duration-200 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-md ${
+              isExpanded ? "w-8 h-8 ml-2" : "w-8 h-8"
+            }`}
+            title="Logout"
+          >
+            <LogOutIcon className="w-4 h-4" />
+          </button>
         </div>
+
         {/* Tooltip for user info when collapsed */}
         {!isExpanded && (
           <div className="absolute left-full ml-2 px-3 py-2 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 bottom-3">
             <div className="font-medium">Administrator</div>
             <div className="text-xs opacity-75">admin@flock.com</div>
+            <div className="text-xs opacity-75 mt-1 pt-1 border-t border-gray-600">Click logout icon to sign out</div>
           </div>
         )}
       </div>

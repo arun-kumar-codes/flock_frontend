@@ -4,7 +4,6 @@ import type React from "react"
 import { useRouter } from "next/navigation"
 import { useDispatch } from "react-redux"
 import { logOut } from "@/slice/userSlice"
-import profileImage from "@/assets/profile.png"
 import {
   PlusIcon,
   SearchIcon,
@@ -14,7 +13,6 @@ import {
   CalendarIcon,
   VideoIcon,
   TrendingUpIcon,
-  UserIcon,
   XIcon,
   SaveIcon,
   AlertCircleIcon,
@@ -26,6 +24,10 @@ import {
   ClockIcon,
   RefreshCwIcon,
   PlayIcon,
+  PauseIcon,
+  Volume2Icon,
+  VolumeXIcon,
+  MaximizeIcon,
   UploadIcon,
 } from "lucide-react"
 import Image from "next/image"
@@ -41,6 +43,8 @@ import {
   addVideoComment,
   editVideoComment,
 } from "@/api/content"
+import TipTapEditor from "@/components/tiptap-editor"
+import TipTapContentDisplay from "@/components/tiptap-content-display"
 
 interface UserData {
   email: string
@@ -91,6 +95,9 @@ interface Video {
   views?: number
   category?: string
   duration?: string
+  video?: string
+  duration_formatted?: string
+  format?: string
 }
 
 interface CreateVideoData {
@@ -107,6 +114,8 @@ interface EditVideoData extends CreateVideoData {
   existingVideoUrl?: string
   existingThumbnailUrl?: string
 }
+
+const IMAGE_BASE_URL = "http://116.202.210.102:5055/"
 
 export default function VideoDashboard() {
   const router = useRouter()
@@ -135,6 +144,13 @@ export default function VideoDashboard() {
   const [fetchError, setFetchError] = useState("")
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewVideo, setViewVideo] = useState<Video | null>(null)
+
+  // Video player states
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(1)
 
   // Loading states for different actions
   const [loadingActions, setLoadingActions] = useState<{ [key: string]: boolean }>({})
@@ -209,8 +225,33 @@ export default function VideoDashboard() {
   const editVideoInputRef = useRef<HTMLInputElement>(null)
   const editThumbnailInputRef = useRef<HTMLInputElement>(null)
   const viewModalRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const user = useSelector((state: any) => state.user)
+
+  // Helper function to strip HTML tags and convert to plain text
+  const stripHtmlTags = (html: string): string => {
+    if (!html) return ""
+    // Create a temporary div element to parse HTML
+    const tempDiv = document.createElement("div")
+    tempDiv.innerHTML = html
+    // Get text content and clean up extra whitespace
+    const textContent = tempDiv.textContent || tempDiv.innerText || ""
+    // Replace multiple whitespace characters with single space and trim
+    return textContent.replace(/\s+/g, " ").trim()
+  }
+
+  // Helper function to truncate text to specified length
+  const truncateText = (text: string, maxLength = 150): string => {
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength).trim() + "..."
+  }
+
+  // Helper function to get plain text description for display in cards
+  const getPlainTextDescription = (description: string, maxLength = 150): string => {
+    const plainText = stripHtmlTags(description)
+    return truncateText(plainText, maxLength)
+  }
 
   useEffect(() => {
     if (user.role.toLowerCase() === "admin") {
@@ -244,6 +285,13 @@ export default function VideoDashboard() {
     }
   }, [showCreateModal, showEditModal, showViewModal])
 
+  // Initialize video when component mounts
+  useEffect(() => {
+    if (videoRef.current && viewVideo?.video) {
+      videoRef.current.load()
+    }
+  }, [viewVideo?.video])
+
   // Helper function to set loading state for specific actions
   const setActionLoading = (videoId: number, action: string, loading: boolean) => {
     setLoadingActions((prev) => ({
@@ -262,41 +310,113 @@ export default function VideoDashboard() {
     return video.archived === true
   }
 
-  // Enhanced video URL function with better error handling
+  // Simplified video URL function - just return the URL as-is since full URLs are coming from API
   const getVideoUrl = (videoPath: string | null | undefined): string | null => {
-    if (!videoPath) return null
-
-    // Handle different URL formats
-    if (videoPath.startsWith("http://") || videoPath.startsWith("https://")) {
-      return videoPath
+    console.log("getVideoUrl called with:", videoPath)
+    if (!videoPath) {
+      console.log("No video path provided")
+      return null
     }
-
-    if (videoPath.startsWith("static")) {
-      return `http://116.202.210.102:5055/${videoPath}`
-    }
-
-    // Remove leading slash if present to avoid double slashes
-    const cleanPath = videoPath.startsWith("/") ? videoPath.slice(1) : videoPath
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
-    return `${baseUrl}/${cleanPath}`
+    // Since full URLs are coming from the API, just return them directly
+    console.log("Returning video URL:", videoPath)
+    return videoPath
   }
 
   const getThumbnailUrl = (thumbnailPath: string | null | undefined): string | null => {
     if (!thumbnailPath) return null
+    // Since full URLs are coming from the API, just return them directly
+    return thumbnailPath
+  }
 
-    // Handle different URL formats
-    if (thumbnailPath.startsWith("http://") || thumbnailPath.startsWith("https://")) {
-      return thumbnailPath
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return null
+    return imagePath.startsWith("http") ? imagePath : `${IMAGE_BASE_URL}${imagePath}`
+  }
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00"
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  // Video player functions
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play().catch((error) => {
+          console.error("Error playing video:", error)
+        })
+      }
     }
+  }
 
-    if (thumbnailPath.startsWith("static")) {
-      return `http://116.202.210.102:5055/${thumbnailPath}`
+  const handleVideoPlay = () => {
+    setIsPlaying(true)
+  }
+
+  const handleVideoPause = () => {
+    setIsPlaying(false)
+  }
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime)
     }
+  }
 
-    // Remove leading slash if present to avoid double slashes
-    const cleanPath = thumbnailPath.startsWith("/") ? thumbnailPath.slice(1) : thumbnailPath
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
-    return `${baseUrl}/${cleanPath}`
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration)
+      videoRef.current.volume = volume
+    }
+  }
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = Number.parseFloat(e.target.value)
+    if (videoRef.current && !isNaN(time)) {
+      videoRef.current.currentTime = time
+      setCurrentTime(time)
+    }
+  }
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = Number.parseFloat(e.target.value)
+    setVolume(newVolume)
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume
+    }
+    setIsMuted(newVolume === 0)
+  }
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      if (isMuted) {
+        videoRef.current.volume = volume
+        setIsMuted(false)
+      } else {
+        videoRef.current.volume = 0
+        setIsMuted(true)
+      }
+    }
+  }
+
+  const handleFullscreen = () => {
+    if (videoRef.current) {
+      if (videoRef.current.requestFullscreen) {
+        videoRef.current.requestFullscreen()
+      }
+    }
   }
 
   // Video validation function
@@ -338,8 +458,10 @@ export default function VideoDashboard() {
       setVideoError(error)
       return
     }
+
     setVideoError("")
     setVideoForm((prev) => ({ ...prev, video: file }))
+
     const url = URL.createObjectURL(file)
     setVideoPreview(url)
   }
@@ -351,8 +473,10 @@ export default function VideoDashboard() {
       setThumbnailError(error)
       return
     }
+
     setThumbnailError("")
     setVideoForm((prev) => ({ ...prev, thumbnail: file }))
+
     const reader = new FileReader()
     reader.onload = (e) => {
       setThumbnailPreview(e.target?.result as string)
@@ -367,9 +491,11 @@ export default function VideoDashboard() {
       setVideoError(error)
       return
     }
+
     setVideoError("")
     setEditVideoForm((prev) => ({ ...prev, video: file }))
     setRemoveExistingVideo(false)
+
     const url = URL.createObjectURL(file)
     setEditVideoPreview(url)
   }
@@ -381,9 +507,11 @@ export default function VideoDashboard() {
       setThumbnailError(error)
       return
     }
+
     setThumbnailError("")
     setEditVideoForm((prev) => ({ ...prev, thumbnail: file }))
     setRemoveExistingThumbnail(false)
+
     const reader = new FileReader()
     reader.onload = (e) => {
       setEditThumbnailPreview(e.target?.result as string)
@@ -612,7 +740,6 @@ export default function VideoDashboard() {
       setFetchError("")
       const response = await getMyVideos()
       console.log("Fetch videos response:", response)
-
       if (response?.data?.videos) {
         const userVideos = response.data.videos
           .filter((video: Video) => video.created_by === user?.id || video.author?.id === user?.id)
@@ -775,6 +902,7 @@ export default function VideoDashboard() {
   // Enhanced edit video handler
   const handleEditVideo = (video: Video) => {
     console.log("Edit video clicked:", video.id)
+    console.log("Video data:", video) // Add this for debugging
     setShowActionMenu(null)
     setUpdateError("")
     setUpdateSuccess("")
@@ -791,16 +919,18 @@ export default function VideoDashboard() {
       category: video.category || "General",
       video: null,
       thumbnail: null,
-      existingVideoUrl: video.video_url || "",
+      existingVideoUrl: video.video_url || video.video || "",
       existingThumbnailUrl: video.thumbnail || "",
     }
 
     setEditVideoForm(editData)
     setOriginalEditData(editData) // Store original data for comparison
 
-    // Set video preview
-    const videoUrl = getVideoUrl(video.video_url)
-    console.log("Setting edit video preview:", videoUrl)
+    // Set video preview - try multiple possible video URL fields
+    const videoUrl = getVideoUrl(video.video_url || video.video)
+    console.log("Video URL from video.video_url:", video.video_url)
+    console.log("Video URL from video.video:", video.video)
+    console.log("Final video URL:", videoUrl)
     setEditVideoPreview(videoUrl)
 
     // Set thumbnail preview
@@ -831,6 +961,12 @@ export default function VideoDashboard() {
     setEditingCommentId(null)
     setEditCommentText("")
     setVideoLoadError({}) // Reset video load errors
+
+    // Reset video player states
+    setIsPlaying(false)
+    setCurrentTime(0)
+    setDuration(0)
+
     setShowViewModal(true)
   }
 
@@ -914,6 +1050,7 @@ export default function VideoDashboard() {
       }
 
       const response = await updateVideo(editVideoForm.id, formData)
+
       if (response?.status === 200 || response?.data) {
         const updatedVideo = {
           ...editVideoForm,
@@ -926,7 +1063,15 @@ export default function VideoDashboard() {
         setUserData((prev) => ({
           ...prev,
           videos:
-            prev.videos?.map((video) => (video.id === editVideoForm.id ? { ...video, ...updatedVideo } : video)) || [],
+            prev.videos?.map((video) =>
+              video.id === editVideoForm.id
+                ? {
+                    ...video,
+                    ...updatedVideo,
+                    video: typeof updatedVideo.video === "string" ? updatedVideo.video : undefined,
+                  }
+                : video,
+            ) || [],
         }))
 
         setUpdateSuccess("Video updated successfully!")
@@ -1142,7 +1287,7 @@ export default function VideoDashboard() {
     return sourceVideos.filter((item) => {
       const matchesSearch =
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        (item.description && getPlainTextDescription(item.description).toLowerCase().includes(searchTerm.toLowerCase()))
 
       if (activeTab === "archived") {
         return matchesSearch // For archived tab, just match search
@@ -1361,7 +1506,13 @@ export default function VideoDashboard() {
                           )}
                         </div>
                       )}
-                      <div className="flex-1">
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleViewVideo(item)
+                        }}
+                      >
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="font-semibold text-slate-800">{item.title}</h4>
                           <span
@@ -1374,7 +1525,6 @@ export default function VideoDashboard() {
                             <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
                           </span>
                         </div>
-                        <p className="text-slate-600 text-sm mb-2 line-clamp-2">{item.description}</p>
                         <div className="flex items-center space-x-4 text-xs text-slate-500">
                           <span className="flex items-center space-x-1">
                             <CalendarIcon className="w-3 h-3" />
@@ -1421,7 +1571,6 @@ export default function VideoDashboard() {
                               <span>View</span>
                             </button>
                           )}
-
                           {/* Edit button - show for non-archived videos */}
                           {!isArchived(item) &&
                             (item.status === "draft" ||
@@ -1438,7 +1587,6 @@ export default function VideoDashboard() {
                                 <span>Edit</span>
                               </button>
                             )}
-
                           {/* Send for Approval button - only for draft videos that are not archived */}
                           {!isArchived(item) && item.status === "draft" && (
                             <button
@@ -1457,7 +1605,6 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "approval") ? "Sending..." : "Send for Approval"}</span>
                             </button>
                           )}
-
                           {/* Publish button - only for approved videos that are not archived */}
                           {!isArchived(item) && item.status === "approved" && (
                             <button
@@ -1476,7 +1623,6 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
                             </button>
                           )}
-
                           {/* Archive button - only for non-archived videos */}
                           {!isArchived(item) && (
                             <button
@@ -1495,7 +1641,6 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
                             </button>
                           )}
-
                           {/* Unarchive button - only for archived videos */}
                           {isArchived(item) && (
                             <button
@@ -1587,7 +1732,6 @@ export default function VideoDashboard() {
                 </button>
               </div>
             </div>
-
             {/* Modal Content - Scrollable */}
             <div className="flex-1 overflow-y-auto">
               <form onSubmit={handleCreateVideo} className="p-6">
@@ -1600,7 +1744,6 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
-
                 {/* Error Message */}
                 {createError && (
                   <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -1610,7 +1753,6 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
-
                 <div className="space-y-6">
                   {/* Video Upload Section */}
                   <div>
@@ -1635,7 +1777,6 @@ export default function VideoDashboard() {
                         </button>
                       </div>
                     )}
-
                     {/* Video Upload Area */}
                     {!videoPreview && (
                       <div
@@ -1662,7 +1803,7 @@ export default function VideoDashboard() {
                               </button>{" "}
                               or drag and drop
                             </p>
-                            <p className="text-sm text-slate-500">MP4, WebM, OGG, AVI, MOV up to 500MB</p>
+                            <p className="text-sm text-slate-500">MP4, MOV up to 250 MB</p>
                           </div>
                         </div>
                         <input
@@ -1675,7 +1816,6 @@ export default function VideoDashboard() {
                         />
                       </div>
                     )}
-
                     {/* Video Error */}
                     {videoError && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1686,7 +1826,6 @@ export default function VideoDashboard() {
                       </div>
                     )}
                   </div>
-
                   {/* Thumbnail Upload Section */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-3">Thumbnail Image *</label>
@@ -1710,7 +1849,6 @@ export default function VideoDashboard() {
                         </button>
                       </div>
                     )}
-
                     {/* Thumbnail Upload Area */}
                     {!thumbnailPreview && (
                       <div
@@ -1752,7 +1890,6 @@ export default function VideoDashboard() {
                         />
                       </div>
                     )}
-
                     {/* Thumbnail Error */}
                     {thumbnailError && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1763,7 +1900,6 @@ export default function VideoDashboard() {
                       </div>
                     )}
                   </div>
-
                   {/* Title Input */}
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-2">
@@ -1786,34 +1922,28 @@ export default function VideoDashboard() {
                       )}
                     </div>
                   </div>
-
                   {/* Description Input */}
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
                       Video Description *
                     </label>
-                    <textarea
-                      id="description"
-                      value={videoForm.description}
-                      onChange={(e) => handleFormChange("description", e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-colors"
-                      placeholder="Describe your video..."
-                      rows={6}
-                      maxLength={1000}
-                      minLength={10}
-                      disabled={isCreating}
+                    <TipTapEditor
+                      content={videoForm.description}
+                      onChange={(content) => handleFormChange("description", content)}
+                      placeholder="Enter your video description..."
+                      className="min-h-[300px]"
                     />
                     <div className="flex justify-between items-center mt-1">
                       <p className="text-xs text-slate-500">
-                        {videoForm.description.length}/1000 characters (minimum 10 required)
+                        {stripHtmlTags(videoForm.description).length}/1000 characters (minimum 10 required)
                       </p>
-                      {videoForm.description.length < 10 && videoForm.description.length > 0 && (
-                        <p className="text-xs text-red-500">Minimum 10 characters required</p>
-                      )}
+                      {stripHtmlTags(videoForm.description).length < 10 &&
+                        stripHtmlTags(videoForm.description).length > 0 && (
+                          <p className="text-xs text-red-500">Minimum 10 characters required</p>
+                        )}
                     </div>
                   </div>
                 </div>
-
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-6 border-t border-slate-200">
                   <button
@@ -1846,7 +1976,7 @@ export default function VideoDashboard() {
                       !videoForm.title.trim() ||
                       videoForm.title.trim().length < 3 ||
                       !videoForm.description.trim() ||
-                      videoForm.description.trim().length < 10 ||
+                      stripHtmlTags(videoForm.description).length < 10 ||
                       !videoForm.video ||
                       !videoForm.thumbnail
                     }
@@ -1915,7 +2045,6 @@ export default function VideoDashboard() {
                 </button>
               </div>
             </div>
-
             {/* Modal Content - Scrollable */}
             <div className="flex-1 overflow-y-auto">
               <form onSubmit={handleUpdateVideo} className="p-6">
@@ -1928,7 +2057,6 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
-
                 {/* Error Message */}
                 {updateError && (
                   <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -1938,7 +2066,6 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
-
                 <div className="space-y-6">
                   {/* Title */}
                   <div>
@@ -1962,18 +2089,23 @@ export default function VideoDashboard() {
                       )}
                     </div>
                   </div>
-
                   {/* Video Upload */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Video File (Optional)</label>
                     {/* Current/Preview Video */}
-                    {editVideoPreview && !removeExistingVideo && (
+                    {editVideoPreview && !removeExistingVideo ? (
                       <div className="mb-4 relative group">
                         <video
                           src={editVideoPreview}
                           controls
                           className="w-full h-64 object-cover rounded-lg border border-slate-200"
-                          onError={() => handleVideoLoadError(`edit-${editVideoForm.id}`)}
+                          onError={() => {
+                            console.log("Video load error for:", editVideoPreview)
+                            handleVideoLoadError(`edit-${editVideoForm.id}`)
+                          }}
+                          onLoadStart={() => {
+                            console.log("Video load started for:", editVideoPreview)
+                          }}
                         >
                           Your browser does not support the video tag.
                         </video>
@@ -1982,6 +2114,7 @@ export default function VideoDashboard() {
                             <div className="text-center">
                               <AlertCircleIcon className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                               <p className="text-sm text-slate-500">Unable to load video preview</p>
+                              <p className="text-xs text-slate-400 mt-1">URL: {editVideoPreview}</p>
                             </div>
                           </div>
                         )}
@@ -2006,50 +2139,54 @@ export default function VideoDashboard() {
                           </div>
                         </div>
                       </div>
-                    )}
-
-                    {/* Upload Area */}
-                    {(!editVideoPreview || removeExistingVideo) && (
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                          isEditVideoDragOver
-                            ? "border-purple-500 bg-purple-50"
-                            : "border-slate-300 hover:border-slate-400"
-                        } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
-                        onDragOver={!isUpdating ? handleEditVideoDragOver : undefined}
-                        onDragLeave={!isUpdating ? handleEditVideoDragLeave : undefined}
-                        onDrop={!isUpdating ? handleEditVideoDrop : undefined}
-                      >
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
-                            <VideoIcon className="w-8 h-8 text-slate-400" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-600">
-                              <button
-                                type="button"
-                                onClick={() => !isUpdating && editVideoInputRef.current?.click()}
-                                className="text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                                disabled={isUpdating}
-                              >
-                                Click to upload
-                              </button>{" "}
-                              or drag and drop
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">MP4, WebM, OGG, AVI, MOV up to 500MB</p>
-                          </div>
+                    ) : (
+                      /* Show message if no video URL is available */
+                      <div className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <AlertCircleIcon className="w-5 h-5 text-slate-400" />
+                          <p className="text-slate-600">No video file available for preview</p>
                         </div>
-                        <input
-                          ref={editVideoInputRef}
-                          type="file"
-                          accept="video/*"
-                          onChange={handleEditVideoInputChange}
-                          className="hidden"
-                          disabled={isUpdating}
-                        />
                       </div>
                     )}
-
+                    {/* Upload Area */}
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                        isEditVideoDragOver
+                          ? "border-purple-500 bg-purple-50"
+                          : "border-slate-300 hover:border-slate-400"
+                      } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
+                      onDragOver={!isUpdating ? handleEditVideoDragOver : undefined}
+                      onDragLeave={!isUpdating ? handleEditVideoDragLeave : undefined}
+                      onDrop={!isUpdating ? handleEditVideoDrop : undefined}
+                    >
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
+                          <VideoIcon className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-600">
+                            <button
+                              type="button"
+                              onClick={() => !isUpdating && editVideoInputRef.current?.click()}
+                              className="text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                              disabled={isUpdating}
+                            >
+                              Click to upload
+                            </button>{" "}
+                            or drag and drop
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">MP4, WebM, OGG, AVI, MOV up to 500MB</p>
+                        </div>
+                      </div>
+                      <input
+                        ref={editVideoInputRef}
+                        type="file"
+                        accept="video/*"
+                        onChange={handleEditVideoInputChange}
+                        className="hidden"
+                        disabled={isUpdating}
+                      />
+                    </div>
                     {/* Video Error */}
                     {videoError && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -2060,7 +2197,6 @@ export default function VideoDashboard() {
                       </div>
                     )}
                   </div>
-
                   {/* Thumbnail Upload */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Thumbnail Image (Optional)</label>
@@ -2096,7 +2232,6 @@ export default function VideoDashboard() {
                         </div>
                       </div>
                     )}
-
                     {/* Upload Area */}
                     {(!editThumbnailPreview || removeExistingThumbnail) && (
                       <div
@@ -2138,7 +2273,6 @@ export default function VideoDashboard() {
                         />
                       </div>
                     )}
-
                     {/* Thumbnail Error */}
                     {thumbnailError && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -2149,34 +2283,28 @@ export default function VideoDashboard() {
                       </div>
                     )}
                   </div>
-
                   {/* Description */}
                   <div>
                     <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 mb-2">
                       Video Description *
                     </label>
-                    <textarea
-                      id="edit-description"
-                      value={editVideoForm.description}
-                      onChange={(e) => handleEditFormChange("description", e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-colors"
-                      placeholder="Describe your video..."
-                      rows={6}
-                      maxLength={1000}
-                      minLength={10}
-                      disabled={isUpdating}
+                    <TipTapEditor
+                      content={editVideoForm.description}
+                      onChange={(content) => handleEditFormChange("description", content)}
+                      placeholder="Edit your video description..."
+                      className="min-h-[300px]"
                     />
                     <div className="flex justify-between items-center mt-1">
                       <p className="text-xs text-slate-500">
-                        {editVideoForm.description.length}/1000 characters (minimum 10 required)
+                        {stripHtmlTags(editVideoForm.description).length}/1000 characters (minimum 10 required)
                       </p>
-                      {editVideoForm.description.length < 10 && editVideoForm.description.length > 0 && (
-                        <p className="text-xs text-red-500">Minimum 10 characters required</p>
-                      )}
+                      {stripHtmlTags(editVideoForm.description).length < 10 &&
+                        stripHtmlTags(editVideoForm.description).length > 0 && (
+                          <p className="text-xs text-red-500">Minimum 10 characters required</p>
+                        )}
                     </div>
                   </div>
                 </div>
-
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-8 pt-6 border-t border-slate-200">
                   <button
@@ -2210,7 +2338,7 @@ export default function VideoDashboard() {
                       !editVideoForm.title.trim() ||
                       editVideoForm.title.trim().length < 3 ||
                       !editVideoForm.description.trim() ||
-                      editVideoForm.description.trim().length < 10
+                      stripHtmlTags(editVideoForm.description).length < 10
                     }
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
@@ -2235,355 +2363,222 @@ export default function VideoDashboard() {
 
       {/* View Video Modal */}
       {showViewModal && viewVideo && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
           <div
             ref={viewModalRef}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden transform transition-all duration-200"
           >
-            {/* Modal Header */}
-            <div className="p-6 border-b border-slate-200 flex-shrink-0">
+            <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-8 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <h3 className="text-xl font-semibold text-slate-800">{viewVideo.title}</h3>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 ${getStatusColor(
-                      viewVideo.status || "draft",
-                      isArchived(viewVideo),
-                    )}`}
-                  >
-                    {getStatusIcon(viewVideo.status || "draft", isArchived(viewVideo))}
-                    <span>{getStatusText(viewVideo.status || "draft", isArchived(viewVideo))}</span>
-                  </span>
+                <div className="flex-1 pr-4">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{viewVideo.title}</h2>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>by {viewVideo.creator?.username || viewVideo.author?.username}</span>
+                    <span className="flex items-center space-x-1">
+                      <CalendarIcon className="w-4 h-4" />
+                      <span>{formatDate(viewVideo.created_at)}</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <EyeIcon className="w-4 h-4" />
+                      <span>{viewVideo.views || 0} views</span>
+                    </span>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 ${getStatusColor(
+                        viewVideo.status || "draft",
+                        isArchived(viewVideo),
+                      )}`}
+                    >
+                      {getStatusIcon(viewVideo.status || "draft", isArchived(viewVideo))}
+                      <span>{getStatusText(viewVideo.status || "draft", isArchived(viewVideo))}</span>
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
                     setShowViewModal(false)
                     setViewVideo(null)
+                    setIsPlaying(false)
                   }}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0"
                 >
-                  <XIcon className="w-5 h-5 text-slate-500" />
+                  <XIcon className="w-6 h-6 text-gray-500" />
                 </button>
               </div>
-
-              {/* Video Meta Info */}
-              <div className="flex items-center space-x-4 mt-4 text-sm text-slate-600">
-                <div className="flex items-center space-x-1">
-                  <UserIcon className="w-4 h-4" />
-                  <span>By {viewVideo.creator?.username || viewVideo.author?.username}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <CalendarIcon className="w-4 h-4" />
-                  <span>{new Date(viewVideo.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <EyeIcon className="w-4 h-4" />
-                  <span>{viewVideo.views || 0} views</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <span>👍 {viewVideo.likes} likes</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <span>💬 {viewVideo.comments_count} comments</span>
-                </div>
-                {viewVideo.duration && (
-                  <div className="flex items-center space-x-1">
-                    <ClockIcon className="w-4 h-4" />
-                    <span>{viewVideo.duration}</span>
-                  </div>
-                )}
-              </div>
             </div>
-
-            {/* Modal Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-6">
-                {/* Video Player */}
-                {viewVideo.video_url && (
-                  <div className="mb-6">
-                    {!videoLoadError[`view-${viewVideo.id}`] ? (
-                      <video
-                        src={getVideoUrl(viewVideo.video_url) || "/placeholder.svg?height=400&width=800"}
-                        controls
-                        className="w-full h-96 object-cover rounded-lg border border-slate-200"
-                        poster={getThumbnailUrl(viewVideo.thumbnail) || "/placeholder.svg?height=400&width=800"}
-                        onError={() => handleVideoLoadError(`view-${viewVideo.id}`)}
-                      >
-                        Your browser does not support the video tag.
-                      </video>
-                    ) : (
-                      <div className="w-full h-96 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
-                        <div className="text-center">
-                          <AlertCircleIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                          <p className="text-lg text-slate-600 mb-2">Unable to load video</p>
-                          <p className="text-sm text-slate-500">The video file may be corrupted or unavailable</p>
-                          <button
-                            onClick={() => {
-                              setVideoLoadError((prev) => ({
-                                ...prev,
-                                [`view-${viewVideo.id}`]: false,
-                              }))
-                            }}
-                            className="mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                          >
-                            Try Again
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Video Description */}
-                <div className="prose prose-slate max-w-none mb-8">
-                  <div className="whitespace-pre-wrap text-slate-700 leading-relaxed">{viewVideo.description}</div>
-                </div>
-              </div>
-
-              {/* Comments Section */}
-              <div className="border-t border-slate-200 p-6">
-                <h4 className="text-lg font-semibold text-slate-800 mb-4">Comments ({comments.length})</h4>
-
-                {/* Success/Error Messages */}
-                {commentSuccess && (
-                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircleIcon className="w-4 h-4 text-green-600" />
-                      <p className="text-green-800 text-sm">{commentSuccess}</p>
-                    </div>
-                  </div>
-                )}
-
-                {commentError && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <AlertCircleIcon className="w-4 h-4 text-red-600" />
-                      <p className="text-red-800 text-sm">{commentError}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Add Comment Form */}
-                <form onSubmit={handleCommentSubmit} className="mb-6">
-                  <div className="flex space-x-3">
-                    <div className="flex-shrink-0">
-                      <Image
-                        src={profileImage || "/placeholder.svg"}
-                        alt="Your avatar"
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <textarea
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Write a comment..."
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                        rows={3}
-                        disabled={isSubmittingComment}
-                      />
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs text-slate-500">{newComment.length}/500 characters</span>
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {/* Video Player */}
+              <div className="mb-8">
+                <div className="relative bg-black rounded-2xl overflow-hidden">
+                  {!videoLoadError[`view-${viewVideo.id}`] ? (
+                    <video
+                      ref={videoRef}
+                      className="w-full aspect-video object-contain"
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onPlay={handleVideoPlay}
+                      onPause={handleVideoPause}
+                      poster={viewVideo.thumbnail}
+                      preload="metadata"
+                      crossOrigin="anonymous"
+                    >
+                      <source src={viewVideo.video} type="video/mp4" />
+                      <source src={viewVideo.video} type="video/webm" />
+                      <source src={viewVideo.video} type="video/ogg" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <div className="w-full aspect-video bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                      <div className="text-center">
+                        <AlertCircleIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                        <p className="text-lg text-slate-600 mb-2">Unable to load video</p>
+                        <p className="text-sm text-slate-500">The video file may be corrupted or unavailable</p>
                         <button
-                          type="submit"
-                          disabled={!newComment.trim() || isSubmittingComment}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                          onClick={() => {
+                            setVideoLoadError((prev) => ({
+                              ...prev,
+                              [`view-${viewVideo.id}`]: false,
+                            }))
+                          }}
+                          className="mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
                         >
-                          {isSubmittingComment ? "Posting..." : "Post Comment"}
+                          Try Again
                         </button>
                       </div>
                     </div>
-                  </div>
-                </form>
-
-                {/* Comments List */}
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {comments.length > 0 ? (
-                    comments.map((comment) => (
-                      <div key={comment.id} className="flex space-x-3 p-4 bg-slate-50 rounded-lg">
-                        <div className="flex-shrink-0">
-                          <Image
-                            src={profileImage || "/placeholder.svg"}
-                            alt={`${comment.commenter?.username || "User"}'s avatar`}
-                            width={32}
-                            height={32}
-                            className="rounded-full"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-medium text-slate-800">
-                              {comment.commenter?.username || "Anonymous User"}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {new Date(comment.commented_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          {editingCommentId === comment.id ? (
-                            <div className="space-y-2">
-                              <textarea
-                                value={editCommentText}
-                                onChange={(e) => setEditCommentText(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                                rows={3}
-                              />
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleCommentEdit(comment.id)}
-                                  className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
-                                  disabled={!editCommentText.trim()}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  onClick={cancelEditing}
-                                  className="px-3 py-1 bg-slate-300 text-slate-700 rounded text-sm hover:bg-slate-400 transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
+                  )}
+                  {/* Video Controls */}
+                  {!videoLoadError[`view-${viewVideo.id}`] && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={handlePlayPause}
+                          className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                        >
+                          {isPlaying ? (
+                            <PauseIcon className="w-5 h-5 text-white" />
                           ) : (
-                            <div>
-                              <p className="text-slate-700 text-sm leading-relaxed">{comment.comment}</p>
-                              {(comment.commenter?.id === user?.id || comment.commented_by === user?.id) && (
-                                <button
-                                  onClick={() => startEditingComment(comment)}
-                                  className="mt-2 text-xs text-purple-600 hover:text-purple-700 transition-colors"
-                                >
-                                  Edit
-                                </button>
-                              )}
-                            </div>
+                            <PlayIcon className="w-5 h-5 text-white" />
                           )}
+                        </button>
+                        <div className="flex-1 flex items-center space-x-2">
+                          <span className="text-white text-sm min-w-[40px]">{formatTime(currentTime)}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max={duration || 0}
+                            value={currentTime}
+                            onChange={handleSeek}
+                            className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                            style={{
+                              background: `linear-gradient(to right, #ffffff ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 1)) * 100}%)`,
+                            }}
+                          />
+                          <span className="text-white text-sm min-w-[40px]">{formatTime(duration)}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={toggleMute} className="p-1 hover:bg-white/20 rounded transition-colors">
+                            {isMuted ? (
+                              <VolumeXIcon className="w-4 h-4 text-white" />
+                            ) : (
+                              <Volume2Icon className="w-4 h-4 text-white" />
+                            )}
+                          </button>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={isMuted ? 0 : volume}
+                            onChange={handleVolumeChange}
+                            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <button
+                            onClick={handleFullscreen}
+                            className="p-1 hover:bg-white/20 rounded transition-colors"
+                          >
+                            <MaximizeIcon className="w-4 h-4 text-white" />
+                          </button>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-slate-400 text-xl">💬</span>
-                      </div>
-                      <p className="text-slate-500 text-sm">No comments yet</p>
-                      <p className="text-slate-400 text-xs">Be the first to share your thoughts!</p>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-6 border-t border-slate-200 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  {/* Action buttons based on status and archived state */}
-                  {!isArchived(viewVideo) && viewVideo.status === "draft" && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setShowViewModal(false)
-                          handleEditVideo(viewVideo)
-                        }}
-                        className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                      >
-                        <EditIcon className="w-4 h-4 mr-2" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowViewModal(false)
-                          handleSendForApproval(viewVideo.id)
-                        }}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        disabled={isActionLoading(viewVideo.id, "approval")}
-                      >
-                        <ClockIcon className="w-4 h-4 mr-2" />
-                        {isActionLoading(viewVideo.id, "approval") ? "Sending..." : "Send for Approval"}
-                      </button>
-                    </>
-                  )}
-
-                  {!isArchived(viewVideo) && viewVideo.status === "published" && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setShowViewModal(false)
-                          handleEditVideo(viewVideo)
-                        }}
-                        className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                      >
-                        <EditIcon className="w-4 h-4 mr-2" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowViewModal(false)
-                          handleArchiveVideo(viewVideo.id)
-                        }}
-                        className="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
-                        disabled={isActionLoading(viewVideo.id, "archive")}
-                      >
-                        <ArchiveIcon className="w-4 h-4 mr-2" />
-                        {isActionLoading(viewVideo.id, "archive") ? "Archiving..." : "Archive"}
-                      </button>
-                    </>
-                  )}
-
-                  {!isArchived(viewVideo) && viewVideo.status === "pending_approval" && (
-                    <button
-                      onClick={() => {
-                        setShowViewModal(false)
-                        handleEditVideo(viewVideo)
-                      }}
-                      className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      <EditIcon className="w-4 h-4 mr-2" />
-                      Edit
-                    </button>
-                  )}
-
-                  {isArchived(viewVideo) && (
-                    <button
-                      onClick={() => {
-                        setShowViewModal(false)
-                        handleUnarchiveVideo(viewVideo.id)
-                      }}
-                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                      disabled={isActionLoading(viewVideo.id, "unarchive")}
-                    >
-                      <RefreshCwIcon className="w-4 h-4 mr-2" />
-                      {isActionLoading(viewVideo.id, "unarchive") ? "Unarchiving..." : "Unarchive"}
-                    </button>
-                  )}
-
-                  {!isArchived(viewVideo) && viewVideo.status === "approved" && (
-                    <button
-                      onClick={() => {
-                        setShowViewModal(false)
-                        updateVideoStatus(viewVideo.id, "published")
-                      }}
-                      className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                      disabled={isActionLoading(viewVideo.id, "status")}
-                    >
-                      <SendIcon className="w-4 h-4 mr-2" />
-                      {isActionLoading(viewVideo.id, "status") ? "Publishing..." : "Publish"}
-                    </button>
-                  )}
+              {/* Video Description */}
+              <div className="mb-8">
+                <h4 className="text-xl font-semibold text-gray-900 mb-4">Description</h4>
+                <div className="prose prose-lg prose-slate max-w-none bg-gray-50 p-6 rounded-2xl">
+                  <TipTapContentDisplay content={viewVideo.description} />
                 </div>
-                <button
-                  onClick={() => {
-                    setShowViewModal(false)
-                    setViewVideo(null)
-                  }}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  Close
-                </button>
+              </div>
+              {/* Video Details */}
+              <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 rounded-2xl p-6">
+                  <h4 className="font-semibold text-gray-900 mb-4">Video Information</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Format:</span>
+                      <span className="font-medium text-gray-900">{viewVideo.format || "Unknown"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Duration:</span>
+                      <span className="font-medium text-gray-900">{viewVideo.duration_formatted || "Unknown"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Status:</span>
+                      <span className="font-medium text-gray-900">
+                        {getStatusText(viewVideo.status || "draft", isArchived(viewVideo))}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Archived:</span>
+                      <span className="font-medium text-gray-900">{isArchived(viewVideo) ? "Yes" : "No"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-2xl p-6">
+                  <h4 className="font-semibold text-gray-900 mb-4">Creator Information</h4>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                      <span className="text-white font-bold">
+                        {(viewVideo.creator?.username || viewVideo.author?.username || "U").charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">
+                        {viewVideo.creator?.username || viewVideo.author?.username}
+                      </p>
+                      <p className="text-gray-600">{viewVideo.creator?.email || viewVideo.author?.email}</p>
+                      <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium mt-2">
+                        {viewVideo.creator?.role || viewVideo.author?.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          <style jsx>{`
+            .slider::-webkit-slider-thumb {
+              appearance: none;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: #ffffff;
+              cursor: pointer;
+              border: 2px solid #ffffff;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .slider::-moz-range-thumb {
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: #ffffff;
+              cursor: pointer;
+              border: 2px solid #ffffff;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+          `}</style>
         </div>
       )}
     </div>

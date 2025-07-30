@@ -1,7 +1,7 @@
 {
   "name": "flock_frontend",
   "version": "0.1.0",
-  "type":"module",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -11,6 +11,14 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
+    "@tiptap/extension-image": "^3.0.7",
+    "@tiptap/extension-link": "^3.0.7",
+    "@tiptap/extension-placeholder": "^3.0.7",
+    "@tiptap/extension-text-align": "^3.0.7",
+    "@tiptap/extension-underline": "^3.0.7",
+    "@tiptap/pm": "^3.0.7",
+    "@tiptap/react": "^3.0.7",
+    "@tiptap/starter-kit": "^3.0.7",
     "axios": "^1.10.0",
     "firebase": "^11.10.0",
     "lucide-react": "^0.525.0",

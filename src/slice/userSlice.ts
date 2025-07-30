@@ -36,6 +36,8 @@ const userSlice = createSlice({
       state.role=""
       state.profileImage=""
       state.is_profile_completed=true
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
 
     }
   },

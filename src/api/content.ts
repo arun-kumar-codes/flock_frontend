@@ -165,7 +165,7 @@ export async function editComments(blogId: any,comment:string) {
   }
 }
 
-export async function deleteComment(blogId: any, commentId: any) {
+export async function deleteComment( commentId: any) {
   try {
     const response = await axiosInstance.delete(`/blog/comment/${commentId}`);
     return response;
@@ -284,6 +284,37 @@ export async function addVideoComment(id:any,comment:any){
   }
 }
 
+export async function deleteVideoComment(commentId: any) {
+  try {
+    const response = await axiosInstance.delete(`/video/comment/${commentId}`);
+    return response;
+  } catch (error:any) {   
+    console.error("Error deleting video comment:", error);
+    return error.response;
+  }
+}
+
+
+export async function getVideoById(videoId: any) {
+  try {
+    const response = await axiosInstance.get(`/video/${videoId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching video by ID:", error);    
+  }
+}
+
+
+export async function getAllVideo() {
+  try {
+    const response = await axiosInstance.get('/video/get-all');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching all videos:", error);
+    return error.response;
+  }
+}
+
 
 export async function getVideoByStatus(status: any) {
   try {
@@ -291,6 +322,16 @@ export async function getVideoByStatus(status: any) {
     return response;
   } catch (error:any) {
     console.error("Error fetching video by status:", error);
+    return error.response;
+  }
+}
+
+export async function toggleVideoLike(videoId: any) { 
+  try {
+    const response = await axiosInstance.post(`/video/${videoId}/toggle-like`);
+    return response;
+  } catch (error:any) {
+    console.error("Error toggling video like:", error);
     return error.response;
   }
 }
