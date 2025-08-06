@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react"
 import type React from "react"
 import { useRouter } from "next/navigation"
 import { useDispatch } from "react-redux"
-import { logOut } from "@/slice/userSlice"
 import {
   PlusIcon,
   SearchIcon,
@@ -17,17 +16,12 @@ import {
   SaveIcon,
   AlertCircleIcon,
   CheckCircleIcon,
-  ImageIcon,
   SendIcon,
   ArchiveIcon,
   LoaderIcon,
   ClockIcon,
   RefreshCwIcon,
   PlayIcon,
-  PauseIcon,
-  Volume2Icon,
-  VolumeXIcon,
-  MaximizeIcon,
   UploadIcon,
 } from "lucide-react"
 import Image from "next/image"
@@ -40,18 +34,17 @@ import {
   sendVideoForApproval,
   archiveVideo,
   unarchiveVideo,
-  addVideoComment,
-  editVideoComment,
 } from "@/api/content"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
+import Video from "@/components/Video"
 
 interface UserData {
   email: string
   username: string
   id: string
   imageUrl?: string
-  videos?: Video[]
+  videos?: VideoType[]
 }
 
 interface Author {
@@ -75,7 +68,8 @@ interface Comment {
   }
 }
 
-interface Video {
+interface VideoType {
+  video_id: any
   creator: any
   id: number
   title: string
@@ -106,16 +100,17 @@ interface CreateVideoData {
   status?: string
   category?: string
   video?: File | null
-  thumbnail?: File | null
 }
 
-interface EditVideoData extends CreateVideoData {
+interface EditVideoData {
   id: number
+  title: string
+  description: string
+  status?: string
+  category?: string
+  videoId?: string
   existingVideoUrl?: string
-  existingThumbnailUrl?: string
 }
-
-const IMAGE_BASE_URL = "http://116.202.210.102:5055/"
 
 export default function VideoDashboard() {
   const router = useRouter()
@@ -143,31 +138,15 @@ export default function VideoDashboard() {
   const [updateSuccess, setUpdateSuccess] = useState("")
   const [fetchError, setFetchError] = useState("")
   const [showViewModal, setShowViewModal] = useState(false)
-  const [viewVideo, setViewVideo] = useState<Video | null>(null)
-
-  // Video player states
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
+  const [viewVideo, setViewVideo] = useState<VideoType | null>(null)
 
   // Loading states for different actions
   const [loadingActions, setLoadingActions] = useState<{ [key: string]: boolean }>({})
 
   // File upload states
   const [videoPreview, setVideoPreview] = useState<string | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  const [editVideoPreview, setEditVideoPreview] = useState<string | null>(null)
-  const [editThumbnailPreview, setEditThumbnailPreview] = useState<string | null>(null)
   const [videoError, setVideoError] = useState("")
-  const [thumbnailError, setThumbnailError] = useState("")
   const [isVideoDragOver, setIsVideoDragOver] = useState(false)
-  const [isThumbnailDragOver, setIsThumbnailDragOver] = useState(false)
-  const [isEditVideoDragOver, setIsEditVideoDragOver] = useState(false)
-  const [isEditThumbnailDragOver, setIsEditThumbnailDragOver] = useState(false)
-  const [removeExistingVideo, setRemoveExistingVideo] = useState(false)
-  const [removeExistingThumbnail, setRemoveExistingThumbnail] = useState(false)
 
   // Video loading states
   const [videoLoadError, setVideoLoadError] = useState<{ [key: string]: boolean }>({})
@@ -179,7 +158,6 @@ export default function VideoDashboard() {
     status: "draft",
     category: "General",
     video: null,
-    thumbnail: null,
   })
 
   // Edit video form state
@@ -189,10 +167,8 @@ export default function VideoDashboard() {
     description: "",
     status: "draft",
     category: "General",
-    video: null,
-    thumbnail: null,
+    videoId: "",
     existingVideoUrl: "",
-    existingThumbnailUrl: "",
   })
 
   // Store original edit form data for comparison
@@ -202,10 +178,8 @@ export default function VideoDashboard() {
     description: "",
     status: "draft",
     category: "General",
-    video: null,
-    thumbnail: null,
+    videoId: "",
     existingVideoUrl: "",
-    existingThumbnailUrl: "",
   })
 
   // Comment states
@@ -221,11 +195,7 @@ export default function VideoDashboard() {
   const createModalRef = useRef<HTMLDivElement>(null)
   const editModalRef = useRef<HTMLDivElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
-  const thumbnailInputRef = useRef<HTMLInputElement>(null)
-  const editVideoInputRef = useRef<HTMLInputElement>(null)
-  const editThumbnailInputRef = useRef<HTMLInputElement>(null)
   const viewModalRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
 
   const user = useSelector((state: any) => state.user)
 
@@ -285,13 +255,6 @@ export default function VideoDashboard() {
     }
   }, [showCreateModal, showEditModal, showViewModal])
 
-  // Initialize video when component mounts
-  useEffect(() => {
-    if (videoRef.current && viewVideo?.video) {
-      videoRef.current.load()
-    }
-  }, [viewVideo?.video])
-
   // Helper function to set loading state for specific actions
   const setActionLoading = (videoId: number, action: string, loading: boolean) => {
     setLoadingActions((prev) => ({
@@ -306,7 +269,7 @@ export default function VideoDashboard() {
   }
 
   // Helper function to safely check if video is archived
-  const isArchived = (video: Video): boolean => {
+  const isArchived = (video: VideoType): boolean => {
     return video.archived === true
   }
 
@@ -328,95 +291,12 @@ export default function VideoDashboard() {
     return thumbnailPath
   }
 
-  const getImageUrl = (imagePath: string) => {
-    if (!imagePath) return null
-    return imagePath.startsWith("http") ? imagePath : `${IMAGE_BASE_URL}${imagePath}`
-  }
-
-  const formatTime = (time: number) => {
-    if (isNaN(time)) return "0:00"
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     })
-  }
-
-  // Video player functions
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause()
-      } else {
-        videoRef.current.play().catch((error) => {
-          console.error("Error playing video:", error)
-        })
-      }
-    }
-  }
-
-  const handleVideoPlay = () => {
-    setIsPlaying(true)
-  }
-
-  const handleVideoPause = () => {
-    setIsPlaying(false)
-  }
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime)
-    }
-  }
-
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration)
-      videoRef.current.volume = volume
-    }
-  }
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = Number.parseFloat(e.target.value)
-    if (videoRef.current && !isNaN(time)) {
-      videoRef.current.currentTime = time
-      setCurrentTime(time)
-    }
-  }
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = Number.parseFloat(e.target.value)
-    setVolume(newVolume)
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume
-    }
-    setIsMuted(newVolume === 0)
-  }
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      if (isMuted) {
-        videoRef.current.volume = volume
-        setIsMuted(false)
-      } else {
-        videoRef.current.volume = 0
-        setIsMuted(true)
-      }
-    }
-  }
-
-  const handleFullscreen = () => {
-    if (videoRef.current) {
-      if (videoRef.current.requestFullscreen) {
-        videoRef.current.requestFullscreen()
-      }
-    }
   }
 
   // Video validation function
@@ -429,23 +309,7 @@ export default function VideoDashboard() {
     }
 
     if (file.size > maxSize) {
-      return "Video size must be less than 500MB"
-    }
-
-    return null
-  }
-
-  // Thumbnail validation function
-  const validateThumbnail = (file: File): string | null => {
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
-    const maxSize = 5 * 1024 * 1024 // 5MB
-
-    if (!allowedTypes.includes(file.type)) {
-      return "Please select a valid image file (JPEG, PNG, GIF, or WebP)"
-    }
-
-    if (file.size > maxSize) {
-      return "Thumbnail size must be less than 5MB"
+      return "Video size must be less than 250MB"
     }
 
     return null
@@ -461,62 +325,8 @@ export default function VideoDashboard() {
 
     setVideoError("")
     setVideoForm((prev) => ({ ...prev, video: file }))
-
     const url = URL.createObjectURL(file)
     setVideoPreview(url)
-  }
-
-  // Handle thumbnail selection for create form
-  const handleThumbnailSelect = (file: File) => {
-    const error = validateThumbnail(file)
-    if (error) {
-      setThumbnailError(error)
-      return
-    }
-
-    setThumbnailError("")
-    setVideoForm((prev) => ({ ...prev, thumbnail: file }))
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setThumbnailPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  // Handle video selection for edit form
-  const handleEditVideoSelect = (file: File) => {
-    const error = validateVideo(file)
-    if (error) {
-      setVideoError(error)
-      return
-    }
-
-    setVideoError("")
-    setEditVideoForm((prev) => ({ ...prev, video: file }))
-    setRemoveExistingVideo(false)
-
-    const url = URL.createObjectURL(file)
-    setEditVideoPreview(url)
-  }
-
-  // Handle thumbnail selection for edit form
-  const handleEditThumbnailSelect = (file: File) => {
-    const error = validateThumbnail(file)
-    if (error) {
-      setThumbnailError(error)
-      return
-    }
-
-    setThumbnailError("")
-    setEditVideoForm((prev) => ({ ...prev, thumbnail: file }))
-    setRemoveExistingThumbnail(false)
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setEditThumbnailPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
   }
 
   // File input handlers
@@ -524,27 +334,6 @@ export default function VideoDashboard() {
     const file = e.target.files?.[0]
     if (file) {
       handleVideoSelect(file)
-    }
-  }
-
-  const handleThumbnailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleThumbnailSelect(file)
-    }
-  }
-
-  const handleEditVideoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleEditVideoSelect(file)
-    }
-  }
-
-  const handleEditThumbnailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleEditThumbnailSelect(file)
     }
   }
 
@@ -568,172 +357,6 @@ export default function VideoDashboard() {
     }
   }
 
-  const handleThumbnailDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsThumbnailDragOver(true)
-  }
-
-  const handleThumbnailDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsThumbnailDragOver(false)
-  }
-
-  const handleThumbnailDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsThumbnailDragOver(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file) {
-      handleThumbnailSelect(file)
-    }
-  }
-
-  // Drag and drop handlers for edit form
-  const handleEditVideoDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsEditVideoDragOver(true)
-  }
-
-  const handleEditVideoDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsEditVideoDragOver(false)
-  }
-
-  const handleEditVideoDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsEditVideoDragOver(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file) {
-      handleEditVideoSelect(file)
-    }
-  }
-
-  const handleEditThumbnailDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsEditThumbnailDragOver(true)
-  }
-
-  const handleEditThumbnailDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsEditThumbnailDragOver(false)
-  }
-
-  const handleEditThumbnailDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsEditThumbnailDragOver(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file) {
-      handleEditThumbnailSelect(file)
-    }
-  }
-
-  // Remove files
-  const removeVideo = () => {
-    setVideoForm((prev) => ({ ...prev, video: null }))
-    setVideoPreview(null)
-    setVideoError("")
-    if (videoInputRef.current) {
-      videoInputRef.current.value = ""
-    }
-  }
-
-  const removeThumbnail = () => {
-    setVideoForm((prev) => ({ ...prev, thumbnail: null }))
-    setThumbnailPreview(null)
-    setThumbnailError("")
-    if (thumbnailInputRef.current) {
-      thumbnailInputRef.current.value = ""
-    }
-  }
-
-  const removeEditVideo = () => {
-    setEditVideoForm((prev) => ({ ...prev, video: null }))
-    setEditVideoPreview(null)
-    setRemoveExistingVideo(true)
-    setVideoError("")
-    if (editVideoInputRef.current) {
-      editVideoInputRef.current.value = ""
-    }
-  }
-
-  const removeEditThumbnail = () => {
-    setEditVideoForm((prev) => ({ ...prev, thumbnail: null }))
-    setEditThumbnailPreview(null)
-    setRemoveExistingThumbnail(true)
-    setThumbnailError("")
-    if (editThumbnailInputRef.current) {
-      editThumbnailInputRef.current.value = ""
-    }
-  }
-
-  // Handle comment submission
-  const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newComment.trim() || !viewVideo) return
-
-    setIsSubmittingComment(true)
-    setCommentError("")
-
-    try {
-      const response = await addVideoComment(viewVideo.id, { content: newComment.trim() })
-      if (response?.status === 200 || response?.status === 201) {
-        setNewComment("")
-        setCommentSuccess("Comment added successfully!")
-        setTimeout(() => setCommentSuccess(""), 3000)
-        // Refresh the video data to get updated comments
-        await fetchUserVideos()
-        // Update the current viewVideo with new comments
-        const updatedVideo = userData.videos?.find((video) => video.id === viewVideo.id)
-        if (updatedVideo) {
-          setViewVideo(updatedVideo)
-          setComments(updatedVideo.comments)
-        }
-      }
-    } catch (error: any) {
-      setCommentError(error?.response?.data?.message || "Failed to add comment")
-      setTimeout(() => setCommentError(""), 3000)
-    } finally {
-      setIsSubmittingComment(false)
-    }
-  }
-
-  // Handle comment edit
-  const handleCommentEdit = async (commentId: number) => {
-    if (!editCommentText.trim()) return
-
-    try {
-      const response = await editVideoComment(commentId, { content: editCommentText.trim() })
-      if (response?.status === 200) {
-        setEditingCommentId(null)
-        setEditCommentText("")
-        setCommentSuccess("Comment updated successfully!")
-        setTimeout(() => setCommentSuccess(""), 3000)
-        // Refresh the video data to get updated comments
-        await fetchUserVideos()
-        // Update the current viewVideo with updated comments
-        const updatedVideo = userData.videos?.find((video) => video.id === viewVideo?.id)
-        if (updatedVideo) {
-          setViewVideo(updatedVideo)
-          setComments(updatedVideo.comments)
-        }
-      }
-    } catch (error: any) {
-      setCommentError(error?.response?.data?.message || "Failed to update comment")
-      setTimeout(() => setCommentError(""), 3000)
-    }
-  }
-
-  // Start editing a comment
-  const startEditingComment = (comment: Comment) => {
-    setEditingCommentId(comment.id)
-    setEditCommentText(comment.comment)
-  }
-
-  // Cancel editing
-  const cancelEditing = () => {
-    setEditingCommentId(null)
-    setEditCommentText("")
-  }
-
   // Fetch user's videos
   const fetchUserVideos = async () => {
     try {
@@ -742,15 +365,14 @@ export default function VideoDashboard() {
       console.log("Fetch videos response:", response)
       if (response?.data?.videos) {
         const userVideos = response.data.videos
-          .filter((video: Video) => video.created_by === user?.id || video.author?.id === user?.id)
-          .map((video: Video) => ({
+          .filter((video: VideoType) => video.created_by === user?.id || video.author?.id === user?.id)
+          .map((video: VideoType) => ({
             ...video,
             createdAt: video.created_at,
             status: video.status || "draft",
-            views: video.views || Math.floor(Math.random() * 1000),
+            views: video.views || 0,
             category: video.author?.role === "Creator" ? "Programming" : "General",
           }))
-
         setUserData((prev) => ({
           ...prev,
           videos: userVideos,
@@ -781,14 +403,6 @@ export default function VideoDashboard() {
 
   if (isLoading) {
     return <Loader />
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    localStorage.removeItem("refresh_token")
-    localStorage.removeItem("user")
-    dispatch(logOut())
-    router.push("/login")
   }
 
   // Send video for approval
@@ -900,16 +514,12 @@ export default function VideoDashboard() {
   }
 
   // Enhanced edit video handler
-  const handleEditVideo = (video: Video) => {
+  const handleEditVideo = (video: VideoType) => {
     console.log("Edit video clicked:", video.id)
-    console.log("Video data:", video) // Add this for debugging
+    console.log("Video data:", video)
     setShowActionMenu(null)
     setUpdateError("")
     setUpdateSuccess("")
-    setVideoError("")
-    setThumbnailError("")
-    setRemoveExistingVideo(false)
-    setRemoveExistingThumbnail(false)
 
     const editData = {
       id: video.id,
@@ -917,41 +527,19 @@ export default function VideoDashboard() {
       description: video.description,
       status: video.status || "draft",
       category: video.category || "General",
-      video: null,
-      thumbnail: null,
+      videoId: video.video_id || video.id.toString(),
       existingVideoUrl: video.video_url || video.video || "",
-      existingThumbnailUrl: video.thumbnail || "",
     }
 
+    console.log("Edit data:", editData)
     setEditVideoForm(editData)
-    setOriginalEditData(editData) // Store original data for comparison
-
-    // Set video preview - try multiple possible video URL fields
-    const videoUrl = getVideoUrl(video.video_url || video.video)
-    console.log("Video URL from video.video_url:", video.video_url)
-    console.log("Video URL from video.video:", video.video)
-    console.log("Final video URL:", videoUrl)
-    setEditVideoPreview(videoUrl)
-
-    // Set thumbnail preview
-    const thumbnailUrl = getThumbnailUrl(video.thumbnail)
-    console.log("Setting edit thumbnail preview:", thumbnailUrl)
-    setEditThumbnailPreview(thumbnailUrl)
-
-    // Clear file inputs
-    if (editVideoInputRef.current) {
-      editVideoInputRef.current.value = ""
-    }
-    if (editThumbnailInputRef.current) {
-      editThumbnailInputRef.current.value = ""
-    }
-
+    setOriginalEditData(editData)
     setShowEditModal(true)
   }
 
   // Handle view video
-  const handleViewVideo = async (video: Video) => {
-    console.log("View video clicked:", video.id)
+  const handleViewVideo = async (video: VideoType) => {
+    console.log("View video clicked:", video)
     setShowActionMenu(null)
     setViewVideo(video)
     setComments(video.comments || [])
@@ -961,12 +549,6 @@ export default function VideoDashboard() {
     setEditingCommentId(null)
     setEditCommentText("")
     setVideoLoadError({}) // Reset video load errors
-
-    // Reset video player states
-    setIsPlaying(false)
-    setCurrentTime(0)
-    setDuration(0)
-
     setShowViewModal(true)
   }
 
@@ -981,24 +563,20 @@ export default function VideoDashboard() {
       setUpdateError("Title is required")
       return
     }
-
     if (editVideoForm.title.trim().length < 3) {
       setUpdateError("Title must be at least 3 characters long")
       return
     }
-
     if (!editVideoForm.description.trim()) {
       setUpdateError("Description is required")
       return
     }
-
     if (editVideoForm.description.trim().length < 10) {
       setUpdateError("Description must be at least 10 characters long")
       return
     }
 
     setIsUpdating(true)
-
     try {
       // Create FormData only with changed values
       const formData = new FormData()
@@ -1025,24 +603,6 @@ export default function VideoDashboard() {
         hasChanges = true
       }
 
-      // Handle video updates
-      if (editVideoForm.video) {
-        formData.append("video", editVideoForm.video)
-        hasChanges = true
-      } else if (removeExistingVideo) {
-        formData.append("remove_video", "true")
-        hasChanges = true
-      }
-
-      // Handle thumbnail updates
-      if (editVideoForm.thumbnail) {
-        formData.append("thumbnail", editVideoForm.thumbnail)
-        hasChanges = true
-      } else if (removeExistingThumbnail) {
-        formData.append("remove_thumbnail", "true")
-        hasChanges = true
-      }
-
       if (!hasChanges) {
         setUpdateError("No changes detected")
         setIsUpdating(false)
@@ -1050,14 +610,11 @@ export default function VideoDashboard() {
       }
 
       const response = await updateVideo(editVideoForm.id, formData)
-
       if (response?.status === 200 || response?.data) {
         const updatedVideo = {
           ...editVideoForm,
           title: editVideoForm.title.trim(),
           description: editVideoForm.description.trim(),
-          video_url: response.data?.video_url || (removeExistingVideo ? null : editVideoForm.existingVideoUrl),
-          thumbnail: response.data?.thumbnail || (removeExistingThumbnail ? null : editVideoForm.existingThumbnailUrl),
         }
 
         setUserData((prev) => ({
@@ -1068,7 +625,6 @@ export default function VideoDashboard() {
                 ? {
                     ...video,
                     ...updatedVideo,
-                    video: typeof updatedVideo.video === "string" ? updatedVideo.video : undefined,
                   }
                 : video,
             ) || [],
@@ -1078,20 +634,14 @@ export default function VideoDashboard() {
         setTimeout(() => {
           setShowEditModal(false)
           setUpdateSuccess("")
-          setEditVideoPreview(null)
-          setEditThumbnailPreview(null)
-          setRemoveExistingVideo(false)
-          setRemoveExistingThumbnail(false)
           setEditVideoForm({
             id: 0,
             title: "",
             description: "",
             status: "draft",
             category: "General",
-            video: null,
-            thumbnail: null,
+            videoId: "",
             existingVideoUrl: "",
-            existingThumbnailUrl: "",
           })
           setOriginalEditData({
             id: 0,
@@ -1099,10 +649,8 @@ export default function VideoDashboard() {
             description: "",
             status: "draft",
             category: "General",
-            video: null,
-            thumbnail: null,
+            videoId: "",
             existingVideoUrl: "",
-            existingThumbnailUrl: "",
           })
         }, 2000)
       } else {
@@ -1126,35 +674,25 @@ export default function VideoDashboard() {
       setCreateError("Title is required")
       return
     }
-
     if (!videoForm.description.trim()) {
       setCreateError("Description is required")
       return
     }
-
     if (videoForm.description.trim().length < 10) {
       setCreateError("Description must be at least 10 characters long")
       return
     }
-
     if (!videoForm.video) {
       setCreateError("Video file is required")
       return
     }
 
-    if (!videoForm.thumbnail) {
-      setCreateError("Thumbnail is required")
-      return
-    }
-
     setIsCreating(true)
-
     try {
       const formData = new FormData()
       formData.append("title", videoForm.title.trim())
       formData.append("description", videoForm.description.trim())
       formData.append("video", videoForm.video)
-      formData.append("thumbnail", videoForm.thumbnail)
 
       const response = await createVideo(formData)
       console.log("Create video response:", response)
@@ -1165,22 +703,13 @@ export default function VideoDashboard() {
           title: "",
           description: "",
           video: null,
-          thumbnail: null,
         })
         setVideoPreview(null)
-        setThumbnailPreview(null)
         setVideoError("")
-        setThumbnailError("")
-
         if (videoInputRef.current) {
           videoInputRef.current.value = ""
         }
-        if (thumbnailInputRef.current) {
-          thumbnailInputRef.current.value = ""
-        }
-
         await fetchUserVideos()
-
         setTimeout(() => {
           setShowCreateModal(false)
           setCreateSuccess("")
@@ -1266,14 +795,6 @@ export default function VideoDashboard() {
     return status || "draft"
   }
 
-  // Handle video load error
-  const handleVideoLoadError = (videoId: string) => {
-    setVideoLoadError((prev) => ({
-      ...prev,
-      [videoId]: true,
-    }))
-  }
-
   // Get active (non-archived) videos
   const activeVideos = userData.videos?.filter((item) => !isArchived(item)) || []
 
@@ -1283,7 +804,6 @@ export default function VideoDashboard() {
   // Filter content based on active tab and search/filter criteria
   const getFilteredContent = () => {
     const sourceVideos = activeTab === "active" ? activeVideos : archivedVideos
-
     return sourceVideos.filter((item) => {
       const matchesSearch =
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1295,7 +815,6 @@ export default function VideoDashboard() {
 
       // For active tab, also apply status filter
       const matchesFilter = filterStatus === "all" || item.status === filterStatus
-
       return matchesSearch && matchesFilter
     })
   }
@@ -1352,7 +871,6 @@ export default function VideoDashboard() {
               </div>
             </div>
           </div>
-
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
@@ -1366,7 +884,6 @@ export default function VideoDashboard() {
               </div>
             </div>
           </div>
-
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
@@ -1380,7 +897,6 @@ export default function VideoDashboard() {
               </div>
             </div>
           </div>
-
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
@@ -1501,7 +1017,7 @@ export default function VideoDashboard() {
                           </div>
                           {item.duration && (
                             <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">
-                              {item.duration}
+                              {item.duration_formatted}
                             </div>
                           )}
                         </div>
@@ -1530,7 +1046,7 @@ export default function VideoDashboard() {
                             <CalendarIcon className="w-3 h-3" />
                             <span>{new Date(item.created_at).toLocaleDateString()}</span>
                           </span>
-                          {item.views && (
+                          {item.views !== undefined && item.views !== null && (
                             <span className="flex items-center space-x-1">
                               <EyeIcon className="w-3 h-3" />
                               <span>{item.views} views</span>
@@ -1571,6 +1087,7 @@ export default function VideoDashboard() {
                               <span>View</span>
                             </button>
                           )}
+
                           {/* Edit button - show for non-archived videos */}
                           {!isArchived(item) &&
                             (item.status === "draft" ||
@@ -1587,6 +1104,7 @@ export default function VideoDashboard() {
                                 <span>Edit</span>
                               </button>
                             )}
+
                           {/* Send for Approval button - only for draft videos that are not archived */}
                           {!isArchived(item) && item.status === "draft" && (
                             <button
@@ -1605,6 +1123,7 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "approval") ? "Sending..." : "Send for Approval"}</span>
                             </button>
                           )}
+
                           {/* Publish button - only for approved videos that are not archived */}
                           {!isArchived(item) && item.status === "approved" && (
                             <button
@@ -1623,6 +1142,7 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
                             </button>
                           )}
+
                           {/* Archive button - only for non-archived videos */}
                           {!isArchived(item) && (
                             <button
@@ -1641,6 +1161,7 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
                             </button>
                           )}
+
                           {/* Unarchive button - only for archived videos */}
                           {isArchived(item) && (
                             <button
@@ -1702,7 +1223,7 @@ export default function VideoDashboard() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div
             ref={createModalRef}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
           >
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-200 flex-shrink-0">
@@ -1711,18 +1232,13 @@ export default function VideoDashboard() {
                 <button
                   onClick={() => {
                     setShowCreateModal(false)
-                    setVideoForm({ title: "", description: "", video: null, thumbnail: null })
+                    setVideoForm({ title: "", description: "", video: null })
                     setVideoPreview(null)
-                    setThumbnailPreview(null)
                     setVideoError("")
-                    setThumbnailError("")
                     setCreateError("")
                     setCreateSuccess("")
                     if (videoInputRef.current) {
                       videoInputRef.current.value = ""
-                    }
-                    if (thumbnailInputRef.current) {
-                      thumbnailInputRef.current.value = ""
                     }
                   }}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -1732,6 +1248,7 @@ export default function VideoDashboard() {
                 </button>
               </div>
             </div>
+
             {/* Modal Content - Scrollable */}
             <div className="flex-1 overflow-y-auto">
               <form onSubmit={handleCreateVideo} className="p-6">
@@ -1744,6 +1261,7 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
+
                 {/* Error Message */}
                 {createError && (
                   <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -1753,30 +1271,40 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
+
                 <div className="space-y-6">
                   {/* Video Upload Section */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-3">Video File *</label>
-                    {/* Video Preview */}
+
+                    {/* Video Preview - Full Width */}
                     {videoPreview && (
-                      <div className="mb-4 relative group">
+                      <div className="mb-4">
                         <video
                           src={videoPreview}
                           controls
-                          className="w-full h-64 object-cover rounded-lg border border-slate-200"
+                          className="w-full rounded-lg border border-slate-200"
+                          style={{ maxHeight: "500px" }}
                         >
                           Your browser does not support the video tag.
                         </video>
                         <button
                           type="button"
-                          onClick={removeVideo}
-                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                          onClick={() => {
+                            setVideoPreview(null)
+                            setVideoForm((prev) => ({ ...prev, video: null }))
+                            if (videoInputRef.current) {
+                              videoInputRef.current.value = ""
+                            }
+                          }}
+                          className="mt-2 px-3 py-1 text-sm text-red-600 hover:text-red-700 border border-red-300 rounded hover:bg-red-50 transition-colors"
                           disabled={isCreating}
                         >
-                          <XIcon className="w-4 h-4" />
+                          Remove Video
                         </button>
                       </div>
                     )}
+
                     {/* Video Upload Area */}
                     {!videoPreview && (
                       <div
@@ -1816,6 +1344,7 @@ export default function VideoDashboard() {
                         />
                       </div>
                     )}
+
                     {/* Video Error */}
                     {videoError && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1826,80 +1355,7 @@ export default function VideoDashboard() {
                       </div>
                     )}
                   </div>
-                  {/* Thumbnail Upload Section */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-3">Thumbnail Image *</label>
-                    {/* Thumbnail Preview */}
-                    {thumbnailPreview && (
-                      <div className="mb-4 relative group">
-                        <Image
-                          src={thumbnailPreview || "/placeholder.svg"}
-                          alt="Thumbnail preview"
-                          width={400}
-                          height={225}
-                          className="w-full h-48 object-cover rounded-lg border border-slate-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={removeThumbnail}
-                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-                          disabled={isCreating}
-                        >
-                          <XIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                    {/* Thumbnail Upload Area */}
-                    {!thumbnailPreview && (
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                          isThumbnailDragOver
-                            ? "border-purple-500 bg-purple-50"
-                            : "border-slate-300 hover:border-slate-400"
-                        } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
-                        onDragOver={!isCreating ? handleThumbnailDragOver : undefined}
-                        onDragLeave={!isCreating ? handleThumbnailDragLeave : undefined}
-                        onDrop={!isCreating ? handleThumbnailDrop : undefined}
-                      >
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                            <ImageIcon className="w-6 h-6 text-slate-400" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-600">
-                              <button
-                                type="button"
-                                onClick={() => !isCreating && thumbnailInputRef.current?.click()}
-                                className="text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                                disabled={isCreating}
-                              >
-                                Click to upload thumbnail
-                              </button>{" "}
-                              or drag and drop
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF, WebP up to 5MB</p>
-                          </div>
-                        </div>
-                        <input
-                          ref={thumbnailInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleThumbnailInputChange}
-                          className="hidden"
-                          disabled={isCreating}
-                        />
-                      </div>
-                    )}
-                    {/* Thumbnail Error */}
-                    {thumbnailError && (
-                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <AlertCircleIcon className="w-4 h-4 text-red-600" />
-                          <p className="text-red-600 text-sm">{thumbnailError}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+
                   {/* Title Input */}
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-2">
@@ -1922,6 +1378,7 @@ export default function VideoDashboard() {
                       )}
                     </div>
                   </div>
+
                   {/* Description Input */}
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
@@ -1944,24 +1401,20 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 </div>
+
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-6 border-t border-slate-200">
                   <button
                     type="button"
                     onClick={() => {
                       setShowCreateModal(false)
-                      setVideoForm({ title: "", description: "", video: null, thumbnail: null })
+                      setVideoForm({ title: "", description: "", video: null })
                       setVideoPreview(null)
-                      setThumbnailPreview(null)
                       setVideoError("")
-                      setThumbnailError("")
                       setCreateError("")
                       setCreateSuccess("")
                       if (videoInputRef.current) {
                         videoInputRef.current.value = ""
-                      }
-                      if (thumbnailInputRef.current) {
-                        thumbnailInputRef.current.value = ""
                       }
                     }}
                     disabled={isCreating}
@@ -1977,8 +1430,7 @@ export default function VideoDashboard() {
                       videoForm.title.trim().length < 3 ||
                       !videoForm.description.trim() ||
                       stripHtmlTags(videoForm.description).length < 10 ||
-                      !videoForm.video ||
-                      !videoForm.thumbnail
+                      !videoForm.video
                     }
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
@@ -2006,7 +1458,7 @@ export default function VideoDashboard() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div
             ref={editModalRef}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col transform transition-all duration-200"
           >
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-200 flex-shrink-0">
@@ -2023,20 +1475,8 @@ export default function VideoDashboard() {
                 <button
                   onClick={() => {
                     setShowEditModal(false)
-                    setEditVideoPreview(null)
-                    setEditThumbnailPreview(null)
-                    setVideoError("")
-                    setThumbnailError("")
                     setUpdateError("")
                     setUpdateSuccess("")
-                    setRemoveExistingVideo(false)
-                    setRemoveExistingThumbnail(false)
-                    if (editVideoInputRef.current) {
-                      editVideoInputRef.current.value = ""
-                    }
-                    if (editThumbnailInputRef.current) {
-                      editThumbnailInputRef.current.value = ""
-                    }
                   }}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                   disabled={isUpdating}
@@ -2045,6 +1485,7 @@ export default function VideoDashboard() {
                 </button>
               </div>
             </div>
+
             {/* Modal Content - Scrollable */}
             <div className="flex-1 overflow-y-auto">
               <form onSubmit={handleUpdateVideo} className="p-6">
@@ -2057,6 +1498,7 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
+
                 {/* Error Message */}
                 {updateError && (
                   <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -2066,6 +1508,7 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 )}
+
                 <div className="space-y-6">
                   {/* Title */}
                   <div>
@@ -2089,200 +1532,17 @@ export default function VideoDashboard() {
                       )}
                     </div>
                   </div>
-                  {/* Video Upload */}
+
+                  {/* Video Display - Read Only */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Video File (Optional)</label>
-                    {/* Current/Preview Video */}
-                    {editVideoPreview && !removeExistingVideo ? (
-                      <div className="mb-4 relative group">
-                        <video
-                          src={editVideoPreview}
-                          controls
-                          className="w-full h-64 object-cover rounded-lg border border-slate-200"
-                          onError={() => {
-                            console.log("Video load error for:", editVideoPreview)
-                            handleVideoLoadError(`edit-${editVideoForm.id}`)
-                          }}
-                          onLoadStart={() => {
-                            console.log("Video load started for:", editVideoPreview)
-                          }}
-                        >
-                          Your browser does not support the video tag.
-                        </video>
-                        {videoLoadError[`edit-${editVideoForm.id}`] && (
-                          <div className="absolute inset-0 bg-slate-100 rounded-lg flex items-center justify-center">
-                            <div className="text-center">
-                              <AlertCircleIcon className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                              <p className="text-sm text-slate-500">Unable to load video preview</p>
-                              <p className="text-xs text-slate-400 mt-1">URL: {editVideoPreview}</p>
-                            </div>
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <div className="flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => editVideoInputRef.current?.click()}
-                              className="px-3 py-1 bg-white text-slate-800 rounded text-sm hover:bg-slate-100 transition-colors"
-                              disabled={isUpdating}
-                            >
-                              Change
-                            </button>
-                            <button
-                              type="button"
-                              onClick={removeEditVideo}
-                              className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
-                              disabled={isUpdating}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Show message if no video URL is available */
-                      <div className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <AlertCircleIcon className="w-5 h-5 text-slate-400" />
-                          <p className="text-slate-600">No video file available for preview</p>
-                        </div>
-                      </div>
-                    )}
-                    {/* Upload Area */}
-                    <div
-                      className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                        isEditVideoDragOver
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-slate-300 hover:border-slate-400"
-                      } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
-                      onDragOver={!isUpdating ? handleEditVideoDragOver : undefined}
-                      onDragLeave={!isUpdating ? handleEditVideoDragLeave : undefined}
-                      onDrop={!isUpdating ? handleEditVideoDrop : undefined}
-                    >
-                      <div className="flex flex-col items-center space-y-3">
-                        <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
-                          <VideoIcon className="w-8 h-8 text-slate-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-slate-600">
-                            <button
-                              type="button"
-                              onClick={() => !isUpdating && editVideoInputRef.current?.click()}
-                              className="text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                              disabled={isUpdating}
-                            >
-                              Click to upload
-                            </button>{" "}
-                            or drag and drop
-                          </p>
-                          <p className="text-xs text-slate-500 mt-1">MP4, WebM, OGG, AVI, MOV up to 500MB</p>
-                        </div>
-                      </div>
-                      <input
-                        ref={editVideoInputRef}
-                        type="file"
-                        accept="video/*"
-                        onChange={handleEditVideoInputChange}
-                        className="hidden"
-                        disabled={isUpdating}
-                      />
-                    </div>
-                    {/* Video Error */}
-                    {videoError && (
-                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <AlertCircleIcon className="w-4 h-4 text-red-600" />
-                          <p className="text-red-600 text-sm">{videoError}</p>
-                        </div>
+                    <label className="block text-sm font-medium text-slate-700 mb-3">Current Video</label>
+                    {editVideoForm.videoId && (
+                      <div className="mb-4">
+                        <Video videoId={editVideoForm.videoId} />
                       </div>
                     )}
                   </div>
-                  {/* Thumbnail Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Thumbnail Image (Optional)</label>
-                    {/* Current/Preview Thumbnail */}
-                    {editThumbnailPreview && !removeExistingThumbnail && (
-                      <div className="mb-4 relative group">
-                        <Image
-                          src={editThumbnailPreview || "/placeholder.svg"}
-                          alt="Thumbnail preview"
-                          width={400}
-                          height={225}
-                          className="w-full h-48 object-cover rounded-lg border border-slate-200"
-                        />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <div className="flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => editThumbnailInputRef.current?.click()}
-                              className="px-3 py-1 bg-white text-slate-800 rounded text-sm hover:bg-slate-100 transition-colors"
-                              disabled={isUpdating}
-                            >
-                              Change
-                            </button>
-                            <button
-                              type="button"
-                              onClick={removeEditThumbnail}
-                              className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
-                              disabled={isUpdating}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {/* Upload Area */}
-                    {(!editThumbnailPreview || removeExistingThumbnail) && (
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                          isEditThumbnailDragOver
-                            ? "border-purple-500 bg-purple-50"
-                            : "border-slate-300 hover:border-slate-400"
-                        } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
-                        onDragOver={!isUpdating ? handleEditThumbnailDragOver : undefined}
-                        onDragLeave={!isUpdating ? handleEditThumbnailDragLeave : undefined}
-                        onDrop={!isUpdating ? handleEditThumbnailDrop : undefined}
-                      >
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                            <ImageIcon className="w-6 h-6 text-slate-400" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-600">
-                              <button
-                                type="button"
-                                onClick={() => !isUpdating && editThumbnailInputRef.current?.click()}
-                                className="text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                                disabled={isUpdating}
-                              >
-                                Click to upload
-                              </button>{" "}
-                              or drag and drop
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF, WebP up to 5MB</p>
-                          </div>
-                        </div>
-                        <input
-                          ref={editThumbnailInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleEditThumbnailInputChange}
-                          className="hidden"
-                          disabled={isUpdating}
-                        />
-                      </div>
-                    )}
-                    {/* Thumbnail Error */}
-                    {thumbnailError && (
-                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <AlertCircleIcon className="w-4 h-4 text-red-600" />
-                          <p className="text-red-600 text-sm">{thumbnailError}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+
                   {/* Description */}
                   <div>
                     <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 mb-2">
@@ -2305,26 +1565,15 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 </div>
+
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-8 pt-6 border-t border-slate-200">
                   <button
                     type="button"
                     onClick={() => {
                       setShowEditModal(false)
-                      setEditVideoPreview(null)
-                      setEditThumbnailPreview(null)
-                      setVideoError("")
-                      setThumbnailError("")
                       setUpdateError("")
                       setUpdateSuccess("")
-                      setRemoveExistingVideo(false)
-                      setRemoveExistingThumbnail(false)
-                      if (editVideoInputRef.current) {
-                        editVideoInputRef.current.value = ""
-                      }
-                      if (editThumbnailInputRef.current) {
-                        editThumbnailInputRef.current.value = ""
-                      }
                     }}
                     disabled={isUpdating}
                     className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2397,7 +1646,6 @@ export default function VideoDashboard() {
                   onClick={() => {
                     setShowViewModal(false)
                     setViewVideo(null)
-                    setIsPlaying(false)
                   }}
                   className="p-2 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0"
                 >
@@ -2410,22 +1658,7 @@ export default function VideoDashboard() {
               <div className="mb-8">
                 <div className="relative bg-black rounded-2xl overflow-hidden">
                   {!videoLoadError[`view-${viewVideo.id}`] ? (
-                    <video
-                      ref={videoRef}
-                      className="w-full aspect-video object-contain"
-                      onTimeUpdate={handleTimeUpdate}
-                      onLoadedMetadata={handleLoadedMetadata}
-                      onPlay={handleVideoPlay}
-                      onPause={handleVideoPause}
-                      poster={viewVideo.thumbnail}
-                      preload="metadata"
-                      crossOrigin="anonymous"
-                    >
-                      <source src={viewVideo.video} type="video/mp4" />
-                      <source src={viewVideo.video} type="video/webm" />
-                      <source src={viewVideo.video} type="video/ogg" />
-                      Your browser does not support the video tag.
-                    </video>
+                    <Video videoId={viewVideo.video_id} />
                   ) : (
                     <div className="w-full aspect-video bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
                       <div className="text-center">
@@ -2446,64 +1679,9 @@ export default function VideoDashboard() {
                       </div>
                     </div>
                   )}
-                  {/* Video Controls */}
-                  {!videoLoadError[`view-${viewVideo.id}`] && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <div className="flex items-center space-x-4">
-                        <button
-                          onClick={handlePlayPause}
-                          className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                        >
-                          {isPlaying ? (
-                            <PauseIcon className="w-5 h-5 text-white" />
-                          ) : (
-                            <PlayIcon className="w-5 h-5 text-white" />
-                          )}
-                        </button>
-                        <div className="flex-1 flex items-center space-x-2">
-                          <span className="text-white text-sm min-w-[40px]">{formatTime(currentTime)}</span>
-                          <input
-                            type="range"
-                            min="0"
-                            max={duration || 0}
-                            value={currentTime}
-                            onChange={handleSeek}
-                            className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                            style={{
-                              background: `linear-gradient(to right, #ffffff ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 1)) * 100}%)`,
-                            }}
-                          />
-                          <span className="text-white text-sm min-w-[40px]">{formatTime(duration)}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button onClick={toggleMute} className="p-1 hover:bg-white/20 rounded transition-colors">
-                            {isMuted ? (
-                              <VolumeXIcon className="w-4 h-4 text-white" />
-                            ) : (
-                              <Volume2Icon className="w-4 h-4 text-white" />
-                            )}
-                          </button>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={isMuted ? 0 : volume}
-                            onChange={handleVolumeChange}
-                            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                          />
-                          <button
-                            onClick={handleFullscreen}
-                            className="p-1 hover:bg-white/20 rounded transition-colors"
-                          >
-                            <MaximizeIcon className="w-4 h-4 text-white" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
+
               {/* Video Description */}
               <div className="mb-8">
                 <h4 className="text-xl font-semibold text-gray-900 mb-4">Description</h4>
@@ -2511,6 +1689,7 @@ export default function VideoDashboard() {
                   <TipTapContentDisplay content={viewVideo.description} />
                 </div>
               </div>
+
               {/* Video Details */}
               <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-2xl p-6">
@@ -2558,27 +1737,6 @@ export default function VideoDashboard() {
               </div>
             </div>
           </div>
-          <style jsx>{`
-            .slider::-webkit-slider-thumb {
-              appearance: none;
-              width: 16px;
-              height: 16px;
-              border-radius: 50%;
-              background: #ffffff;
-              cursor: pointer;
-              border: 2px solid #ffffff;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
-            .slider::-moz-range-thumb {
-              width: 16px;
-              height: 16px;
-              border-radius: 50%;
-              background: #ffffff;
-              cursor: pointer;
-              border: 2px solid #ffffff;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
-          `}</style>
         </div>
       )}
     </div>

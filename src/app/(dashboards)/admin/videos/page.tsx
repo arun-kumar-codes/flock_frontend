@@ -29,6 +29,8 @@ import {
   VolumeXIcon,
   MaximizeIcon,
 } from "lucide-react"
+import Video from "@/components/Video"
+import TipTapContentDisplay from "@/components/tiptap-content-display"
 
 interface Commenter {
   email: string
@@ -54,6 +56,8 @@ interface Author {
 }
 
 interface Video {
+  video_id: any
+  videoId: any
   id: number
   title: string
   description: string
@@ -484,20 +488,7 @@ export default function AdminVideosPage() {
                   className="w-full pl-12 pr-4 py-4 bg-white/80 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
                 />
               </div>
-              <div className="relative">
-                <FilterIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <select
-                  value={filterAuthor}
-                  onChange={(e) => setFilterAuthor(e.target.value)}
-                  className="pl-12 pr-8 py-4 bg-white/80 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 min-w-[200px]"
-                >
-                  {authors.map((author) => (
-                    <option key={author} value={author}>
-                      {author === "all" ? "All Creators" : author}
-                    </option>
-                  ))}
-                </select>
-              </div>
+             
             </div>
           </div>
 
@@ -517,7 +508,7 @@ export default function AdminVideosPage() {
                   <div
                     key={video.id}
                     className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 hover:shadow-2xl hover:border-red-200 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-                    onDoubleClick={() => handleVideoDoubleClick(video)}
+                    onClick={() => handleVideoDoubleClick(video)}
                   >
                     <div className="flex flex-col lg:flex-row gap-6">
                       {/* Thumbnail */}
@@ -823,7 +814,7 @@ export default function AdminVideosPage() {
                 {/* Video Player */}
                 <div className="mb-8">
                   <div className="relative bg-black rounded-2xl overflow-hidden">
-                    <video
+                    {/* <video
                       ref={videoRef}
                       className="w-full aspect-video object-contain"
                       onTimeUpdate={handleTimeUpdate}
@@ -838,10 +829,10 @@ export default function AdminVideosPage() {
                       <source src={videoToView.video} type="video/webm" />
                       <source src={videoToView.video} type="video/ogg" />
                       Your browser does not support the video tag.
-                    </video>
+                    </video> */}
 
                     {/* Video Controls */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                       <div className="flex items-center space-x-4">
                         <button
                           onClick={handlePlayPause}
@@ -895,7 +886,8 @@ export default function AdminVideosPage() {
                           </button>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
+                    <Video videoId={videoToView.video_id}></Video>
                   </div>
                 </div>
 
@@ -903,7 +895,7 @@ export default function AdminVideosPage() {
                 <div className="mb-8">
                   <h4 className="text-xl font-semibold text-gray-900 mb-4">Description</h4>
                   <div className="prose prose-lg prose-slate max-w-none bg-gray-50 p-6 rounded-2xl">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{videoToView.description}</p>
+                      <TipTapContentDisplay content={videoToView.description} className="text-gray-700" />
                   </div>
                 </div>
 

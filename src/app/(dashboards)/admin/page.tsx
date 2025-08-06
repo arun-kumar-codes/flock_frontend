@@ -6,6 +6,8 @@ import { getBlogByStatus } from "@/api/content"
 import { getVideoByStatus } from "@/api/content"
 import { UsersIcon, FileTextIcon, VideoIcon, EyeIcon, ClockIcon } from "lucide-react"
 import Link from "next/link"
+import Loader from "@/components/Loader"
+
 
 interface User {
   id: number
@@ -41,9 +43,17 @@ export default function AdminDashboard() {
   const [videos, setVideos] = useState<Video[]>([])
   const [pendingBlogs, setPendingBlogs] = useState<Blog[]>([])
   const [pendingVideos, setPendingVideos] = useState<Video[]>([])
+  const [loading, setLoading] = useState(true)
+
 
   useEffect(() => {
+
+    if(!localStorage.getItem("access_token")) {
+        window.location.href = "/login";
+        return;
+    }
     fetchData()
+    setLoading(false)
   }, [])
 
   const fetchData = async () => {
@@ -150,7 +160,12 @@ export default function AdminDashboard() {
     return colors[color as keyof typeof colors] || colors.blue
   }
 
+  if(loading){
+    return <Loader></Loader>
+  }
+
   return (
+    
     <div>
       {/* Welcome Section */}
       <div className="mb-8">
@@ -210,18 +225,6 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
-            <Link
-              href="/admin/analytics"
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
-            >
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                <EyeIcon className="w-4 h-4 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium text-slate-800">View Analytics</p>
-                <p className="text-sm text-slate-500">Check platform performance metrics</p>
-              </div>
-            </Link>
           </div>
         </div>
 

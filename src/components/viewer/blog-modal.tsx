@@ -6,17 +6,19 @@ import {
   CalendarIcon,
   ClockIcon,
   ThumbsUpIcon,
-  HeartIcon,
   MessageCircleIcon,
   SendIcon,
   EditIcon,
   CheckIcon,
   TrashIcon,
   MoreVerticalIcon,
+  UserCheck,
+  Loader2,
+  UserPlus,
 } from "lucide-react"
 import Image from "next/image"
 import profileImg from "@/assets/profile.png"
-import { addComment, editComments, deleteComment } from "@/api/content"
+import { addComment, editComments, deleteComment,viewBLog ,addFollowing,removeFollowing} from "@/api/content"
 import { useSelector } from "react-redux"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
 
@@ -36,6 +38,8 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null)
   const modalRef = useRef<HTMLDivElement>(null)
   const commentMenuRef = useRef<HTMLDivElement>(null)
+  const [isFollowing, setFollowing] = useState(blog.is_following_author);
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,6 +64,13 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
       day: "numeric",
     })
   }
+
+  const handleViewBlog = async () => {
+    try {
+      await viewBLog(blog.id)
+    } catch (error) {
+      console.error("Error viewing blog:", error) 
+    }}
 
   const formatCommentDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -127,6 +138,30 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
     await onToggleLike(blog.id)
     onRefreshBlogs()
   }
+  useEffect(() => {
+    if (!blog.is_viewed) {
+      handleViewBlog() 
+    }
+  }) 
+
+  const handleClick=async()=>{
+    setIsLoading(true)
+    try {
+      if (isFollowing) {
+        await removeFollowing(blog.author.id)
+        setFollowing(false)
+      } else {
+        await addFollowing(blog.author.id)
+        setFollowing(true)
+      }
+      onRefreshBlogs()
+    } catch (error) {
+      console.error("Error toggling follow:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -151,6 +186,31 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
                 </span>
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{blog.category}</span>
               </div>
+         <button
+      onClick={handleClick}
+      disabled={isLoading}
+      className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium
+        ${isFollowing 
+          ? 'bg-white text-gray-800 hover:bg-gray-100 border-gray-300' 
+          : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500'
+        }
+        disabled:opacity-60 disabled:cursor-not-allowed
+      `}
+    >
+      {isLoading ? (
+        <Loader2 className="animate-spin w-5 h-5" />
+      ) : isFollowing ? (
+        <>
+          <UserCheck className="w-5 h-5 text-green-600" />
+          <span>Following</span>
+        </>
+      ) : (
+        <>
+          <UserPlus className="w-5 h-5 text-white" />
+          <span>Follow</span>
+        </>
+      )}
+    </button>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0">
               <XIcon className="w-6 h-6 text-slate-500" />
@@ -192,7 +252,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
                 <ThumbsUpIcon className={`w-5 h-5 ${blog.is_liked ? "fill-current" : ""}`} />
                 <span>{blog.likes} Likes</span>
               </button>
-
+{/* 
               <button
                 onClick={() => onToggleFavorite(blog.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
@@ -203,7 +263,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
               >
                 <HeartIcon className={`w-5 h-5 ${blog.isFavorite ? "fill-current" : ""}`} />
                 <span>{blog.isFavorite ? "Favorited" : "Add to Favorites"}</span>
-              </button>
+              </button> */}
             </div>
           </div>
 

@@ -335,7 +335,7 @@ export default function BlogsPage() {
             description: generateExcerpt(blog.content),
             createdAt: blog.created_at,
             status: blog.status || "draft",
-            views: Math.floor(Math.random() * 1000),
+            views: blog.views || 0,
             category: blog.author?.role === "Creator" ? "Programming" : "General",
           }))
 
@@ -1015,12 +1015,12 @@ export default function BlogsPage() {
                             <CalendarIcon className="w-3 h-3" />
                             <span>{new Date(item.created_at).toLocaleDateString()}</span>
                           </span>
-                          {item.views && (
+                      
                             <span className="flex items-center space-x-1">
                               <EyeIcon className="w-3 h-3" />
                               <span>{item.views} views</span>
                             </span>
-                          )}
+                       
                           <span className="flex items-center space-x-1">
                             <span>👍 {item.likes} likes</span>
                           </span>

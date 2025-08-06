@@ -100,12 +100,21 @@ export default function Signup() {
     }
   }
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+const handleChange = (field: string, value: string) => {
+  if (field === "username") {
+    const hasSpecialChars = /[^a-zA-Z0-9_]/.test(value);
+    if (hasSpecialChars) {
+      setErrors((prev) => ({ ...prev, username: "Username must not contain special characters" }));
+      return; // prevent updating formData if invalid
     }
   }
+
+  setFormData((prev) => ({ ...prev, [field]: value }));
+
+  if (errors[field]) {
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  }
+};
 
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value)

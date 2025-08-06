@@ -2,8 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-    images: {
-    domains: ['116.202.210.102'], // Add your allowed image domains here
+     images: {
+    domains: ['customer-2134ee9mui3goprl.cloudflarestream.com',
+      '116.202.210.102',
+      'imagedelivery.net',
+    ],
   },
 };
 

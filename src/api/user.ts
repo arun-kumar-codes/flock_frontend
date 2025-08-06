@@ -33,6 +33,20 @@ export async function updateUserProfile(data: any) {
   }
 }
 
+export async function updateProfile(data: any) {
+  try {
+    const response = await axiosInstance.put('/auth/update-profile' , data,{
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    return response;
+  } catch (error:any) {
+    console.error("Error updating user profile:", error);
+    return error.response;
+  }
+}
+
 export async function changePassword(data: any) {
   try {
     const response = await axiosInstance.put('/auth/change-password', data);
@@ -81,6 +95,17 @@ export async function deleteUser(data: any) {
     return response;
   } catch (error:any) {
     console.error("Error changing password:", error);
+    return error.response;
+  }
+}
+
+
+export async function getCreatorData(){
+  try {
+    const response = await axiosInstance.get('/auth/creator-data');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching creator data:", error);
     return error.response;
   }
 }

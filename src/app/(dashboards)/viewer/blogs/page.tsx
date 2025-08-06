@@ -14,10 +14,7 @@ import {
   BookOpenIcon,
   FilterIcon,
   RefreshCwIcon,
-  SendIcon,
-  EditIcon,
-  TrashIcon,
-  CheckIcon,
+
 } from "lucide-react"
 import Image from "next/image"
 import { getBlog, toggleBlogLike, editComments, addComment, deleteComment } from "@/api/content"
@@ -240,6 +237,8 @@ export default function BlogPage() {
     setShowContentMenu(null)
   }
 
+
+
   const toggleComments = (blogId: number) => {
     setExpandedComments((prev) => {
       const newSet = new Set(prev)
@@ -308,6 +307,11 @@ export default function BlogPage() {
     return matchesSearch && matchesFilter
   })
 
+  useEffect(() => {
+    if (selectedBlog) {
+      updateSelectedBlog()
+    }
+  }, [showBlogModal,setBlogs])
   const categories = ["all", ...Array.from(new Set(blogs.map((blog) => blog.category).filter(Boolean)))]
 
   const formatDate = (dateString: string) => {
@@ -418,10 +422,11 @@ export default function BlogPage() {
                 className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300"
               >
                 <div className="lg:flex">
+                 {    blog.image &&
                   <div className="lg:w-80 lg:flex-shrink-0">
                     <div className="relative h-48 lg:h-full cursor-pointer" onClick={() => handleBlogClick(blog)}>
-                      <Image
-                        src={blog.image ?? "/placeholder.svg?height=200&width=300"}
+                  <Image
+                        src={blog.image }
                         alt={blog.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -429,6 +434,7 @@ export default function BlogPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>
+                      }
                   <div className="flex-1 p-6 lg:p-8">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">

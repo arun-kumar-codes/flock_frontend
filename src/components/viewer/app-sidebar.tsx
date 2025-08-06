@@ -34,15 +34,15 @@ const menuItems = [
     title: "Video",
     url: "/viewer/videos",
     icon: VideoIcon,
-  },
+  }
 ]
 
 const userMenuItems:any = [
-  // {
-  //   title: "Profile",
-  //   url: "/viewer/profile",
-  //   icon: UserIcon,
-  // },
+  {
+    title: "Profile",
+    url: "/viewer/profile",
+    icon: UserIcon,
+  },
   // {
   //   title: "Favorites",
   //   url: "/viewer/favorites",
@@ -176,9 +176,9 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
 
       {/* User Profile & Logout */}
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200">
-        <div className="flex items-center space-x-3 mb-3">
+        <div className="flex items-center space-x-3 mb-3" onClick={() => router.push("/viewer/profile")}>
           <Image
-            src={profileImg || "/placeholder.svg"}
+            src={user.profileImage||profileImg || "/placeholder.svg"}
             alt="Profile"
             width={32}
             height={32}

@@ -6,24 +6,20 @@ import {
   CalendarIcon,
   ClockIcon,
   ThumbsUpIcon,
-  HeartIcon,
   MessageCircleIcon,
   SendIcon,
-  PlayIcon,
-  PauseIcon,
-  Volume2Icon,
-  VolumeXIcon,
-  MaximizeIcon,
   EditIcon,
   CheckIcon,
   TrashIcon,
   MoreVerticalIcon,
-  EyeIcon,
+  UserPlus,
+  Loader2,
+  UserCheck,
 } from "lucide-react"
 import { useSelector } from "react-redux"
-import { addCommentToVideo, editVideoComment, deleteVideoComment } from "@/api/content"
+import { addCommentToVideo, editVideoComment, deleteVideoComment, addView, addWatchTime, removeFollowing,addFollowing } from "@/api/content"
 import TipTapContentDisplay from "../tiptap-content-display"
-
+import { Stream } from "@cloudflare/stream-react"
 interface VideoModalProps {
   video: any
   onClose: () => void
@@ -31,26 +27,94 @@ interface VideoModalProps {
   onToggleFavorite: (videoId: number) => void
   onRefreshVideos: () => void
 }
-
 export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onRefreshVideos }: VideoModalProps) {
   const user = useSelector((state: any) => state.user)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
   const [newComment, setNewComment] = useState("")
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editCommentText, setEditCommentText] = useState("")
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null)
+  // Watch time tracking state
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [totalWatchTime, setTotalWatchTime] = useState(0)
+  const [hasViewBeenAdded, setHasViewBeenAdded] = useState(false)
+  const [loading, setLoading] = useState(true) 
   const modalRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
   const commentMenuRef = useRef<HTMLDivElement>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isFollowing, setFollowing] = useState(video.is_following) // State to track
 
+  const watchTimeRef = useRef(0) // Use ref to ensure we have the latest value in cleanup
+  // Update ref whenever totalWatchTime changes
+  useEffect(() => {
+    watchTimeRef.current = totalWatchTime
+  }, [totalWatchTime])
+  const handlePlay = () => {
+    console.log("Video started playing")
+    setStartTime(Date.now())
+    // Only call addView once per video session
+    if (video && !video.is_viewed && !hasViewBeenAdded) {
+      addView(video.id)
+        .then(() => {
+          setHasViewBeenAdded(true)
+          console.log("View added successfully")
+        })
+        .catch((error) => console.error("Error adding view:", error))
+    }
+  }
+  const handlePause = () => {
+    console.log("Video paused")
+    if (startTime) {
+      const now = Date.now()
+      const sessionDuration = Math.floor((now - startTime) / 1000) // in seconds
+      setTotalWatchTime((prev) => prev + sessionDuration)
+      setStartTime(null)
+      console.log("Session watch time:", sessionDuration, "seconds")
+    }
+  }
+  const handleEnded = () => {
+    console.log("Video ended")
+    if (startTime) {
+      const now = Date.now()
+      const sessionDuration = Math.floor((now - startTime) / 1000) // in seconds
+      setTotalWatchTime((prev) => prev + sessionDuration)
+      setStartTime(null)
+      console.log("Final session watch time:", sessionDuration, "seconds")
+    }
+  }
+  // Function to send watch time to API
+  const sendWatchTimeToAPI = async (watchTime: number) => {
+    if (watchTime > 0) {
+      try {
+        await addWatchTime(video.id, watchTime)
+        console.log("Watch time sent to API:", watchTime, "seconds")
+      } catch (error) {
+        console.error("Error sending watch time:", error)
+      }
+    } else {
+      console.log("Watch time is 0, not calling API")
+    }
+  }
+  // Handle modal close
+  const handleClose = () => {
+    // Calculate any remaining watch time if video is currently playing
+    let finalWatchTime = totalWatchTime
+    if (startTime) {
+      const now = Date.now()
+      const sessionDuration = Math.floor((now - startTime) / 1000)
+      finalWatchTime += sessionDuration
+    }
+    console.log("Modal closing, final watch time:", finalWatchTime, "seconds")
+    // Send watch time to API before closing
+    if (finalWatchTime > 0) {
+      sendWatchTimeToAPI(finalWatchTime)
+    }
+    onClose()
+  }
+  // Handle click outside modal
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose()
+        handleClose()
       }
       if (commentMenuRef.current && !commentMenuRef.current.contains(event.target as Node)) {
         setShowCommentMenu(null)
@@ -60,15 +124,24 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [onClose])
-
-  // Initialize video when component mounts
+  }, [totalWatchTime, startTime]) // Include dependencies for closure
+  // Cleanup on component unmount
   useEffect(() => {
-    if (videoRef.current && video.video) {
-      videoRef.current.load() // Reload the video element
+    return () => {
+      // Calculate final watch time including current session
+      let finalWatchTime = watchTimeRef.current
+      if (startTime) {
+        const now = Date.now()
+        const sessionDuration = Math.floor((now - startTime) / 1000)
+        finalWatchTime += sessionDuration
+      }
+      console.log("Component unmounting, final watch time:", finalWatchTime, "seconds")
+      // Send watch time to API on unmount
+      if (finalWatchTime > 0) {
+        sendWatchTimeToAPI(finalWatchTime)
+      }
     }
-  }, [video.video])
-
+  }, []) // Empty dependency array for unmount only
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -76,25 +149,15 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
       day: "numeric",
     })
   }
-
   const formatCommentDate = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-
     if (diffInHours < 1) return "Just now"
     if (diffInHours < 24) return `${diffInHours}h ago`
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   }
-
-  const formatTime = (time: number) => {
-    if (isNaN(time)) return "0:00"
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }
-
   const formatViews = (views: number) => {
     if (views >= 1000000) {
       return `${(views / 1000000).toFixed(1)}M`
@@ -103,81 +166,20 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
     }
     return views.toString()
   }
-
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause()
-      } else {
-        videoRef.current.play().catch((error) => {
-          console.error("Error playing video:", error)
-        })
-      }
+  const formatWatchTime = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+    const pad = (num: number) => String(num).padStart(2, "0")
+    if (hours > 0) {
+      return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    } else {
+      return `${pad(minutes)}:${pad(seconds)}`
     }
   }
-
-  const handleVideoPlay = () => {
-    setIsPlaying(true)
-  }
-
-  const handleVideoPause = () => {
-    setIsPlaying(false)
-  }
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime)
-    }
-  }
-
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration)
-      videoRef.current.volume = volume
-    }
-  }
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = Number.parseFloat(e.target.value)
-    if (videoRef.current && !isNaN(time)) {
-      videoRef.current.currentTime = time
-      setCurrentTime(time)
-    }
-  }
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = Number.parseFloat(e.target.value)
-    setVolume(newVolume)
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume
-    }
-    setIsMuted(newVolume === 0)
-  }
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      if (isMuted) {
-        videoRef.current.volume = volume
-        setIsMuted(false)
-      } else {
-        videoRef.current.volume = 0
-        setIsMuted(true)
-      }
-    }
-  }
-
-  const handleFullscreen = () => {
-    if (videoRef.current) {
-      if (videoRef.current.requestFullscreen) {
-        videoRef.current.requestFullscreen()
-      }
-    }
-  }
-
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newComment.trim()) return
-
     try {
       await addCommentToVideo(video.id, newComment.trim())
       setNewComment("")
@@ -186,16 +188,13 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
       console.error("Error adding comment:", error)
     }
   }
-
   const handleEditComment = (comment: any) => {
     setEditingCommentId(comment.id)
     setEditCommentText(comment.comment)
     setShowCommentMenu(null)
   }
-
   const handleSaveEditComment = async (commentId: number) => {
     if (!editCommentText.trim()) return
-
     try {
       await editVideoComment(commentId, editCommentText.trim())
       setEditingCommentId(null)
@@ -205,10 +204,8 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
       console.error("Error updating comment:", error)
     }
   }
-
   const handleDeleteComment = async (commentId: number) => {
     setShowCommentMenu(null)
-
     try {
       await deleteVideoComment(commentId)
       onRefreshVideos()
@@ -216,16 +213,13 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
       console.error("Error deleting comment:", error)
     }
   }
-
   const handleCancelEdit = () => {
     setEditingCommentId(null)
     setEditCommentText("")
   }
-
   const toggleCommentMenu = (commentId: number) => {
     setShowCommentMenu(showCommentMenu === commentId ? null : commentId)
   }
-
   const handleLike = async () => {
     try {
       await onToggleLike(video.id)
@@ -233,7 +227,23 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
       console.error("Error toggling like:", error)
     }
   }
-
+ const handleClick=async()=>{
+    setIsLoading(true)
+    try {
+      if (isFollowing) {
+        await removeFollowing(video.author.id)
+        setFollowing(false)
+      } else {
+        await addFollowing(video.author.id)
+        setFollowing(true)
+      }
+      onRefreshVideos()
+    } catch (error) {
+      console.error("Error toggling follow:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div
@@ -255,108 +265,74 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                   <ClockIcon className="w-4 h-4" />
                   <span>{video.duration_formatted || video.duration}</span>
                 </span>
-                <span className="flex items-center space-x-1">
-                  <EyeIcon className="w-4 h-4" />
-                  <span>{formatViews(video.views)} views</span>
-                </span>
-                <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">{video.category}</span>
               </div>
+                <button
+      onClick={handleClick}
+      disabled={isLoading}
+      className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium
+        ${isFollowing 
+          ? 'bg-white text-gray-800 hover:bg-gray-100 border-gray-300' 
+          : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500'
+        }
+        disabled:opacity-60 disabled:cursor-not-allowed
+      `}
+    >
+      {isLoading ? (
+        <Loader2 className="animate-spin w-5 h-5" />
+      ) : isFollowing ? (
+        <>
+          <UserCheck className="w-5 h-5 text-green-600" />
+          <span>Following</span>
+        </>
+      ) : (
+        <>
+          <UserPlus className="w-5 h-5 text-white" />
+          <span>Follow</span>
+        </>
+      )}
+    </button>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0">
+            <button onClick={handleClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0">
               <XIcon className="w-6 h-6 text-slate-500" />
             </button>
           </div>
         </div>
-
         {/* Modal Content - Scrollable */}
         <div className="flex-1 overflow-y-auto">
           {/* Video Player */}
           <div className="p-6 border-b border-slate-200">
-            <div className="relative  rounded-lg overflow-hidden">
+            <div className="relative rounded-lg overflow-hidden">
+              <div className="w-full h-full rounded-lg overflow-hidden">
+                <div style={{ objectFit: "cover", width: "100%", height: "100%" }}>
+                   {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 z-10">
+          <div className="loader" /> 
+               <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-white"></div>
 
-
-              
-              <video
-                ref={videoRef}
-                className="w-full aspect-video object-contain"
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleLoadedMetadata}
-                onPlay={handleVideoPlay}
-                onPause={handleVideoPause}
-                poster={video.thumbnail}
-                preload="metadata"
-                crossOrigin="anonymous"
-              >
-                <source src={video.video || video.videoUrl} type="video/mp4" />
-                <source src={video.video || video.videoUrl} type="video/webm" />
-                <source src={video.video || video.videoUrl} type="video/ogg" />
-                Your browser does not support the video tag.
-              </video>
-
-              {/* Video Controls */}
-              {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={handlePlayPause}
-                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                  >
-                    {isPlaying ? (
-                      <PauseIcon className="w-5 h-5 text-white" />
-                    ) : (
-                      <PlayIcon className="w-5 h-5 text-white" />
-                    )}
-                  </button>
-
-                  <div className="flex-1 flex items-center space-x-2">
-                    <span className="text-white text-sm min-w-[40px]">{formatTime(currentTime)}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max={duration || 0}
-                      value={currentTime}
-                      onChange={handleSeek}
-                      className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                      style={{
-                        background: `linear-gradient(to right, #ffffff ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 1)) * 100}%)`,
-                      }}
-                    />
-                    <span className="text-white text-sm min-w-[40px]">{formatTime(duration)}</span>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <button onClick={toggleMute} className="p-1 hover:bg-white/20 rounded transition-colors">
-                      {isMuted ? (
-                        <VolumeXIcon className="w-4 h-4 text-white" />
-                      ) : (
-                        <Volume2Icon className="w-4 h-4 text-white" />
-                      )}
-                    </button>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={isMuted ? 0 : volume}
-                      onChange={handleVolumeChange}
-                      className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <button onClick={handleFullscreen} className="p-1 hover:bg-white/20 rounded transition-colors">
-                      <MaximizeIcon className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
+        </div>
+      )}
+                  <Stream
+                    controls
+                    autoplay={false}
+                    responsive
+                    src={video.video_id}
+                    onPlay={handlePlay}
+                    onPause={handlePause}
+                    onEnded={handleEnded}
+                      onLoadedData={() => setLoading(false)}
+                      onWaiting={() => setLoading(true)}
+                 
+                  />
                 </div>
-              </div> */}
+              </div>
             </div>
           </div>
-
           {/* Video Description */}
           <div className="p-6 border-b border-slate-200">
             <div className="prose prose-slate max-w-none">
-              {/* <p className="text-slate-700 leading-relaxed">{video.description}</p> */}
               <TipTapContentDisplay content={video.description} className="text-gray-700" />
             </div>
           </div>
-
           {/* Engagement Section */}
           <div className="p-6 border-b border-slate-200">
             <div className="flex items-center space-x-6">
@@ -371,24 +347,11 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                 <ThumbsUpIcon className={`w-5 h-5 ${video.is_liked ? "fill-current" : ""}`} />
                 <span>{video.likes} Likes</span>
               </button>
-              <button
-                onClick={() => onToggleFavorite(video.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  video.isFavorite
-                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <HeartIcon className={`w-5 h-5 ${video.isFavorite ? "fill-current" : ""}`} />
-                <span>{video.isFavorite ? "Favorited" : "Add to Favorites"}</span>
-              </button>
             </div>
           </div>
-
           {/* Comments Section */}
           <div className="p-6">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Comments ({video.comments_count || 0})</h3>
-
             {/* Add Comment Form */}
             <form onSubmit={handleCommentSubmit} className="mb-6">
               <div className="flex space-x-3">
@@ -418,7 +381,6 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                 </div>
               </div>
             </form>
-
             {/* Comments List */}
             <div className="space-y-4">
               {video.comments && video.comments.length > 0 ? (
@@ -438,7 +400,6 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                               <span className="font-medium text-slate-800 text-sm">{comment.commenter.username}</span>
                               <span className="text-xs text-slate-500">{formatCommentDate(comment.commented_at)}</span>
                             </div>
-
                             {/* Comment Actions Menu */}
                             {user && comment.commented_by === user.id && (
                               <div className="relative" ref={commentMenuRef}>
@@ -448,7 +409,6 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                                 >
                                   <MoreVerticalIcon className="w-3 h-3 text-slate-500" />
                                 </button>
-
                                 {showCommentMenu === comment.id && (
                                   <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
                                     <button
@@ -470,7 +430,6 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                               </div>
                             )}
                           </div>
-
                           {editingCommentId === comment.id ? (
                             <div className="space-y-2">
                               <textarea
@@ -522,29 +481,6 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #ffffff;
-          cursor: pointer;
-          border: 2px solid #ffffff;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .slider::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #ffffff;
-          cursor: pointer;
-          border: 2px solid #ffffff;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-      `}</style>
     </div>
   )
 }

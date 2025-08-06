@@ -1,12 +1,32 @@
+// "use client"
+
+// import { EyeIcon } from "lucide-react" // or use UserIcon if preferred
+
+// export function AppHeader() {
+//   return (
+//     <header className="flex items-center justify-between px-4 py-3 bg-white shadow-sm border-b">
+//       <div className="flex items-center space-x-2">
+//         <EyeIcon className="w-5 h-5 text-gray-700" />
+//         <span className="text-sm font-medium text-gray-700">Viewer Mode</span>
+//       </div>
+
+//       {/* Optional: Right side content like user avatar or logout */}
+//       <div className="text-sm text-gray-500">
+//         {/* Placeholder or future content */}
+//       </div>
+//     </header>
+//   )
+// }
+
+
+
 "use client"
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useDispatch } from "react-redux"
-import Image from "next/image"
-import { LogOutIcon, ShieldIcon, BellIcon, SearchIcon, SettingsIcon, UserIcon } from "lucide-react"
-import profileImg from "@/assets/profile.png"
-import { logOut } from "@/slice/userSlice"
+import { ShieldIcon } from "lucide-react"
+
 
 const navigationItems = [
   { name: "Dashboard", href: "/admin" },
@@ -54,13 +74,7 @@ export default function AdminHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    localStorage.removeItem("refresh_token")
-    localStorage.removeItem("user")
-    dispatch(logOut())
-    router.push("/login")
-  }
+
 
   const currentPageName = navigationItems.find((item) => item.href === pathname)?.name || "Admin Panel"
 
@@ -87,3 +101,4 @@ export default function AdminHeader() {
     </header>
   )
 }
+

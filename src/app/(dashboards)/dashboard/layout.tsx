@@ -9,6 +9,7 @@ import { Home, Video, FileText, Building2, LogOutIcon, BellIcon, SearchIcon, Pen
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
 import { Suspense } from "react"
+import Loader from "@/components/Loader"
 
 const navigationItems = [
   {
@@ -45,6 +46,8 @@ export default function DashboardLayout({
   const notificationRef = useRef<HTMLDivElement>(null)
   const logoutRef = useRef<HTMLDivElement>(null)
 
+  console.log(user);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -70,7 +73,11 @@ export default function DashboardLayout({
     setShowLogoutConfirm(false)
   }
 
-  const currentPageName = navigationItems.find((item) => item.href === pathname)?.name || "Dashboard"
+  
+  
+  const currentPageName = navigationItems.find((item) => item.href === pathname)?.name || "Dashboard";
+
+  if (user.loading || user.role.toLowerCase() !== "creator") return <Loader/>
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -132,11 +139,11 @@ export default function DashboardLayout({
         </div>
 
         {/* User Profile */}
-        <div className="p-3 border-t border-gray-200 relative group">
+        <div className="p-3 border-t border-gray-200 relative group "  onClick={()=>router.push("/dashboard/profiles")}>
           <div className="flex items-center min-w-0">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
-                src={profileImg || "/placeholder.svg"}
+                src={user.profileImage || profileImg|| "/placeholder.svg"}
                 alt="User Avatar"
                 width={32}
                 height={32}
@@ -197,9 +204,9 @@ export default function DashboardLayout({
 
                   <div className="bg-gray-50 rounded-lg p-4 mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden"  >
                         <Image
-                          src={profileImg || "/placeholder.svg"}
+                          src={user.profileImage||profileImg || "/placeholder.svg"}
                           alt="User Avatar"
                           width={40}
                           height={40}
@@ -207,8 +214,8 @@ export default function DashboardLayout({
                         />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{user?.username || user?.name || "Creator"}</p>
-                        <p className="text-sm text-gray-600">{user?.email || "creator@flock.com"}</p>
+                        <p className="font-medium text-gray-900">{user?.username || user?.name }</p>
+                        <p className="text-sm text-gray-600">{user?.email }</p>
                       </div>
                     </div>
                   </div>
@@ -247,58 +254,8 @@ export default function DashboardLayout({
               </div>
 
               {/* Right Section - Actions */}
-              <div className="flex items-center space-x-4">
-                {/* Search */}
-                <div className="relative hidden md:block">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search content..."
-                    className="w-64 pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
-                  />
-                </div>
-
-                {/* Notifications */}
-                <div className="relative" ref={notificationRef}>
-                  <button
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                  >
-                    <BellIcon className="w-5 h-5" />
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full">
-                      <span className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-                      <span className="relative w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                      </span>
-                    </span>
-                  </button>
-                  {showNotifications && (
-                    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-3 border-b border-gray-200">
-                        <h3 className="font-semibold text-gray-800">Notifications</h3>
-                      </div>
-                      <div className="max-h-64 overflow-y-auto">
-                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer">
-                          <p className="text-sm font-medium text-gray-800">Your blog post was approved</p>
-                          <p className="text-xs text-gray-500 mt-1">2 minutes ago</p>
-                        </div>
-                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer">
-                          <p className="text-sm font-medium text-gray-800">New comment on your video</p>
-                          <p className="text-xs text-gray-500 mt-1">5 minutes ago</p>
-                        </div>
-                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer">
-                          <p className="text-sm font-medium text-gray-800">Your content reached 100 views</p>
-                          <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
-                        </div>
-                      </div>
-                      <div className="px-4 py-2 border-t border-gray-200">
-                        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                          View all notifications
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <div className="flex items-center space-x-4">     
+                         
 
                 {/* Creator Badge */}
                 <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">

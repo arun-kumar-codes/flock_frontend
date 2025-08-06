@@ -24,6 +24,8 @@ import {
   MaximizeIcon,
 } from "lucide-react"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
+import { VideoModal } from "@/components/viewer/video-modal"
+import Video from "@/components/Video"
 
 interface Author {
   email: string
@@ -60,6 +62,8 @@ interface Comment {
 }
 
 interface Video {
+  video_id: any
+  videoId: any
   id: number
   title: string
   description: string
@@ -519,7 +523,7 @@ export default function PendingPage() {
                   <div
                     key={blog.id}
                     className="flex items-start justify-between p-4 border border-yellow-200 rounded-lg hover:border-yellow-300 hover:shadow-sm transition-all duration-200 bg-yellow-50/30 cursor-pointer"
-                    onDoubleClick={(e) => handleBlogDoubleClick(blog, e)}
+                    onClick={(e) => handleBlogDoubleClick(blog, e)}
                     title="Double-click to view blog details"
                   >
                     <div className="flex space-x-4 flex-1">
@@ -665,7 +669,7 @@ export default function PendingPage() {
                   <div
                     key={video.id}
                     className="flex items-start justify-between p-4 border border-yellow-200 rounded-lg hover:border-yellow-300 hover:shadow-sm transition-all duration-200 bg-yellow-50/30 cursor-pointer"
-                    onDoubleClick={(e) => handleVideoDoubleClick(video, e)}
+                    onClick={(e) => handleVideoDoubleClick(video, e)}
                     title="Double-click to view video details"
                   >
                     <div className="flex space-x-4 flex-1">
@@ -958,7 +962,7 @@ export default function PendingPage() {
               {/* Video Player */}
               <div className="p-8 border-b border-gray-200">
                 <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
-                  <video
+                  {/* <video
                     ref={videoRef}
                     className="w-full aspect-video object-contain"
                     onTimeUpdate={handleTimeUpdate}
@@ -973,9 +977,11 @@ export default function PendingPage() {
                     <source src={getImageUrl(videoToView.video) || videoToView.video} type="video/webm" />
                     <source src={getImageUrl(videoToView.video) || videoToView.video} type="video/ogg" />
                     Your browser does not support the video tag.
-                  </video>
+                  </video> */}
+
+                  <Video videoId={videoToView.video_id}></Video>
                   {/* Video Controls */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                  {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                     <div className="flex items-center space-x-4">
                       <button
                         onClick={handlePlayPause}
@@ -1027,7 +1033,7 @@ export default function PendingPage() {
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
               {/* Video Details */}

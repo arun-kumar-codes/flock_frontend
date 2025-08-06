@@ -16,6 +16,7 @@ import {
 import { useSelector, useDispatch } from "react-redux"
 import { logOut } from "@/slice/userSlice"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 const navigationItems = [
   { name: "Dashboard", href: "/admin", icon: HomeIcon },
@@ -31,9 +32,11 @@ export default function AdminSidebar() {
   const [isExpanded, setIsExpanded] = useState(false)
   const user = useSelector((state: any) => state.user)
   const dispatch = useDispatch()
+  const router=useRouter();
 
   const handleLogout = () => {
-    dispatch(logOut())
+   dispatch(logOut())
+   router.push("/login");
   }
 
   return (

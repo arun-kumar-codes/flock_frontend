@@ -1,12 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface User {
+    profile_picture?: string;
     id: string;
     username: string;
     email: string;
     role:string
     profileImage?: string;
-    is_profile_completed?:boolean
+    is_profile_completed?:boolean;
+    loading?: boolean;
 }
 
 const initialState: User = {
@@ -16,6 +18,7 @@ const initialState: User = {
   role:"",
   profileImage: "",
   is_profile_completed:true,
+  loading: true,
 };
 
 const userSlice = createSlice({
@@ -28,6 +31,8 @@ const userSlice = createSlice({
   state.email = action.payload.email;
   state.role = action.payload.role;
   state.is_profile_completed=action.payload.is_profile_completed;
+  state.profileImage = action.payload.profile_picture || "";
+  state.loading = false;
     },
     logOut(state){
       state.id=""
@@ -36,8 +41,10 @@ const userSlice = createSlice({
       state.role=""
       state.profileImage=""
       state.is_profile_completed=true
+      state.loading = true;
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+
 
     }
   },

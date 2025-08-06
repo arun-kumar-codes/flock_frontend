@@ -161,9 +161,20 @@ export default function UsersPage() {
   }
 
   const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+
+        let matchesSearch ;
+
+    if(!user.username){
+     matchesSearch=user.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+    }else{
+      matchesSearch=user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+    }
+
+    
+
     const matchesFilter = filterRole === "all" || user.role === filterRole
     return matchesSearch && matchesFilter
   })

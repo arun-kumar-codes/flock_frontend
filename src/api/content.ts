@@ -36,6 +36,16 @@ export async function getBlog() {
   }
 }
 
+export async function getTrendingBlog() {
+  try {
+    const response = await axiosInstance.get('/blog/get-all?trending=true');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching user profile:", error);
+    return error.response;
+  }
+}
+
 export async function getBlogByStatus(status: any) {
   try {
     const response = await axiosInstance.get(`/blog/get-all?status=${status}`);
@@ -123,6 +133,19 @@ export async function unarchiveBlog(blogId: any) {
   }
 }
 
+export async function viewBLog(blogId: any) {
+  try{
+
+    const response = await axiosInstance.post(`/blog/${blogId}/view`);
+    return response;
+  }
+  catch(error:any){
+    console.error("Error adding view:", error);
+    return error.response;
+
+  }
+}
+
 
 export async function updateBlogById(blogId: any) {
   try {
@@ -191,11 +214,7 @@ export async function createVideo(data: any) {
 
 export async function updateVideo(videoId:any, data: any) {
   try {
-    const response = await axiosInstance.patch(`/video/${videoId}`,data,{
-      headers:{
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    const response = await axiosInstance.patch(`/video/${videoId}`,data);
     return response;
   } catch (error:any) {
     console.error("Error fetching videos:", error);
@@ -266,7 +285,7 @@ export async function deleteVideo(videoId: any) {
 
 export async function editVideoComment(id:any,comment:any){
   try {
-    const response = await axiosInstance.patch(`/video/comment/`);
+    const response = await axiosInstance.patch(`/video/comment/${id}`, { comment });
     return response;
   } catch (error:any) {
     console.error("Error editing video comment:", error);
@@ -315,6 +334,16 @@ export async function getAllVideo() {
   }
 }
 
+export async function getAllTrendingVideo() {
+  try {
+    const response = await axiosInstance.get('/video/get-all?trending=true');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching all videos:", error);
+    return error.response;
+  }
+}
+
 
 export async function getVideoByStatus(status: any) {
   try {
@@ -354,4 +383,69 @@ export async function rejectVideo(videoId: any) {
     console.error("Error rejecting video:", error);
     return error.response;
   }
+}
+
+export async function addView(videoId: any) {
+  try {
+    const response = await axiosInstance.post(`/video/${videoId}/view`);
+    return response;
+  } catch (error:any) {
+    console.error("Error adding view:", error);
+    return error.response;
+  }
+}
+
+
+export async function addWatchTime(videoId: string,watchTime: number) {
+  try {
+    const response = await axiosInstance.post(`/video/${videoId}/watch-time`,{watch_time: watchTime});
+    return response;
+  } catch (error:any) {
+    console.error("Error updating watch time:", error);
+    return error.response;
+  }
+}
+
+
+export async function getMostViewed() {
+  try {
+    const response = await axiosInstance.get('/content/most-viewed');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching most viewed videos:", error);
+    return error.response;
+  }
+}
+
+
+export async function getMostLiked() {
+  try {
+    const response = await axiosInstance.get('/content/most-liked');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching most liked videos:", error);
+    return error.response;
+  }
+}
+
+export async function addFollowing(creatorId: string) {
+  try {
+    const response = await axiosInstance.post(`/auth/follow/${creatorId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error following creator:", error);
+    return error.response;
+  }
+
+}
+
+export async function removeFollowing(creatorId: string) {
+  try {
+    const response = await axiosInstance.post(`/auth/unfollow/${creatorId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error following creator:", error);
+    return error.response;
+  }
+
 }
