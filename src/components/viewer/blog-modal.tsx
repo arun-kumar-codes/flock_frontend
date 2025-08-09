@@ -184,7 +184,6 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
                   <ClockIcon className="w-4 h-4" />
                   <span>{blog.readTime}</span>
                 </span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{blog.category}</span>
               </div>
          <button
       onClick={handleClick}

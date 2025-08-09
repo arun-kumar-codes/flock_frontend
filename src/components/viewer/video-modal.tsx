@@ -37,7 +37,7 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
   const [startTime, setStartTime] = useState<number | null>(null)
   const [totalWatchTime, setTotalWatchTime] = useState(0)
   const [hasViewBeenAdded, setHasViewBeenAdded] = useState(false)
-  const [loading, setLoading] = useState(true) 
+  const [loading, setLoading] = useState(false) 
   const modalRef = useRef<HTMLDivElement>(null)
   const commentMenuRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -52,14 +52,21 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
     console.log("Video started playing")
     setStartTime(Date.now())
     // Only call addView once per video session
-    if (video && !video.is_viewed && !hasViewBeenAdded) {
-      addView(video.id)
+     addView(video.id)
         .then(() => {
           setHasViewBeenAdded(true)
           console.log("View added successfully")
         })
         .catch((error) => console.error("Error adding view:", error))
-    }
+    
+    // if (video && !video.is_viewed && !hasViewBeenAdded) {
+    //   addView(video.id)
+    //     .then(() => {
+    //       setHasViewBeenAdded(true)
+    //       console.log("View added successfully")
+    //     })
+    //     .catch((error) => console.error("Error adding view:", error))
+    // }
   }
   const handlePause = () => {
     console.log("Video paused")

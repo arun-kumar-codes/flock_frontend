@@ -45,7 +45,7 @@ import React, { useState } from 'react';
 import { Stream } from "@cloudflare/stream-react";
 
 const Video = ({ videoId }: any) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden bg-black">

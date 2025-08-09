@@ -12,6 +12,7 @@ import {
   HomeIcon,
   LayersIcon,
   LogOutIcon,
+  UserRoundCheck,
 } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
 import { logOut } from "@/slice/userSlice"
@@ -25,6 +26,7 @@ const navigationItems = [
   { name: "Videos", href: "/admin/videos", icon: VideoIcon },
   { name: "Pending", href: "/admin/pending", icon: ClockIcon },
   // { name: "Analytics", href: "/admin/analytics", icon: BarChart3Icon },
+  {name:"CPM",href:"/admin/cpm",icon:UserRoundCheck}
 ]
 
 export default function AdminSidebar() {

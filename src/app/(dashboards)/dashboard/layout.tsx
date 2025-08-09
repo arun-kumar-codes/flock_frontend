@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import Link from "next/link"
 import Image from "next/image"
-import { Home, Video, FileText, Building2, LogOutIcon, BellIcon, SearchIcon, PenToolIcon } from "lucide-react"
+import { Home, Video, FileText, Building2, LogOutIcon, BellIcon, SearchIcon, PenToolIcon, Building2Icon } from "lucide-react"
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
 import { Suspense } from "react"
@@ -27,6 +27,11 @@ const navigationItems = [
     href: "/dashboard/videos",
     icon: Video,
   },
+ {
+  name:"Followers",
+  href: "/dashboard/followers",
+  icon: Building2Icon,
+ }
 ]
 
 export default function DashboardLayout({

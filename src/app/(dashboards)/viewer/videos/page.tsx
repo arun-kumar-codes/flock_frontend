@@ -1,25 +1,12 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import {
-  SearchIcon,
-  MoreVerticalIcon,
-  HeartIcon,
-  XIcon,
-  MessageCircleIcon,
-  ThumbsUpIcon,
-  PlayIcon,
-  VideoIcon,
-  AlertCircleIcon,
-  CalendarIcon,
-  EyeIcon,
-  FilterIcon,
-  RefreshCwIcon,
-} from "lucide-react"
+import { SearchIcon, MoreVerticalIcon, HeartIcon, XIcon, MessageCircleIcon, ThumbsUpIcon, PlayIcon, VideoIcon, AlertCircleIcon, CalendarIcon, EyeIcon, FilterIcon, RefreshCwIcon } from 'lucide-react'
+import Image from "next/image"
 import { useSelector } from "react-redux"
 import Loader from "@/components/Loader"
 import { VideoModal } from "@/components/viewer/video-modal"
-import { getAllVideo, addCommentToVideo, toggleVideoLike, editVideoComment, deleteVideoComment } from "@/api/content"
+import { getAllVideo, addCommentToVideo, toggleVideoLike, editVideoComment, deleteVideoComment, getFollowings, getAllVideoCretor } from "@/api/content"
 
 interface Creator {
   email: string
@@ -72,17 +59,29 @@ interface Video {
   author?: Creator // For consistency with blog component
 }
 
+interface Following {
+  email: string
+  followers_count: string
+  following_count: string
+  id: string
+  profile_picture: string | null
+  role: string
+  username: string
+}
+
+interface FollowingResponse {
+  following: Following[]
+  following_count: number
+}
+
 // Utility function to strip HTML tags and decode HTML entities
 const stripHtmlAndDecode = (html: string): string => {
   if (!html) return ""
-
   // Create a temporary div element to parse HTML
   const tempDiv = document.createElement("div")
   tempDiv.innerHTML = html
-
   // Get text content (this automatically strips HTML tags)
   let text = tempDiv.textContent || tempDiv.innerText || ""
-
   // Additional cleanup for common HTML entities that might remain
   text = text
     .replace(/&nbsp;/g, " ")
@@ -93,7 +92,6 @@ const stripHtmlAndDecode = (html: string): string => {
     .replace(/&#39;/g, "'")
     .replace(/&hellip;/g, "...")
     .trim()
-
   return text
 }
 
@@ -106,9 +104,20 @@ const truncateText = (text: string, maxLength = 120): string => {
 export default function VideoPage() {
   const router = useRouter()
   const user = useSelector((state: any) => state.user)
+  
+  // Video states
   const [videos, setVideos] = useState<Video[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState("")
+  
+  // Following states
+  const [selectedFollowing, setSelectedFollowing] = useState<string>("all")
+  const [followings, setFollowings] = useState<Following[]>([])
+  const [followingCount, setFollowingCount] = useState<number>(0)
+  const [isLoadingFollowing, setIsLoadingFollowing] = useState(false)
+  const [followingError, setFollowingError] = useState("")
+  
+  // UI states
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState("all")
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null)
@@ -130,6 +139,9 @@ export default function VideoPage() {
       router.push("/admin/dashboard")
       return
     }
+    
+    // Fetch both following data and videos
+    fetchFollowingData()
     fetchVideos()
   }, [user, router])
 
@@ -145,11 +157,61 @@ export default function VideoPage() {
     }
   }, [])
 
+  // Fetch following data
+  const fetchFollowingData = async () => {
+    setIsLoadingFollowing(true)
+    setFollowingError("")
+    try {
+      console.log("Fetching following data...")
+      const response = await getFollowings()
+      console.log("Following response:", response)
+      
+      if (response?.data) {
+        const followingData: FollowingResponse = response.data
+        if (followingData.following && Array.isArray(followingData.following)) {
+          setFollowings(followingData.following)
+          setFollowingCount(followingData.following_count || followingData.following.length)
+          console.log("Following data set:", followingData.following)
+        } else {
+          console.error("Following data is not in expected format:", followingData)
+          setFollowingError("Following data format is incorrect")
+        }
+      } else {
+        console.error("No data in following response:", response)
+        setFollowingError("No following data received")
+      }
+    } catch (error) {
+      console.error("Error fetching following data:", error)
+      setFollowingError("Failed to fetch following data")
+    } finally {
+      setIsLoadingFollowing(false)
+    }
+  }
+
   const fetchVideos = async () => {
     setFetchError("")
+    setIsLoading(true)
     try {
-      const response = await getAllVideo()
-      console.log("API Response:", response)
+      let response
+      
+      // If a specific following is selected, get their videos
+      if (selectedFollowing !== "all") {
+        const selectedUser = followings.find(f => f.username === selectedFollowing)
+        if (selectedUser) {
+          console.log("Fetching videos for creator:", selectedUser.id)
+          response = await getAllVideoCretor(selectedUser.id)
+        } else {
+          console.log("Selected user not found, fetching all videos")
+          response = await getAllVideo()
+        }
+      } else {
+        // Get all videos
+        console.log("Fetching all videos")
+        response = await getAllVideo()
+      }
+
+      console.log("Video API Response:", response)
+      
       if (response?.data?.videos) {
         const videosWithUIFields = response.data.videos
           .filter((video: any) => video.status === "published" && !video.archived)
@@ -163,6 +225,8 @@ export default function VideoPage() {
             comments_count: video.comments_count || video.comments?.length || 0,
           }))
         setVideos(videosWithUIFields)
+        console.log("Videos set:", videosWithUIFields.length)
+        
         if (selectedVideo) {
           const updatedSelectedVideo = videosWithUIFields.find((video: any) => video.id === selectedVideo.id)
           if (updatedSelectedVideo) {
@@ -180,6 +244,14 @@ export default function VideoPage() {
       setIsLoading(false)
     }
   }
+
+  // Update videos when selected following changes
+  useEffect(() => {
+    if (followings.length > 0 || selectedFollowing === "all") {
+      console.log("Selected following changed:", selectedFollowing)
+      fetchVideos()
+    }
+  }, [selectedFollowing])
 
   const toggleFavorite = (videoId: number) => {
     setVideos((prev) =>
@@ -330,7 +402,7 @@ export default function VideoPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading && isLoadingFollowing) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
         <Loader />
@@ -349,12 +421,15 @@ export default function VideoPage() {
             </div>
             <div>
               <h1 className="text-4xl font-bold text-slate-800">Video Content</h1>
-              <p className="text-slate-600 text-lg">Watch educational videos and tutorials from our creators</p>
+              <p className="text-slate-600 text-lg">
+                Watch educational videos and tutorials from our creators
+              
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Error Message */}
+        {/* Error Messages */}
         {fetchError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
             <div className="flex items-center space-x-3">
@@ -365,6 +440,21 @@ export default function VideoPage() {
                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
               >
                 Retry
+              </button>
+            </div>
+          </div>
+        )}
+
+        {followingError && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <div className="flex items-center space-x-3">
+              <AlertCircleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+              <p className="text-yellow-800 flex-1">{followingError}</p>
+              <button
+                onClick={fetchFollowingData}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700 transition-colors"
+              >
+                Retry Following
               </button>
             </div>
           </div>
@@ -384,27 +474,42 @@ export default function VideoPage() {
               />
             </div>
             <div className="flex gap-3">
+              {/* Following Filter Dropdown */}
               <div className="relative">
                 <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="pl-10 pr-8 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white min-w-[150px]"
+                  value={selectedFollowing}
+                  onChange={(e) => {
+                    console.log("Following selection changed:", e.target.value)
+                    setSelectedFollowing(e.target.value)
+                  }}
+                  className="pl-10 pr-8 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white min-w-[180px]"
+                  disabled={isLoadingFollowing}
                 >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category === "all" ? "All Categories" : category}
+                  <option value="all">All Creators </option>
+                  {followings.map((following) => (
+                    <option key={following.id} value={following.username}>
+                      {following.username}
                     </option>
                   ))}
                 </select>
+                {isLoadingFollowing && (
+                  <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                    <RefreshCwIcon className="w-4 h-4 animate-spin text-slate-400" />
+                  </div>
+                )}
               </div>
+
               <button
-                onClick={fetchVideos}
-                disabled={isLoading}
+                onClick={() => {
+                  fetchVideos()
+                  fetchFollowingData()
+                }}
+                disabled={isLoading || isLoadingFollowing}
                 className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-                <span>{isLoading ? "Loading..." : "Refresh"}</span>
+                <RefreshCwIcon className={`w-4 h-4 ${(isLoading || isLoadingFollowing) ? "animate-spin" : ""}`} />
+                <span>{(isLoading || isLoadingFollowing) ? "Loading..." : "Refresh"}</span>
               </button>
             </div>
           </div>
@@ -442,9 +547,6 @@ export default function VideoPage() {
                         {video.duration_formatted}
                       </div>
                       <div className="absolute top-3 left-3 flex items-center space-x-2">
-                        {/* <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          {video.category}
-                        </span> */}
                         {video.isFavorite && <HeartIcon className="w-4 h-4 text-red-500 fill-current" />}
                       </div>
                     </div>
@@ -493,7 +595,6 @@ export default function VideoPage() {
                         )}
                       </div>
                     </div>
-
                     {/* Updated description display with proper HTML stripping */}
                     <div className="mb-4">
                       {truncatedDescription ? (
@@ -502,7 +603,6 @@ export default function VideoPage() {
                         <p className="text-slate-400 text-sm italic">No description available</p>
                       )}
                     </div>
-
                     <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
                       <span className="font-medium">by {video.creator.username}</span>
                       <span className="flex items-center space-x-1">
@@ -551,15 +651,16 @@ export default function VideoPage() {
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">No videos found</h3>
               <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                {searchTerm || filterCategory !== "all"
+                {searchTerm || filterCategory !== "all" || selectedFollowing !== "all"
                   ? "Try adjusting your search or filter criteria to find what you're looking for."
                   : "No videos are available at the moment. Check back later for new content."}
               </p>
-              {(searchTerm || filterCategory !== "all") && (
+              {(searchTerm || filterCategory !== "all" || selectedFollowing !== "all") && (
                 <button
                   onClick={() => {
                     setSearchTerm("")
                     setFilterCategory("all")
+                    setSelectedFollowing("all")
                   }}
                   className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
                 >

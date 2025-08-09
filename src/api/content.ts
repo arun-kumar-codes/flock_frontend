@@ -36,6 +36,16 @@ export async function getBlog() {
   }
 }
 
+export async function getCreatorBlog(createrId: string) {
+  try {
+    const response = await axiosInstance.get(`/blog/get-all?creator_id=${createrId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching user profile:", error);
+    return error.response;
+  }
+}
+
 export async function getTrendingBlog() {
   try {
     const response = await axiosInstance.get('/blog/get-all?trending=true');
@@ -334,6 +344,17 @@ export async function getAllVideo() {
   }
 }
 
+export async function getAllVideoCretor(creatorId: string) {
+  try {
+    const response = await axiosInstance.get(`/video/get-all?creator_id=${creatorId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching all videos:", error);
+    return error.response;
+  }
+}
+
+
 export async function getAllTrendingVideo() {
   try {
     const response = await axiosInstance.get('/video/get-all?trending=true');
@@ -449,3 +470,26 @@ export async function removeFollowing(creatorId: string) {
   }
 
 }
+
+
+export async function getFollowings() {
+  try {
+    const response = await axiosInstance.get('/auth/following');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching followings:", error);
+    return error.response;
+  }
+}
+
+
+export async function getFollower() {
+  try {
+    const response = await axiosInstance.get(`/auth/followers`);
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching followers:", error);
+    return error.response;
+  }
+}
+
