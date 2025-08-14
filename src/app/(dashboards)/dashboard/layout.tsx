@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import Link from "next/link"
 import Image from "next/image"
-import { Home, Video, FileText, Building2, LogOutIcon, BellIcon, SearchIcon, PenToolIcon, Building2Icon } from "lucide-react"
+import { Home, Video, FileText, Building2, LogOutIcon, PenToolIcon, Building2Icon, FileChartColumnIncreasing } from "lucide-react"
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
 import { Suspense } from "react"
@@ -31,6 +31,11 @@ const navigationItems = [
   name:"Followers",
   href: "/dashboard/followers",
   icon: Building2Icon,
+ },
+   {
+  name:"Analytics",
+  href: "/dashboard/analytics",
+  icon: FileChartColumnIncreasing,
  }
 ]
 

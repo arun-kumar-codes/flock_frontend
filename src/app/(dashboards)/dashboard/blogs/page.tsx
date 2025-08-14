@@ -27,6 +27,7 @@ import Image from "next/image"
 import { useSelector } from "react-redux"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
+import Loader from "@/components/Loader"
 
 interface UserData {
   email: string
@@ -75,6 +76,43 @@ interface EditBlogData extends CreateBlogData {
   id: number
   existingImageUrl?: string
 }
+
+const BlogCardSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="flex items-center justify-between p-6 border border-slate-200 rounded-xl bg-white">
+      <div className="flex items-start space-x-4 flex-1">
+        <div className="flex-shrink-0 w-20 h-16 bg-slate-200 rounded-lg"></div>
+        <div className="flex-1 space-y-3">
+          <div className="flex items-center space-x-3">
+            <div className="h-5 bg-slate-200 rounded w-48"></div>
+            <div className="h-6 bg-slate-200 rounded-full w-20"></div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-3 bg-slate-200 rounded w-24"></div>
+            <div className="h-3 bg-slate-200 rounded w-20"></div>
+            <div className="h-3 bg-slate-200 rounded w-16"></div>
+            <div className="h-3 bg-slate-200 rounded w-18"></div>
+          </div>
+        </div>
+      </div>
+      <div className="w-8 h-8 bg-slate-200 rounded-lg"></div>
+    </div>
+  </div>
+)
+
+const StatsCardSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-4 bg-slate-200 rounded w-20"></div>
+          <div className="h-8 bg-slate-200 rounded w-12"></div>
+        </div>
+        <div className="w-12 h-12 bg-slate-200 rounded-lg"></div>
+      </div>
+    </div>
+  </div>
+)
 
 export default function BlogsPage() {
   const router = useRouter()
@@ -343,6 +381,7 @@ export default function BlogsPage() {
           ...prev,
           content: userBlogs,
         }))
+         setIsLoading(false)
       }
     } catch (error) {
       console.error("Error fetching user blogs:", error)
@@ -365,7 +404,7 @@ export default function BlogsPage() {
         id: user.id || "",
       }))
       fetchUserBlogs()
-      setIsLoading(false)
+     
     }
   }, [user])
 
@@ -806,532 +845,416 @@ export default function BlogsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoaderIcon className="w-8 h-8 animate-spin text-indigo-600" />
-      </div>
+    <Loader></Loader>
     )
   }
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Blog Management</h1>
-          <p className="text-slate-600">Create, edit, and manage your blog posts</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
+            <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                    Blog Management
+                  </h1>
+                  <p className="text-slate-600 text-lg">Create, edit, and manage your blog posts with style</p>
+                </div>
+                <div className="hidden md:flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <FileTextIcon className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Success/Error Messages */}
-        {(fetchError || updateError) && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <AlertCircleIcon className="w-5 h-5 text-red-600" />
-              <p className="text-red-800">{fetchError || updateError}</p>
-              {fetchError && (
+          {/* Success/Error Messages */}
+          {(fetchError || updateError) && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <AlertCircleIcon className="w-5 h-5 text-red-600" />
+                <p className="text-red-800">{fetchError || updateError}</p>
+                {fetchError && (
+                  <button
+                    onClick={fetchUserBlogs}
+                    className="ml-auto px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {updateSuccess && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                <p className="text-green-800">{updateSuccess}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="group hover:scale-105 transition-all duration-300">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 mb-1">Total Active</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                      {activeBlogs.length}
+                    </p>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                    <FileTextIcon className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="group hover:scale-105 transition-all duration-300">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 mb-1">Published</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                      {activeBlogs.filter((item) => item.status === "published").length}
+                    </p>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                    <TrendingUpIcon className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="group hover:scale-105 transition-all duration-300">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 mb-1">Pending Approval</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                      {activeBlogs.filter((item) => item.status === "pending_approval").length}
+                    </p>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                    <ClockIcon className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="group hover:scale-105 transition-all duration-300">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 mb-1">Archived</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-slate-600 to-gray-600 bg-clip-text text-transparent">
+                      {archivedBlogs.length}
+                    </p>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-r from-slate-500 to-gray-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                    <ArchiveIcon className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20">
+            <div className="p-8 border-b border-slate-200/50">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  Your Blogs
+                </h3>
                 <button
-                  onClick={fetchUserBlogs}
-                  className="ml-auto px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                  className="group inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                  onClick={() => setShowCreateModal(true)}
                 >
-                  Retry
+                  <PlusIcon className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                  Create New Blog
                 </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {updateSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <CheckCircleIcon className="w-5 h-5 text-green-600" />
-              <p className="text-green-800">{updateSuccess}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Total Active</p>
-                <p className="text-2xl font-bold text-slate-800">{activeBlogs.length}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <FileTextIcon className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Published</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {activeBlogs.filter((item) => item.status === "published").length}
-                </p>
+              <div className="flex space-x-2 bg-slate-100/80 p-2 rounded-xl mb-6 backdrop-blur-sm">
+                <button
+                  onClick={() => {
+                    setActiveTab("active")
+                    setFilterStatus("all")
+                  }}
+                  className={`flex-1 px-6 py-3 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                    activeTab === "active"
+                      ? "bg-white text-slate-900 shadow-lg scale-105"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <FileTextIcon className="w-4 h-4" />
+                    <span>Active Blogs</span>
+                    <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">
+                      {activeBlogs.length}
+                    </span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("archived")
+                    setFilterStatus("all")
+                  }}
+                  className={`flex-1 px-6 py-3 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                    activeTab === "archived"
+                      ? "bg-white text-slate-900 shadow-lg scale-105"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <ArchiveIcon className="w-4 h-4" />
+                    <span>Archived</span>
+                    <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-full text-xs font-bold">
+                      {archivedBlogs.length}
+                    </span>
+                  </div>
+                </button>
               </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <TrendingUpIcon className="w-6 h-6 text-emerald-600" />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Pending Approval</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {activeBlogs.filter((item) => item.status === "pending_approval").length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <ClockIcon className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Archived</p>
-                <p className="text-2xl font-bold text-slate-800">{archivedBlogs.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <ArchiveIcon className="w-6 h-6 text-gray-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Management Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="p-6 border-b border-slate-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h3 className="text-xl font-semibold text-slate-800">Your Blogs</h3>
-              <button
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-sm hover:shadow-md"
-                onClick={() => setShowCreateModal(true)}
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                Create New Blog
-              </button>
-            </div>
-
-            {/* Tab Navigation */}
-            <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg mb-4">
-              <button
-                onClick={() => {
-                  setActiveTab("active")
-                  setFilterStatus("all")
-                }}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <FileTextIcon className="w-4 h-4" />
-                  <span>Active Blogs</span>
-                  <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs">
-                    {activeBlogs.length}
-                  </span>
-                </div>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("archived")
-                  setFilterStatus("all")
-                }}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <ArchiveIcon className="w-4 h-4" />
-                  <span>Archived</span>
-                  <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs">
-                    {archivedBlogs.length}
-                  </span>
-                </div>
-              </button>
-            </div>
-
-            {/* Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <div className="relative">
+                <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   type="text"
                   placeholder={`Search ${activeTab} blogs...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80 backdrop-blur-sm text-slate-900 placeholder-slate-500 shadow-sm"
                 />
               </div>
             </div>
-          </div>
 
-          <div className="p-6">
-            {filteredContent.length > 0 ? (
-              <div className="space-y-4">
-                {filteredContent.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-indigo-300 hover:shadow-sm transition-all duration-200"
-                  >
-                    <div className="flex items-start space-x-4 flex-1">
-                      {/* Blog Image */}
-                      {item.image && (
-                        <div className="flex-shrink-0">
-                          <Image
-                            src={item.image || "/placeholder.svg"}
-                            alt={item.title}
-                            width={80}
-                            height={60}
-                            className="rounded-lg object-cover"
-                          />
-                        </div>
-                      )}
-                      <div
-                        className="flex-1 cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleViewBlog(item)
-                        }}
-                      >
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h4 className="font-semibold text-slate-800">{item.title}</h4>
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 ${getStatusColor(
-                              item.status || "draft",
-                              isArchived(item),
-                            )}`}
-                          >
-                            {getStatusIcon(item.status || "draft", isArchived(item))}
-                            <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-4 text-xs text-slate-500">
-                          <span className="flex items-center space-x-1">
-                            <CalendarIcon className="w-3 h-3" />
-                            <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                          </span>
-                      
-                            <span className="flex items-center space-x-1">
-                              <EyeIcon className="w-3 h-3" />
+            <div className="p-8">
+              {filteredContent.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredContent.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group flex items-center justify-between p-6 border border-slate-200/50 rounded-xl hover:border-indigo-300 hover:shadow-lg transition-all duration-300 bg-white/50 backdrop-blur-sm hover:bg-white/80"
+                    >
+                      <div className="flex items-start space-x-4 flex-1">
+                        {item.image && (
+                          <div className="flex-shrink-0">
+                            <Image
+                              src={item.image || "/placeholder.svg"}
+                              alt={item.title}
+                              width={80}
+                              height={60}
+                              className="rounded-xl object-cover shadow-md group-hover:shadow-lg transition-shadow"
+                            />
+                          </div>
+                        )}
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleViewBlog(item)
+                          }}
+                        >
+                          <div className="flex items-center space-x-3 mb-3">
+                            <h4 className="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors text-lg">
+                              {item.title}
+                            </h4>
+                            <span
+                              className={`px-3 py-1 text-xs font-semibold rounded-full border flex items-center space-x-1 ${getStatusColor(
+                                item.status || "draft",
+                                isArchived(item),
+                              )}`}
+                            >
+                              {getStatusIcon(item.status || "draft", isArchived(item))}
+                              <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-6 text-sm text-slate-500">
+                            <span className="flex items-center space-x-2 bg-slate-100 px-3 py-1 rounded-lg">
+                              <CalendarIcon className="w-4 h-4" />
+                              <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                            </span>
+                            <span className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-lg text-blue-700">
+                              <EyeIcon className="w-4 h-4" />
                               <span>{item.views} views</span>
                             </span>
-                       
-                          <span className="flex items-center space-x-1">
-                            <span>👍 {item.likes} likes</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <span>💬 {item.comments_count} comments</span>
-                          </span>
+                            <span className="flex items-center space-x-2 bg-green-100 px-3 py-1 rounded-lg text-green-700">
+                              <span>👍 {item.likes} likes</span>
+                            </span>
+                            <span className="flex items-center space-x-2 bg-purple-100 px-3 py-1 rounded-lg text-purple-700">
+                              <span>💬 {item.comments_count} comments</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="relative action-menu-container">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setShowActionMenu(showActionMenu === item.id ? null : item.id)
-                        }}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                        disabled={Object.values(loadingActions).some((loading) => loading)}
-                      >
-                        <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
-                      </button>
-                      {showActionMenu === item.id && (
-                        <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
-                          {/* View button - always show except for rejected */}
-                          {item.status !== "rejected" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleViewBlog(item)
-                              }}
-                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
-                            >
-                              <EyeIcon className="w-4 h-4" />
-                              <span>View</span>
-                            </button>
-                          )}
-                          {/* Edit button - show for non-archived blogs */}
-                          {!isArchived(item) &&
-                            (item.status === "draft" ||
-                              item.status === "published" ||
-                              item.status === "pending_approval") && (
+                      <div className="relative action-menu-container">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowActionMenu(showActionMenu === item.id ? null : item.id)
+                          }}
+                          className="p-3 hover:bg-slate-100 rounded-xl transition-all duration-200 hover:scale-110"
+                          disabled={Object.values(loadingActions).some((loading) => loading)}
+                        >
+                          <MoreVerticalIcon className="w-5 h-5 text-slate-500 group-hover:text-slate-700" />
+                        </button>
+                        {showActionMenu === item.id && (
+                          <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                            {/* View button - always show except for rejected */}
+                            {item.status !== "rejected" && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  handleEditBlog(item)
+                                  handleViewBlog(item)
                                 }}
                                 className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
                               >
-                                <EditIcon className="w-4 h-4" />
-                                <span>Edit</span>
+                                <EyeIcon className="w-4 h-4" />
+                                <span>View</span>
                               </button>
                             )}
-                          {/* Send for Approval button - only for draft blogs that are not archived */}
-                          {!isArchived(item) && item.status === "draft" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleSendForApproval(item.id)
-                              }}
-                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
-                              disabled={isActionLoading(item.id, "approval")}
-                            >
-                              {isActionLoading(item.id, "approval") ? (
-                                <LoaderIcon className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <ClockIcon className="w-4 h-4" />
-                              )}
-                              <span>{isActionLoading(item.id, "approval") ? "Sending..." : "Send for Approval"}</span>
-                            </button>
-                          )}
-                          {/* Publish button - only for approved blogs that are not archived */}
-                          {!isArchived(item) && item.status === "approved" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                updateBlogStatus(item.id, "published")
-                              }}
-                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 text-emerald-600 transition-colors"
-                              disabled={isActionLoading(item.id, "status")}
-                            >
-                              {isActionLoading(item.id, "status") ? (
-                                <LoaderIcon className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <SendIcon className="w-4 h-4" />
-                              )}
-                              <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
-                            </button>
-                          )}
-                          {/* Archive button - only for non-archived blogs */}
-                          {!isArchived(item) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleArchiveBlog(item.id)
-                              }}
-                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-amber-50 text-amber-600 transition-colors"
-                              disabled={isActionLoading(item.id, "archive")}
-                            >
-                              {isActionLoading(item.id, "archive") ? (
-                                <LoaderIcon className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <ArchiveIcon className="w-4 h-4" />
-                              )}
-                              <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
-                            </button>
-                          )}
-                          {/* Unarchive button - only for archived blogs */}
-                          {isArchived(item) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleUnarchiveBlog(item.id)
-                              }}
-                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-green-50 text-green-600 transition-colors"
-                              disabled={isActionLoading(item.id, "unarchive")}
-                            >
-                              {isActionLoading(item.id, "unarchive") ? (
-                                <LoaderIcon className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <RefreshCwIcon className="w-4 h-4" />
-                              )}
-                              <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  {activeTab === "active" ? (
-                    <FileTextIcon className="w-8 h-8 text-slate-400" />
-                  ) : (
-                    <ArchiveIcon className="w-8 h-8 text-slate-400" />
-                  )}
-                </div>
-                <h3 className="text-lg font-medium text-slate-800 mb-2">No {activeTab} blogs found</h3>
-                <p className="text-slate-600 mb-4">
-                  {searchTerm || (activeTab === "active" && filterStatus !== "all")
-                    ? "Try adjusting your search or filter criteria"
-                    : activeTab === "active"
-                      ? "Get started by creating your first blog post"
-                      : "No archived blogs yet"}
-                </p>
-                {!searchTerm && activeTab === "active" && filterStatus === "all" && (
-                  <button
-                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                    onClick={() => setShowCreateModal(true)}
-                  >
-                    <PlusIcon className="w-4 h-4 mr-2" />
-                    Create Your First Blog
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Create Blog Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div
-              ref={createModalRef}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
-            >
-              {/* Modal Header */}
-              <div className="p-6 border-b border-slate-200 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-slate-800">Create New Blog</h3>
-                  <button
-                    onClick={() => {
-                      setShowCreateModal(false)
-                      setBlogForm({ title: "", content: "", image: null })
-                      setImagePreview(null)
-                      setImageError("")
-                      setCreateError("")
-                      setCreateSuccess("")
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = ""
-                      }
-                    }}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                  >
-                    <XIcon className="w-5 h-5 text-slate-500" />
-                  </button>
-                </div>
-              </div>
-              {/* Modal Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto">
-                <form onSubmit={handleCreateBlog} className="p-6">
-                  {/* Success Message */}
-                  {createSuccess && (
-                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircleIcon className="w-4 h-4 text-green-600" />
-                        <p className="text-green-800 text-sm">{createSuccess}</p>
-                      </div>
-                    </div>
-                  )}
-                  {/* Error Message */}
-                  {createError && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <AlertCircleIcon className="w-4 h-4 text-red-600" />
-                        <p className="text-red-800 text-sm">{createError}</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="space-y-6">
-                    {/* Title */}
-                    <div>
-                      <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-2">
-                        Blog Title *
-                      </label>
-                      <input
-                        type="text"
-                        id="title"
-                        value={blogForm.title}
-                        onChange={(e) => handleFormChange("title", e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Enter your blog title..."
-                        maxLength={200}
-                      />
-                      <p className="text-xs text-slate-500 mt-1">{blogForm.title.length}/200 characters</p>
-                    </div>
-                    {/* Image Upload */}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Blog Image (Optional)</label>
-                      {/* Image Preview */}
-                      {imagePreview && (
-                        <div className="mb-4 relative">
-                          <Image
-                            src={imagePreview || "/placeholder.svg"}
-                            alt="Preview"
-                            width={400}
-                            height={200}
-                            className="w-full h-48 object-cover rounded-lg border border-slate-200"
-                          />
-                          <button
-                            type="button"
-                            onClick={removeImage}
-                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                          >
-                            <XIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      {/* Upload Area */}
-                      {!imagePreview && (
-                        <div
-                          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                            isDragOver ? "border-indigo-500 bg-indigo-50" : "border-slate-300 hover:border-slate-400"
-                          }`}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onDrop={handleDrop}
-                        >
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                              <ImageIcon className="w-6 h-6 text-slate-400" />
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-600">
+                            {/* Edit button - show for non-archived blogs */}
+                            {!isArchived(item) &&
+                              (item.status === "draft" ||
+                                item.status === "published" ||
+                                item.status === "pending_approval") && (
                                 <button
-                                  type="button"
-                                  onClick={() => fileInputRef.current?.click()}
-                                  className="text-indigo-600 hover:text-indigo-700 font-medium"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleEditBlog(item)
+                                  }}
+                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
                                 >
-                                  Click to upload
-                                </button>{" "}
-                                or drag and drop
-                              </p>
-                              <p className="text-xs text-slate-500">PNG, JPG,JPEG, GIF, WebP up to 5MB</p>
-                            </div>
+                                  <EditIcon className="w-4 h-4" />
+                                  <span>Edit</span>
+                                </button>
+                              )}
+                            {/* Send for Approval button - only for draft blogs that are not archived */}
+                            {!isArchived(item) && item.status === "draft" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleSendForApproval(item.id)
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
+                                disabled={isActionLoading(item.id, "approval")}
+                              >
+                                {isActionLoading(item.id, "approval") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <ClockIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "approval") ? "Sending..." : "Send for Approval"}</span>
+                              </button>
+                            )}
+                            {/* Publish button - only for approved blogs that are not archived */}
+                            {!isArchived(item) && item.status === "approved" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  updateBlogStatus(item.id, "published")
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 text-emerald-600 transition-colors"
+                                disabled={isActionLoading(item.id, "status")}
+                              >
+                                {isActionLoading(item.id, "status") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <SendIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
+                              </button>
+                            )}
+                            {/* Archive button - only for non-archived blogs */}
+                            {!isArchived(item) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleArchiveBlog(item.id)
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-amber-50 text-amber-600 transition-colors"
+                                disabled={isActionLoading(item.id, "archive")}
+                              >
+                                {isActionLoading(item.id, "archive") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <ArchiveIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
+                              </button>
+                            )}
+                            {/* Unarchive button - only for archived blogs */}
+                            {isArchived(item) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleUnarchiveBlog(item.id)
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-green-50 text-green-600 transition-colors"
+                                disabled={isActionLoading(item.id, "unarchive")}
+                              >
+                                {isActionLoading(item.id, "unarchive") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <RefreshCwIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
+                              </button>
+                            )}
                           </div>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileInputChange}
-                            className="hidden"
-                          />
-                        </div>
-                      )}
-                      {/* Image Error */}
-                      {imageError && (
-                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
-                          {imageError}
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                    {/* Content - TipTap Editor */}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Blog Content *</label>
-                      <TipTapEditor
-                        content={blogForm.content}
-                        onChange={(content) => handleFormChange("content", content)}
-                        placeholder="Start writing your blog content..."
-                        className="min-h-[300px]"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">
-                        {blogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
-                      </p>
-                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-gradient-to-r from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    {activeTab === "active" ? (
+                      <FileTextIcon className="w-10 h-10 text-slate-400" />
+                    ) : (
+                      <ArchiveIcon className="w-10 h-10 text-slate-400" />
+                    )}
                   </div>
-                  {/* Form Actions */}
-                  <div className="flex space-x-3 mt-8 pt-6 border-t border-slate-200">
+                  <h3 className="text-2xl font-bold text-slate-800 mb-3">No {activeTab} blogs found</h3>
+                  <p className="text-slate-600 mb-6 text-lg">
+                    {searchTerm || (activeTab === "active" && filterStatus !== "all")
+                      ? "Try adjusting your search or filter criteria"
+                      : activeTab === "active"
+                        ? "Get started by creating your first blog post"
+                        : "No archived blogs yet"}
+                  </p>
+                  {!searchTerm && activeTab === "active" && filterStatus === "all" && (
                     <button
-                      type="button"
+                      className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                      onClick={() => setShowCreateModal(true)}
+                    >
+                      <PlusIcon className="w-5 h-5 mr-2" />
+                      Create Your First Blog
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Create Blog Modal */}
+          {showCreateModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div
+                ref={createModalRef}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-slate-200 flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-slate-800">Create New Blog</h3>
+                    <button
                       onClick={() => {
                         setShowCreateModal(false)
                         setBlogForm({ title: "", content: "", image: null })
@@ -1343,197 +1266,186 @@ export default function BlogsPage() {
                           fileInputRef.current.value = ""
                         }
                       }}
-                      disabled={isCreating}
-                      className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                     >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isCreating || !blogForm.title.trim() || !blogForm.content.trim()}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    >
-                      {isCreating ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <SaveIcon className="w-4 h-4 mr-2" />
-                          Create Blog
-                        </>
-                      )}
+                      <XIcon className="w-5 h-5 text-slate-500" />
                     </button>
                   </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Blog Modal */}
-        {showEditModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div
-              ref={editModalRef}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
-            >
-              {/* Modal Header */}
-              <div className="p-6 border-b border-slate-200 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-slate-800">Edit Blog</h3>
-                  <button
-                    onClick={() => {
-                      setShowEditModal(false)
-                      setEditBlogForm({
-                        id: 0,
-                        title: "",
-                        content: "",
-                        status: "draft",
-                        category: "General",
-                        image: null,
-                        existingImageUrl: "",
-                      })
-                      setEditImagePreview(null)
-                      setRemoveExistingImage(false)
-                      setImageError("")
-                      setUpdateError("")
-                      setUpdateSuccess("")
-                      if (editFileInputRef.current) {
-                        editFileInputRef.current.value = ""
-                      }
-                    }}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                  >
-                    <XIcon className="w-5 h-5 text-slate-500" />
-                  </button>
+                </div>
+                {/* Modal Content - Scrollable */}
+                <div className="flex-1 overflow-y-auto">
+                  <form onSubmit={handleCreateBlog} className="p-6">
+                    {/* Success Message */}
+                    {createSuccess && (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                          <p className="text-green-800 text-sm">{createSuccess}</p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Error Message */}
+                    {createError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <AlertCircleIcon className="w-4 h-4 text-red-600" />
+                          <p className="text-red-800 text-sm">{createError}</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-6">
+                      {/* Title */}
+                      <div>
+                        <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-2">
+                          Blog Title *
+                        </label>
+                        <input
+                          type="text"
+                          id="title"
+                          value={blogForm.title}
+                          onChange={(e) => handleFormChange("title", e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Enter your blog title..."
+                          maxLength={200}
+                        />
+                        <p className="text-xs text-slate-500 mt-1">{blogForm.title.length}/200 characters</p>
+                      </div>
+                      {/* Image Upload */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Blog Image (Optional)</label>
+                        {/* Image Preview */}
+                        {imagePreview && (
+                          <div className="mb-4 relative">
+                            <Image
+                              src={imagePreview || "/placeholder.svg"}
+                              alt="Preview"
+                              width={400}
+                              height={200}
+                              className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <XIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        {/* Upload Area */}
+                        {!imagePreview && (
+                          <div
+                            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                              isDragOver ? "border-indigo-500 bg-indigo-50" : "border-slate-300 hover:border-slate-400"
+                            }`}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                          >
+                            <div className="flex flex-col items-center space-y-2">
+                              <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
+                                <ImageIcon className="w-6 h-6 text-slate-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-slate-600">
+                                  <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="text-indigo-600 hover:text-indigo-700 font-medium"
+                                  >
+                                    Click to upload
+                                  </button>{" "}
+                                  or drag and drop
+                                </p>
+                                <p className="text-xs text-slate-500">PNG, JPG,JPEG, GIF, WebP up to 5MB</p>
+                              </div>
+                            </div>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileInputChange}
+                              className="hidden"
+                            />
+                          </div>
+                        )}
+                        {/* Image Error */}
+                        {imageError && (
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
+                            {imageError}
+                          </div>
+                        )}
+                      </div>
+                      {/* Content - TipTap Editor */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Blog Content *</label>
+                        <TipTapEditor
+                          content={blogForm.content}
+                          onChange={(content) => handleFormChange("content", content)}
+                          placeholder="Start writing your blog content..."
+                          className="min-h-[300px]"
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                          {blogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
+                        </p>
+                      </div>
+                    </div>
+                    {/* Form Actions */}
+                    <div className="flex space-x-3 mt-8 pt-6 border-t border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCreateModal(false)
+                          setBlogForm({ title: "", content: "", image: null })
+                          setImagePreview(null)
+                          setImageError("")
+                          setCreateError("")
+                          setCreateSuccess("")
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = ""
+                          }
+                        }}
+                        disabled={isCreating}
+                        className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isCreating || !blogForm.title.trim() || !blogForm.content.trim()}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        {isCreating ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <SaveIcon className="w-4 h-4 mr-2" />
+                            Create Blog
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
-              {/* Modal Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto">
-                <form onSubmit={handleUpdateBlog} className="p-6">
-                  {/* Success Message */}
-                  {updateSuccess && (
-                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircleIcon className="w-4 h-4 text-green-600" />
-                        <p className="text-green-800 text-sm">{updateSuccess}</p>
-                      </div>
-                    </div>
-                  )}
-                  {/* Error Message */}
-                  {updateError && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <AlertCircleIcon className="w-4 h-4 text-red-600" />
-                        <p className="text-red-800 text-sm">{updateError}</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="space-y-6">
-                    {/* Title */}
-                    <div>
-                      <label htmlFor="edit-title" className="block text-sm font-medium text-slate-700 mb-2">
-                        Blog Title *
-                      </label>
-                      <input
-                        type="text"
-                        id="edit-title"
-                        value={editBlogForm.title}
-                        onChange={(e) => handleEditFormChange("title", e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Enter your blog title..."
-                        maxLength={200}
-                      />
-                      <p className="text-xs text-slate-500 mt-1">{editBlogForm.title.length}/200 characters</p>
-                    </div>
-                    {/* Image Upload */}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Blog Image (Optional)</label>
-                      {/* Current/Preview Image */}
-                      {editImagePreview && !removeExistingImage && (
-                        <div className="mb-4 relative">
-                          <Image
-                            src={editImagePreview || "/placeholder.svg"}
-                            alt="Preview"
-                            width={400}
-                            height={200}
-                            className="w-full h-48 object-cover rounded-lg border border-slate-200"
-                          />
-                          <button
-                            type="button"
-                            onClick={removeEditImage}
-                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                          >
-                            <XIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      {/* Upload Area */}
-                      {(!editImagePreview || removeExistingImage) && (
-                        <div
-                          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                            isEditDragOver
-                              ? "border-indigo-500 bg-indigo-50"
-                              : "border-slate-300 hover:border-slate-400"
-                          }`}
-                          onDragOver={handleEditDragOver}
-                          onDragLeave={handleEditDragLeave}
-                          onDrop={handleEditDrop}
-                        >
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                              <ImageIcon className="w-6 h-6 text-slate-400" />
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-600">
-                                <button
-                                  type="button"
-                                  onClick={() => editFileInputRef.current?.click()}
-                                  className="text-indigo-600 hover:text-indigo-700 font-medium"
-                                >
-                                  Click to upload
-                                </button>{" "}
-                                or drag and drop
-                              </p>
-                              <p className="text-xs text-slate-500">PNG, JPG, GIF, WebP up to 5MB</p>
-                            </div>
-                          </div>
-                          <input
-                            ref={editFileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleEditFileInputChange}
-                            className="hidden"
-                          />
-                        </div>
-                      )}
-                      {/* Image Error */}
-                      {imageError && (
-                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
-                          {imageError}
-                        </div>
-                      )}
-                    </div>
-                    {/* Content - TipTap Editor */}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Blog Content *</label>
-                      <TipTapEditor
-                        content={editBlogForm.content}
-                        onChange={(content) => handleEditFormChange("content", content)}
-                        placeholder="Edit your blog content..."
-                        className="min-h-[300px]"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">
-                        {editBlogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
-                      </p>
-                    </div>
-                  </div>
-                  {/* Form Actions */}
-                  <div className="flex space-x-3 mt-8 pt-6 border-t border-slate-200">
+            </div>
+          )}
+
+          {/* Edit Blog Modal */}
+          {showEditModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div
+                ref={editModalRef}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-slate-200 flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-slate-800">Edit Blog</h3>
                     <button
-                      type="button"
                       onClick={() => {
                         setShowEditModal(false)
                         setEditBlogForm({
@@ -1554,189 +1466,342 @@ export default function BlogsPage() {
                           editFileInputRef.current.value = ""
                         }
                       }}
-                      disabled={isUpdating}
-                      className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                     >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isUpdating || !editBlogForm.title.trim() || !editBlogForm.content.trim()}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    >
-                      {isUpdating ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Updating...
-                        </>
-                      ) : (
-                        <>
-                          <SaveIcon className="w-4 h-4 mr-2" />
-                          Update Blog
-                        </>
-                      )}
+                      <XIcon className="w-5 h-5 text-slate-500" />
                     </button>
                   </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* View Blog Modal */}
-        {showViewModal && viewBlog && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div
-              ref={viewModalRef}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
-            >
-              {/* Modal Header */}
-              <div className="p-6 border-b border-slate-200 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-slate-800">View Blog</h3>
-                  <button
-                    onClick={() => {
-                      setShowViewModal(false)
-                      setViewBlog(null)
-                    }}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                  >
-                    <XIcon className="w-5 h-5 text-slate-500" />
-                  </button>
                 </div>
-              </div>
-              {/* Modal Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto p-6">
-                <div className="space-y-6">
-                  {/* Blog Image */}
-                  {viewBlog.image && (
-                    <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden">
-                      <Image
-                        src={viewBlog.image || "/placeholder.svg"}
-                        alt={viewBlog.title}
-                        width={800}
-                        height={400}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  {/* Blog Info */}
-                  <div>
-                    <h4 className="text-3xl font-bold text-slate-800 mb-4">{viewBlog.title}</h4>
-                    <div className="flex items-center space-x-4 text-sm text-slate-600 mb-4">
-                      <span className="flex items-center space-x-1">
-                        <CalendarIcon className="w-4 h-4" />
-                        <span>{new Date(viewBlog.created_at).toLocaleDateString()}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <EyeIcon className="w-4 h-4" />
-                        <span>{viewBlog.views || 0} views</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <span>👍 {viewBlog.likes} likes</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <span>💬 {viewBlog.comments_count} comments</span>
-                      </span>
-                    </div>
-                    <div className="mb-6">
-                      <span
-                        className={`px-3 py-1 text-sm font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
-                          viewBlog.status || "draft",
-                          isArchived(viewBlog),
-                        )}`}
-                      >
-                        {getStatusIcon(viewBlog.status || "draft", isArchived(viewBlog))}
-                        <span>{getStatusText(viewBlog.status || "draft", isArchived(viewBlog))}</span>
-                      </span>
-                    </div>
-                  </div>
-                  {/* Author Info */}
-                  <div className="border-t border-slate-200 pt-6 mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold">
-                          {viewBlog.author?.username?.charAt(0).toUpperCase() || "U"}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-800">{viewBlog.author?.username || "Unknown"}</p>
-                        <p className="text-sm text-slate-600">{viewBlog.author?.email || ""}</p>
-                        <p className="text-xs text-slate-500 capitalize">{viewBlog.author?.role || "User"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Blog Content */}
-                  <div className="max-w-none">
-                    <TipTapContentDisplay content={viewBlog.content} className="text-slate-700" />
-                  </div>
-                  {/* Comments Section */}
-                  <div className="border-t border-slate-200 pt-6">
-                    <h5 className="text-lg font-semibold text-slate-800 mb-4">Comments ({viewBlog.comments_count})</h5>
-                    {viewBlog.comments && viewBlog.comments.length > 0 ? (
-                      <div className="space-y-4">
-                        {viewBlog.comments.map((comment: any, index: number) => (
-                          <div key={index} className="flex space-x-3 p-4 bg-slate-50 rounded-lg">
-                            <div className="flex-shrink-0">
-                              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                                <span className="text-white font-semibold text-sm">
-                                  {comment.author?.username?.charAt(0).toUpperCase() ||
-                                    comment.user?.username?.charAt(0).toUpperCase() ||
-                                    "U"}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <p className="font-medium text-slate-800 text-sm">
-                                  {comment.author?.username || comment.user?.username || "Anonymous"}
-                                </p>
-                                <span className="text-xs text-slate-500">
-                                  {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ""}
-                                </span>
-                              </div>
-                              <p className="text-slate-700 text-sm leading-relaxed">
-                                {comment.content || comment.text || "No content"}
-                              </p>
-                              {comment.author?.role && (
-                                <p className="text-xs text-slate-500 mt-1 capitalize">{comment.author.role}</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <span className="text-slate-400 text-xl">💬</span>
+                {/* Modal Content - Scrollable */}
+                <div className="flex-1 overflow-y-auto">
+                  <form onSubmit={handleUpdateBlog} className="p-6">
+                    {/* Success Message */}
+                    {updateSuccess && (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                          <p className="text-green-800 text-sm">{updateSuccess}</p>
                         </div>
-                        <p className="text-slate-600 text-sm">No comments yet</p>
-                        <p className="text-slate-500 text-xs">Be the first to comment on this blog post</p>
                       </div>
                     )}
+                    {/* Error Message */}
+                    {updateError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <AlertCircleIcon className="w-4 h-4 text-red-600" />
+                          <p className="text-red-800 text-sm">{updateError}</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-6">
+                      {/* Title */}
+                      <div>
+                        <label htmlFor="edit-title" className="block text-sm font-medium text-slate-700 mb-2">
+                          Blog Title *
+                        </label>
+                        <input
+                          type="text"
+                          id="edit-title"
+                          value={editBlogForm.title}
+                          onChange={(e) => handleEditFormChange("title", e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Enter your blog title..."
+                          maxLength={200}
+                        />
+                        <p className="text-xs text-slate-500 mt-1">{editBlogForm.title.length}/200 characters</p>
+                      </div>
+                      {/* Image Upload */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Blog Image (Optional)</label>
+                        {/* Current/Preview Image */}
+                        {editImagePreview && !removeExistingImage && (
+                          <div className="mb-4 relative">
+                            <Image
+                              src={editImagePreview || "/placeholder.svg"}
+                              alt="Preview"
+                              width={400}
+                              height={200}
+                              className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeEditImage}
+                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <XIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        {/* Upload Area */}
+                        {(!editImagePreview || removeExistingImage) && (
+                          <div
+                            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                              isEditDragOver
+                                ? "border-indigo-500 bg-indigo-50"
+                                : "border-slate-300 hover:border-slate-400"
+                            }`}
+                            onDragOver={handleEditDragOver}
+                            onDragLeave={handleEditDragLeave}
+                            onDrop={handleEditDrop}
+                          >
+                            <div className="flex flex-col items-center space-y-2">
+                              <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
+                                <ImageIcon className="w-6 h-6 text-slate-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-slate-600">
+                                  <button
+                                    type="button"
+                                    onClick={() => editFileInputRef.current?.click()}
+                                    className="text-indigo-600 hover:text-indigo-700 font-medium"
+                                  >
+                                    Click to upload
+                                  </button>{" "}
+                                  or drag and drop
+                                </p>
+                                <p className="text-xs text-slate-500">PNG, JPG, GIF, WebP up to 5MB</p>
+                              </div>
+                            </div>
+                            <input
+                              ref={editFileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleEditFileInputChange}
+                              className="hidden"
+                            />
+                          </div>
+                        )}
+                        {/* Image Error */}
+                        {imageError && (
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
+                            {imageError}
+                          </div>
+                        )}
+                      </div>
+                      {/* Content - TipTap Editor */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Blog Content *</label>
+                        <TipTapEditor
+                          content={editBlogForm.content}
+                          onChange={(content) => handleEditFormChange("content", content)}
+                          placeholder="Edit your blog content..."
+                          className="min-h-[300px]"
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                          {editBlogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
+                        </p>
+                      </div>
+                    </div>
+                    {/* Form Actions */}
+                    <div className="flex space-x-3 mt-8 pt-6 border-t border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEditModal(false)
+                          setEditBlogForm({
+                            id: 0,
+                            title: "",
+                            content: "",
+                            status: "draft",
+                            category: "General",
+                            image: null,
+                            existingImageUrl: "",
+                          })
+                          setEditImagePreview(null)
+                          setRemoveExistingImage(false)
+                          setImageError("")
+                          setUpdateError("")
+                          setUpdateSuccess("")
+                          if (editFileInputRef.current) {
+                            editFileInputRef.current.value = ""
+                          }
+                        }}
+                        disabled={isUpdating}
+                        className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isUpdating || !editBlogForm.title.trim() || !editBlogForm.content.trim()}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        {isUpdating ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <SaveIcon className="w-4 h-4 mr-2" />
+                            Update Blog
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* View Blog Modal */}
+          {showViewModal && viewBlog && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div
+                ref={viewModalRef}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-slate-200 flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-slate-800">View Blog</h3>
+                    <button
+                      onClick={() => {
+                        setShowViewModal(false)
+                        setViewBlog(null)
+                      }}
+                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                    >
+                      <XIcon className="w-5 h-5 text-slate-500" />
+                    </button>
                   </div>
-                  {/* Blog Stats */}
-                  <div className="border-t border-slate-200 pt-6">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div className="p-3 bg-slate-50 rounded-lg">
-                        <p className="text-2xl font-bold text-slate-800">{viewBlog.likes}</p>
-                        <p className="text-sm text-slate-600">Likes</p>
+                </div>
+                {/* Modal Content - Scrollable */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="space-y-6">
+                    {/* Blog Image */}
+                    {viewBlog.image && (
+                      <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden">
+                        <Image
+                          src={viewBlog.image || "/placeholder.svg"}
+                          alt={viewBlog.title}
+                          width={800}
+                          height={400}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <div className="p-3 bg-slate-50 rounded-lg">
-                        <p className="text-2xl font-bold text-slate-800">{viewBlog.comments_count}</p>
-                        <p className="text-sm text-slate-600">Comments</p>
+                    )}
+                    {/* Blog Info */}
+                    <div>
+                      <h4 className="text-3xl font-bold text-slate-800 mb-4">{viewBlog.title}</h4>
+                      <div className="flex items-center space-x-4 text-sm text-slate-600 mb-4">
+                        <span className="flex items-center space-x-1">
+                          <CalendarIcon className="w-4 h-4" />
+                          <span>{new Date(viewBlog.created_at).toLocaleDateString()}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <EyeIcon className="w-4 h-4" />
+                          <span>{viewBlog.views || 0} views</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <span>👍 {viewBlog.likes} likes</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <span>💬 {viewBlog.comments_count} comments</span>
+                        </span>
                       </div>
-                      <div className="p-3 bg-slate-50 rounded-lg">
-                        <p className="text-2xl font-bold text-slate-800">{viewBlog.views || 0}</p>
-                        <p className="text-sm text-slate-600">Views</p>
+                      <div className="mb-6">
+                        <span
+                          className={`px-3 py-1 text-sm font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+                            viewBlog.status || "draft",
+                            isArchived(viewBlog),
+                          )}`}
+                        >
+                          {getStatusIcon(viewBlog.status || "draft", isArchived(viewBlog))}
+                          <span>{getStatusText(viewBlog.status || "draft", isArchived(viewBlog))}</span>
+                        </span>
+                      </div>
+                    </div>
+                    {/* Author Info */}
+                    <div className="border-t border-slate-200 pt-6 mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {viewBlog.author?.username?.charAt(0).toUpperCase() || "U"}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-800">{viewBlog.author?.username || "Unknown"}</p>
+                          <p className="text-sm text-slate-600">{viewBlog.author?.email || ""}</p>
+                          <p className="text-xs text-slate-500 capitalize">{viewBlog.author?.role || "User"}</p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Blog Content */}
+                    <div className="max-w-none">
+                      <TipTapContentDisplay content={viewBlog.content} className="text-slate-700" />
+                    </div>
+                    {/* Comments Section */}
+                    <div className="border-t border-slate-200 pt-6">
+                      <h5 className="text-lg font-semibold text-slate-800 mb-4">
+                        Comments ({viewBlog.comments_count})
+                      </h5>
+                      {viewBlog.comments && viewBlog.comments.length > 0 ? (
+                        <div className="space-y-4">
+                          {viewBlog.comments.map((comment: any, index: number) => (
+                            <div key={index} className="flex space-x-3 p-4 bg-slate-50 rounded-lg">
+                              <div className="flex-shrink-0">
+                                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white font-semibold text-sm">
+                                    {comment.author?.username?.charAt(0).toUpperCase() ||
+                                      comment.user?.username?.charAt(0).toUpperCase() ||
+                                      "U"}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <p className="font-medium text-slate-800 text-sm">
+                                    {comment.author?.username || comment.user?.username || "Anonymous"}
+                                  </p>
+                                  <span className="text-xs text-slate-500">
+                                    {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ""}
+                                  </span>
+                                </div>
+                                <p className="text-slate-700 text-sm leading-relaxed">
+                                  {comment.content || comment.text || "No content"}
+                                </p>
+                                {comment.author?.role && (
+                                  <p className="text-xs text-slate-500 mt-1 capitalize">{comment.author.role}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span className="text-slate-400 text-xl">💬</span>
+                          </div>
+                          <p className="text-slate-600 text-sm">No comments yet</p>
+                          <p className="text-slate-500 text-xs">Be the first to comment on this blog post</p>
+                        </div>
+                      )}
+                    </div>
+                    {/* Blog Stats */}
+                    <div className="border-t border-slate-200 pt-6">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div className="p-3 bg-slate-50 rounded-lg">
+                          <p className="text-2xl font-bold text-slate-800">{viewBlog.likes}</p>
+                          <p className="text-sm text-slate-600">Likes</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-lg">
+                          <p className="text-2xl font-bold text-slate-800">{viewBlog.comments_count}</p>
+                          <p className="text-sm text-slate-600">Comments</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-lg">
+                          <p className="text-2xl font-bold text-slate-800">{viewBlog.views || 0}</p>
+                          <p className="text-sm text-slate-600">Views</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

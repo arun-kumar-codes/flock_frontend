@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Camera, User, Mail, Shield, Edit3 } from "lucide-react"
 import { useSelector } from "react-redux"
 import { updateProfile } from "@/api/user"
+import Loader from "@/components/Loader"
 
 
 interface UserData {
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   const [username, setUsername] = useState(initialUser.username)
   const [profileImage, setProfileImage] = useState(initialUser.profileImage)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading,setisLoading]=useState(true);
 
   // Store original values to compare against
   const [originalUsername, setOriginalUsername] = useState(initialUser.username)
@@ -36,6 +38,7 @@ export default function ProfilePage() {
     setProfileImage(initialUser.profileImage)
     setOriginalUsername(initialUser.username)
     setOriginalProfileImage(initialUser.profileImage)
+    setisLoading(false);
   }, [initialUser])
 
   // Function to check if there are any changes
@@ -96,6 +99,10 @@ export default function ProfilePage() {
     setUsername(originalUsername)
     setProfileImage(originalProfileImage)
     setImageFile(null)
+  }
+
+  if(isLoading){
+    return <Loader></Loader>
   }
 
   return (

@@ -2,22 +2,11 @@
 
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import {
-  HomeIcon,
-  BookOpenIcon,
-  VideoIcon,
-  SettingsIcon,
-  UserIcon,
-  LogOutIcon,
-  TrendingUpIcon,
-  HeartIcon,
-  ClockIcon,
-} from "lucide-react"
+import { HomeIcon, BookOpenIcon, VideoIcon, UserIcon, LogOutIcon, TrendingUpIcon } from "lucide-react"
 import Image from "next/image"
-import { useSelector,useDispatch } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
-
 
 const menuItems = [
   {
@@ -34,33 +23,16 @@ const menuItems = [
     title: "Video",
     url: "/viewer/videos",
     icon: VideoIcon,
-  }
+  },
 ]
 
-const userMenuItems:any = [
+const userMenuItems: any = [
   {
     title: "Profile",
     url: "/viewer/profile",
     icon: UserIcon,
   },
-  // {
-  //   title: "Favorites",
-  //   url: "/viewer/favorites",
-  //   icon: HeartIcon,
-  // },
-  // {
-  //   title: "History",
-  //   url: "/viewer/history",
-  //   icon: ClockIcon,
-  // },
-  // {
-  //   title: "Settings",
-  //   url: "/viewer/settings",
-  //   icon: SettingsIcon,
-  // },
 ]
-
-
 
 interface CustomSidebarProps {
   onExpandChange?: (isExpanded: boolean) => void
@@ -72,7 +44,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
   const user = useSelector((state: any) => state.user)
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
 
   const handleMouseEnter = () => {
     setIsExpanded(true)
@@ -94,19 +66,19 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
 
   return (
     <div
-      className={`fixed left-0 top-0 h-full bg-white shadow-lg border-r border-slate-200 transition-all duration-300 ease-in-out z-40 ${sidebarWidth}`}
+      className={`fixed left-0 top-0 h-full theme-bg-card theme-border-r transition-all duration-300 ease-in-out z-40 ${sidebarWidth}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Header */}
-      <div className="p-4 border-b border-slate-200">
+      <div className="p-4 theme-border-b">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <TrendingUpIcon className="w-5 h-5 text-white" />
           </div>
           <div className={`transition-opacity duration-300 ${textVisibility} ${isExpanded ? "" : "hidden"}`}>
-            <div className="font-semibold text-slate-800">Flock</div>
-            <div className="text-xs text-slate-500">Content Hub</div>
+            <div className="font-semibold theme-text-primary">Flock</div>
+            <div className="text-xs theme-text-secondary">Content Hub</div>
           </div>
         </div>
       </div>
@@ -120,18 +92,18 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
               <button
                 key={item.title}
                 onClick={() => router.push(item.url)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
                   isActive
-                    ? "bg-blue-100 text-blue-700 border-r-2 border-blue-600"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+                    ? "bg-blue-600 text-white shadow-md border-r-2 border-blue-400"
+                    : "theme-text-primary hover:theme-bg-hover hover:text-blue-600"
                 }`}
                 title={!isExpanded ? item.title : undefined}
               >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : ""}`} />
                 <span
-                  className={`transition-opacity duration-300 whitespace-nowrap ${textVisibility} ${
+                  className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
                     isExpanded ? "" : "hidden"
-                  }`}
+                  } ${isActive ? "text-white" : ""}`}
                 >
                   {item.title}
                 </span>
@@ -141,30 +113,29 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
         </nav>
       </div>
 
-      {/* Separator */}
-      <div className="mx-4 border-t border-slate-200"></div>
+      <div className="mx-4 my-2 border-t theme-border opacity-30"></div>
 
       {/* User Navigation */}
-      <div className="py-4">
+      <div className="py-2">
         <nav className="space-y-1 px-2">
-          {userMenuItems.map((item:any) => {
+          {userMenuItems.map((item: any) => {
             const isActive = pathname === item.url
             return (
               <button
                 key={item.title}
                 onClick={() => router.push(item.url)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
                   isActive
-                    ? "bg-blue-100 text-blue-700 border-r-2 border-blue-600"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+                    ? "bg-blue-600 text-white shadow-md border-r-2 border-blue-400"
+                    : "theme-text-primary hover:theme-bg-hover hover:text-blue-600"
                 }`}
                 title={!isExpanded ? item.title : undefined}
               >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : ""}`} />
                 <span
-                  className={`transition-opacity duration-300 whitespace-nowrap ${textVisibility} ${
+                  className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
                     isExpanded ? "" : "hidden"
-                  }`}
+                  } ${isActive ? "text-white" : ""}`}
                 >
                   {item.title}
                 </span>
@@ -174,36 +145,62 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
         </nav>
       </div>
 
-      {/* User Profile & Logout */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200">
-        <div className="flex items-center space-x-3 mb-3" onClick={() => router.push("/viewer/profile")}>
-          <Image
-            src={user.profileImage||profileImg || "/placeholder.svg"}
-            alt="Profile"
-            width={32}
-            height={32}
-            className="rounded-full flex-shrink-0"
-          />
-          <div className={`transition-opacity duration-300 ${textVisibility} ${isExpanded ? "" : "hidden"}`}>
-            <div className="text-sm font-medium text-slate-800">{user?.username || "User"}</div>
-            <div className="text-xs text-slate-500">{user?.role || "Viewer"}</div>
-          </div>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
-          title={!isExpanded ? "Sign Out" : undefined}
-        >
-          <LogOutIcon className="w-5 h-5 flex-shrink-0" />
-          <span
-            className={`transition-opacity duration-300 whitespace-nowrap ${textVisibility} ${
-              isExpanded ? "" : "hidden"
-            }`}
+      {/* User Profile & Logout OR Sign In */}
+      {user.isLogin ? (
+        // Logged-in state → Profile & Logout
+        <div className="absolute bottom-0 left-0 right-0 p-4 theme-border-t">
+          <div
+            className="flex items-center space-x-3 mb-3 cursor-pointer hover:theme-bg-hover rounded-lg p-2 transition-colors duration-200"
+            onClick={() => router.push("/viewer/profile")}
           >
-            Sign Out
-          </span>
-        </button>
-      </div>
+            <div className="w-8 h-8 flex-shrink-0">
+              <Image
+                src={user.profileImage || profileImg || "/placeholder.svg"}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="rounded-full w-full h-full object-cover"
+              />
+            </div>
+            <div className={`transition-opacity duration-300 ${textVisibility} ${isExpanded ? "" : "hidden"}`}>
+              <div className="text-sm font-medium theme-text-primary">{user?.username || "User"}</div>
+              <div className="text-xs theme-text-secondary">{user?.role || "Viewer"}</div>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg theme-text-primary hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
+            title={!isExpanded ? "Sign Out" : undefined}
+          >
+            <LogOutIcon className="w-5 h-5 flex-shrink-0" />
+            <span
+              className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
+                isExpanded ? "" : "hidden"
+              }`}
+            >
+              Sign Out
+            </span>
+          </button>
+        </div>
+      ) : (
+        // Logged-out state → Sign In
+        <div className="absolute bottom-0 left-0 right-0 p-4 theme-border-t">
+          <button
+            onClick={() => router.push("/login")}
+            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-md"
+            title={!isExpanded ? "Sign In" : undefined}
+          >
+            <UserIcon className="w-5 h-5 flex-shrink-0" />
+            <span
+              className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
+                isExpanded ? "" : "hidden"
+              }`}
+            >
+              Sign In
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }

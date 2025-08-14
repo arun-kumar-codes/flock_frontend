@@ -98,7 +98,6 @@ export default function Login() {
       setIsSubmitting(false)
       if (recaptchaRef.current) {
         recaptchaRef.current.reset()
-        setFormData((prev) => ({ ...prev, recaptchaToken: "" }))
       }
     }
   }

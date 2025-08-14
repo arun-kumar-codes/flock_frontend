@@ -14,6 +14,7 @@ import {
   BarChart3Icon,
   Loader2Icon,
 } from "lucide-react"
+import Loader from "@/components/Loader"
 
 interface BlogStats {
   archived: number
@@ -90,12 +91,7 @@ export default function CreatorDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2Icon className="w-8 h-8 animate-spin mx-auto mb-4 text-indigo-600" />
-          <p className="text-slate-600">Loading your dashboard...</p>
-        </div>
-      </div>
+     <Loader></Loader>
     )
   }
 

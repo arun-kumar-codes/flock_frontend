@@ -1,18 +1,30 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { SearchIcon, MoreVerticalIcon, HeartIcon, XIcon, MessageCircleIcon, ThumbsUpIcon, PlayIcon, VideoIcon, AlertCircleIcon, CalendarIcon, EyeIcon, FilterIcon, RefreshCwIcon } from 'lucide-react'
-import Image from "next/image"
-import { useSelector } from "react-redux"
+import { SearchIcon, HeartIcon, PlayIcon, AlertCircleIcon, RefreshCwIcon, TrendingUpIcon, UserIcon, FilterIcon } from "lucide-react"
+// Removed Redux dependency to fix store error
 import Loader from "@/components/Loader"
 import { VideoModal } from "@/components/viewer/video-modal"
-import { getAllVideo, addCommentToVideo, toggleVideoLike, editVideoComment, deleteVideoComment, getFollowings, getAllVideoCretor } from "@/api/content"
+import {
+  getAllVideo,
+  addCommentToVideo,
+  toggleVideoLike,
+  editVideoComment,
+  deleteVideoComment,
+  getFollowings,
+  getAllVideoCretor,
+} from "@/api/content"
+import { useSelector } from "react-redux"
+
+// ... existing interfaces ...
 
 interface Creator {
   email: string
   id: number
   role: string
   username: string
+  avatar?: string
+  name?: string
 }
 
 interface Commenter {
@@ -37,13 +49,10 @@ interface Video {
   description: string
   video: string
   thumbnail: string
-  duration: number
-  duration_formatted: string
-  format: string
+  duration: string
   views: number
   likes: number
   is_liked: boolean
-  is_viewed: boolean
   created_at: string
   created_by: number
   creator: Creator
@@ -74,6 +83,7 @@ interface FollowingResponse {
   following_count: number
 }
 
+
 // Utility function to strip HTML tags and decode HTML entities
 const stripHtmlAndDecode = (html: string): string => {
   if (!html) return ""
@@ -101,71 +111,54 @@ const truncateText = (text: string, maxLength = 120): string => {
   return text.substring(0, maxLength).trim() + "..."
 }
 
+// Function to format video duration properly
+const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`
+  }
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+}
+
 export default function VideoPage() {
   const router = useRouter()
-  const user = useSelector((state: any) => state.user)
-  
+    
+
+ const user=useSelector((state:any)=>state.user);
+
+ const isDark=user.theme==="dark";
+
+
   // Video states
   const [videos, setVideos] = useState<Video[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState("")
-  
+
   // Following states
   const [selectedFollowing, setSelectedFollowing] = useState<string>("all")
   const [followings, setFollowings] = useState<Following[]>([])
   const [followingCount, setFollowingCount] = useState<number>(0)
-  const [isLoadingFollowing, setIsLoadingFollowing] = useState(false)
+  const [isLoadingFollowing, setIsLoadingFollowing] = useState(true)
   const [followingError, setFollowingError] = useState("")
-  
+
   // UI states
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null)
   const [showVideoModal, setShowVideoModal] = useState(false)
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
-  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set())
-  const [newComments, setNewComments] = useState<{ [key: number]: string }>({})
-  const [editingComment, setEditingComment] = useState<number | null>(null)
-  const [editCommentText, setEditCommentText] = useState("")
-  const contentMenuRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (!user || !user.role) return
-    const role = user.role.toLowerCase()
-    if (role === "creator") {
-      router.push("/creator/dashboard")
-      return
-    } else if (role === "admin") {
-      router.push("/admin/dashboard")
-      return
-    }
-    
-    // Fetch both following data and videos
-    fetchFollowingData()
-    fetchVideos()
-  }, [user, router])
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (contentMenuRef.current && !contentMenuRef.current.contains(event.target as Node)) {
-        setShowContentMenu(null)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  // Fetch following data
   const fetchFollowingData = async () => {
-    setIsLoadingFollowing(true)
+  
     setFollowingError("")
     try {
       console.log("Fetching following data...")
       const response = await getFollowings()
       console.log("Following response:", response)
-      
+
       if (response?.data) {
         const followingData: FollowingResponse = response.data
         if (followingData.following && Array.isArray(followingData.following)) {
@@ -190,13 +183,13 @@ export default function VideoPage() {
 
   const fetchVideos = async () => {
     setFetchError("")
-    setIsLoading(true)
+  
     try {
       let response
-      
+
       // If a specific following is selected, get their videos
       if (selectedFollowing !== "all") {
-        const selectedUser = followings.find(f => f.username === selectedFollowing)
+        const selectedUser = followings.find((f) => f.username === selectedFollowing)
         if (selectedUser) {
           console.log("Fetching videos for creator:", selectedUser.id)
           response = await getAllVideoCretor(selectedUser.id)
@@ -211,7 +204,7 @@ export default function VideoPage() {
       }
 
       console.log("Video API Response:", response)
-      
+
       if (response?.data?.videos) {
         const videosWithUIFields = response.data.videos
           .filter((video: any) => video.status === "published" && !video.archived)
@@ -226,7 +219,7 @@ export default function VideoPage() {
           }))
         setVideos(videosWithUIFields)
         console.log("Videos set:", videosWithUIFields.length)
-        
+
         if (selectedVideo) {
           const updatedSelectedVideo = videosWithUIFields.find((video: any) => video.id === selectedVideo.id)
           if (updatedSelectedVideo) {
@@ -245,6 +238,14 @@ export default function VideoPage() {
     }
   }
 
+  // Initialize data fetching on component mount
+  useEffect(() => {
+    if(user.isLogIn){
+      fetchFollowingData();
+    }
+    fetchVideos()
+  }, [])
+
   // Update videos when selected following changes
   useEffect(() => {
     if (followings.length > 0 || selectedFollowing === "all") {
@@ -252,6 +253,10 @@ export default function VideoPage() {
       fetchVideos()
     }
   }, [selectedFollowing])
+
+
+
+  // ... existing functions ...
 
   const toggleFavorite = (videoId: number) => {
     setVideos((prev) =>
@@ -271,97 +276,16 @@ export default function VideoPage() {
     }
   }
 
-  const handleContentAction = (action: string, videoId: number) => {
-    switch (action) {
-      case "favorite":
-        toggleFavorite(videoId)
-        break
-      case "remove":
-        setVideos((prev) => prev.filter((video) => video.id !== videoId))
-        break
-      default:
-        break
-    }
-    setShowContentMenu(null)
-  }
 
-  const toggleComments = (videoId: number) => {
-    setExpandedComments((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(videoId)) {
-        newSet.delete(videoId)
-      } else {
-        newSet.add(videoId)
-      }
-      return newSet
-    })
-  }
-
-  const handleAddComment = async (videoId: number) => {
-    const commentText = newComments[videoId]?.trim()
-    if (!commentText) return
-    try {
-      const response = await addCommentToVideo(videoId, commentText)
-      console.log("Add comment response:", response)
-      setNewComments((prev) => ({ ...prev, [videoId]: "" }))
-      await fetchVideos()
-    } catch (error) {
-      console.error("Error adding comment:", error)
-      setFetchError("Failed to add comment. Please try again.")
-      setTimeout(() => setFetchError(""), 3000)
-    }
-  }
-
-  const handleEditComment = async (commentId: number) => {
-    const trimmedText = editCommentText.trim()
-    if (!trimmedText) return
-    try {
-      const response = await editVideoComment(commentId, trimmedText)
-      console.log("Edit comment response:", response)
-      setEditingComment(null)
-      setEditCommentText("")
-      await fetchVideos()
-    } catch (error) {
-      console.error("Error editing comment:", error)
-      setFetchError("Failed to edit comment. Please try again.")
-      setTimeout(() => setFetchError(""), 3000)
-    }
-  }
-
-  const handleDeleteComment = async (commentId: number) => {
-    try {
-      const response = await deleteVideoComment(commentId)
-      console.log("Delete comment response:", response)
-      await fetchVideos()
-    } catch (error) {
-      console.error("Error deleting comment:", error)
-      setFetchError("Failed to delete comment. Please try again.")
-      setTimeout(() => setFetchError(""), 3000)
-    }
-  }
-
-  const startEditingComment = (comment: Comment) => {
-    setEditingComment(comment.id)
-    setEditCommentText(comment.comment)
-  }
-
-  const cancelEditingComment = () => {
-    setEditingComment(null)
-    setEditCommentText("")
-  }
 
   const filteredVideos = videos.filter((video) => {
     const plainDescription = stripHtmlAndDecode(video.description)
     const matchesSearch =
       video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       video.creator.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (video.category && video.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
       plainDescription.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterCategory === "all" || video.category === filterCategory
-    return matchesSearch && matchesFilter
+    return matchesSearch
   })
-
-  const categories = ["all", ...Array.from(new Set(videos.map((video) => video.category).filter(Boolean)))]
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -369,16 +293,6 @@ export default function VideoPage() {
       month: "short",
       day: "numeric",
     })
-  }
-
-  const formatCommentDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-    if (diffInHours < 1) return "Just now"
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   }
 
   const formatViews = (views: number) => {
@@ -402,242 +316,168 @@ export default function VideoPage() {
     }
   }
 
+  const handleLikeToggle = (e: any, videoId: number) => {
+    e.stopPropagation()
+    toggleLike(videoId)
+  }
+
+  const handleFavoriteToggle = (e: any, videoId: number) => {
+    e.stopPropagation()
+    toggleFavorite(videoId)
+  }
+
   if (isLoading && isLoadingFollowing) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
+      <div
+        className={`flex items-center justify-center min-h-screen ${isDark ? "bg-slate-900" : "bg-gradient-to-br from-slate-50 to-blue-50"}`}
+      >
         <Loader />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-              <VideoIcon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-slate-800">Video Content</h1>
-              <p className="text-slate-600 text-lg">
-                Watch educational videos and tutorials from our creators
-              
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Messages */}
-        {fetchError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-            <div className="flex items-center space-x-3">
-              <AlertCircleIcon className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <p className="text-red-800 flex-1">{fetchError}</p>
-              <button
-                onClick={fetchVideos}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        )}
-
-        {followingError && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-            <div className="flex items-center space-x-3">
-              <AlertCircleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-              <p className="text-yellow-800 flex-1">{followingError}</p>
-              <button
-                onClick={fetchFollowingData}
-                className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700 transition-colors"
-              >
-                Retry Following
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="min-h-screen theme-bg-primary transition-colors duration-300">
+      <div className=" px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Search and Filter */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8">
+           <div className=" mb-8 shadow-sm theme-border">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 theme-text-muted" />
               <input
                 type="text"
-                placeholder="Search videos by title, author, or content..."
+                placeholder="Search articles by title, author, or content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 theme-input rounded-xl theme-text-primary placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               />
             </div>
             <div className="flex gap-3">
-              {/* Following Filter Dropdown */}
               <div className="relative">
-                <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 theme-text-muted" />
                 <select
                   value={selectedFollowing}
-                  onChange={(e) => {
-                    console.log("Following selection changed:", e.target.value)
-                    setSelectedFollowing(e.target.value)
-                  }}
-                  className="pl-10 pr-8 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white min-w-[180px]"
+                  onChange={(e) => setSelectedFollowing(e.target.value)}
+                  className="pl-10 pr-8 py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   disabled={isLoadingFollowing}
                 >
-                  <option value="all">All Creators </option>
+                  <option value="all">All Creators</option>
                   {followings.map((following) => (
                     <option key={following.id} value={following.username}>
                       {following.username}
                     </option>
                   ))}
                 </select>
-                {isLoadingFollowing && (
-                  <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-                    <RefreshCwIcon className="w-4 h-4 animate-spin text-slate-400" />
-                  </div>
-                )}
               </div>
 
               <button
                 onClick={() => {
-                  fetchVideos()
+                  fetchVideos();
                   fetchFollowingData()
                 }}
-                disabled={isLoading || isLoadingFollowing}
-                className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-6 py-3 theme-button-primary rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCwIcon className={`w-4 h-4 ${(isLoading || isLoadingFollowing) ? "animate-spin" : ""}`} />
-                <span>{(isLoading || isLoadingFollowing) ? "Loading..." : "Refresh"}</span>
+                <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                <span>{isLoading ? "Loading..." : "Refresh"}</span>
               </button>
             </div>
           </div>
         </div>
-
         {/* Video Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredVideos.length > 0 ? (
             filteredVideos.map((video) => {
-              // Process description for display in grid
               const plainDescription = stripHtmlAndDecode(video.description)
-              const truncatedDescription = truncateText(plainDescription, 100)
+              const truncatedDescription = truncateText(plainDescription, 80)
 
               return (
-                <div
-                  key={video.id}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="relative">
-                    <div
-                      className="aspect-video relative overflow-hidden cursor-pointer"
-                      onClick={() => handleVideoClick(video)}
-                    >
+                <div key={video.id} className="group cursor-pointer h-full" onClick={() => handleVideoClick(video)}>
+                  <div className="theme-bg-card rounded-xl shadow-sm hover:shadow-md theme-border overflow-hidden transition-all duration-300 h-full flex flex-col">
+                    <div className="relative aspect-video overflow-hidden rounded-t-xl flex-shrink-0">
                       <img
-                        src={video.thumbnail || "/placeholder.svg?height=200&width=350"}
+                        src={
+                          video.thumbnail && video.thumbnail !== ""
+                            ? video.thumbnail
+                            : `/placeholder.svg?height=180&width=320&text=${encodeURIComponent(video.title)}&query=Professional outdoor adventure thumbnail design, turquoise/teal colored object placed on red sandstone cliff edge, dramatic desert landscape background with blue sky and clouds, minimalist composition, natural daylight photography, adventure travel aesthetic, clean modern design, high contrast colors`
+                        }
                         alt={video.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          if (!target.src.includes("placeholder.svg")) {
+                            target.src = `/placeholder.svg?height=180&width=320&text=${encodeURIComponent(video.title)}&query=Professional outdoor adventure thumbnail design, turquoise/teal colored object placed on red sandstone cliff edge, dramatic desert landscape background with blue sky and clouds, minimalist composition, natural daylight photography, adventure travel aesthetic, clean modern design, high contrast colors`
+                          }
+                        }}
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform scale-75 group-hover:scale-100">
-                          <PlayIcon className="w-8 h-8 text-slate-800 ml-1" />
+
+                      {/* Duration overlay */}
+                      <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2 py-1 rounded font-medium">
+                        {video.duration ? formatDuration(Number.parseInt(video.duration)) : "8:38"}
+                      </div>
+
+                      {/* Play button overlay */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transform scale-0 group-hover:scale-100 transition-all duration-300 shadow-lg">
+                          <PlayIcon className="w-5 h-5 text-gray-900 ml-0.5" />
                         </div>
                       </div>
-                      <div className="absolute bottom-3 right-3 bg-black/80 text-white px-2 py-1 rounded-lg text-sm font-medium">
-                        {video.duration_formatted}
-                      </div>
-                      <div className="absolute top-3 left-3 flex items-center space-x-2">
-                        {video.isFavorite && <HeartIcon className="w-4 h-4 text-red-500 fill-current" />}
-                      </div>
                     </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <h4
-                        className="font-bold text-slate-800 text-lg line-clamp-2 flex-1 group-hover:text-purple-600 transition-colors cursor-pointer"
-                        onClick={() => handleVideoClick(video)}
-                      >
-                        {video.title}
-                      </h4>
-                      <div className="relative ml-3" ref={contentMenuRef}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setShowContentMenu(showContentMenu === video.id.toString() ? null : video.id.toString())
-                          }}
-                          className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
-                        >
-                          <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
-                        </button>
-                        {showContentMenu === video.id.toString() && (
-                          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-10">
+
+                    <div className="p-4 flex-1 flex flex-col">
+                      <div className="flex gap-3 flex-1">
+                        {/* Avatar */}
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden theme-bg-secondary">
+                            {video.creator?.avatar && video.creator.avatar !== "" ? (
+                              <img
+                                src={video.creator.avatar || "/placeholder.svg"}
+                                alt={video.creator.username}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.style.display = "none"
+                                  target.nextElementSibling?.classList.remove("hidden")
+                                }}
+                              />
+                            ) : null}
+                            <UserIcon className={`w-5 h-5 theme-text-muted ${video.creator?.avatar ? "hidden" : ""}`} />
+                          </div>
+                        </div>
+
+                        {/* Video Info */}
+                        <div className="flex-1 min-w-0 flex flex-col">
+                          <h3
+                            title={video.title}
+                            className="font-semibold text-sm leading-5 line-clamp-2 group-hover:text-purple-500 transition-colors theme-text-primary mb-2 h-10 flex items-start"
+                          >
+                            {video.title}
+                          </h3>
+
+                          <p className="text-sm theme-text-secondary mb-2 truncate">
+                            {video.creator?.username || "Unknown Creator"}
+                          </p>
+
+                          <div className="flex items-center justify-between mt-auto">
+                            <div className="flex items-center text-xs theme-text-muted">
+                              <span>{formatViews(video.views || 0)} views</span>
+                              <span className="mx-1">•</span>
+                              <span>{formatDate(video.created_at)}</span>
+                            </div>
+
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleContentAction("favorite", video.id)
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                              onClick={(e) => handleLikeToggle(e, video.id)}
+                              className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs ${
+                                video.is_liked ? "text-red-500" : "theme-text-muted hover:text-red-500"
+                              }`}
                             >
-                              <HeartIcon className="w-4 h-4" />
-                              <span>{video.isFavorite ? "Remove Favorite" : "Add Favorite"}</span>
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleContentAction("remove", video.id)
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
-                            >
-                              <XIcon className="w-4 h-4" />
-                              <span>Remove from History</span>
+                              <HeartIcon className={`w-3 h-3 ${video.is_liked ? "fill-current" : ""}`} />
+                              <span>{video.likes}</span>
                             </button>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    {/* Updated description display with proper HTML stripping */}
-                    <div className="mb-4">
-                      {truncatedDescription ? (
-                        <p className="text-slate-600 text-sm leading-relaxed">{truncatedDescription}</p>
-                      ) : (
-                        <p className="text-slate-400 text-sm italic">No description available</p>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
-                      <span className="font-medium">by {video.creator.username}</span>
-                      <span className="flex items-center space-x-1">
-                        <CalendarIcon className="w-4 h-4" />
-                        <span>{formatDate(video.created_at)}</span>
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-1 text-slate-500">
-                        <EyeIcon className="w-4 h-4" />
-                        <span className="text-sm">{formatViews(video.views)} views</span>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleLike(video.id)
-                          }}
-                          className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-colors ${
-                            video.is_liked ? "bg-purple-100 text-purple-600" : "hover:bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          <ThumbsUpIcon className={`w-4 h-4 ${video.is_liked ? "fill-current" : ""}`} />
-                          <span className="text-sm font-medium">{video.likes}</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleComments(video.id)
-                          }}
-                          className="flex items-center space-x-1 text-slate-500 hover:text-slate-700 transition-colors"
-                        >
-                          <MessageCircleIcon className="w-4 h-4" />
-                          <span className="text-sm">{video.comments_count}</span>
-                        </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -645,26 +485,25 @@ export default function VideoPage() {
               )
             })
           ) : (
-            <div className="col-span-full text-center py-16">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <VideoIcon className="w-10 h-10 text-slate-400" />
+            <div className="col-span-full text-center py-20">
+              <div className="w-24 h-24 theme-bg-secondary rounded-full flex items-center justify-center mx-auto mb-6 theme-border">
+                <PlayIcon className="w-10 h-10 theme-text-muted" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-800 mb-2">No videos found</h3>
-              <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                {searchTerm || filterCategory !== "all" || selectedFollowing !== "all"
-                  ? "Try adjusting your search or filter criteria to find what you're looking for."
+              <h3 className="text-2xl font-semibold mb-3 theme-text-primary">No videos found</h3>
+              <p className="mb-8 max-w-md mx-auto theme-text-secondary">
+                {searchTerm
+                  ? "Try adjusting your search terms to find what you're looking for."
                   : "No videos are available at the moment. Check back later for new content."}
               </p>
-              {(searchTerm || filterCategory !== "all" || selectedFollowing !== "all") && (
+              {searchTerm && (
                 <button
                   onClick={() => {
                     setSearchTerm("")
-                    setFilterCategory("all")
                     setSelectedFollowing("all")
                   }}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+                  className="px-6 py-3 theme-button-primary rounded-xl transition-colors"
                 >
-                  Clear Filters
+                  Clear Search
                 </button>
               )}
             </div>

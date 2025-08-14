@@ -3,45 +3,17 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { TrendingUpIcon, EyeIcon, SparklesIcon, UserIcon, FlameIcon as FireIcon, HeartIcon } from "lucide-react"
 import { useSelector } from "react-redux"
-import { getBlog } from "@/api/content"
 import Loader from "@/components/Loader"
 import TrendingBlogsTab from "@/components/viewer/TrendingBlogs"
 import TrendingVideosTab from "@/components/viewer/TrendingVideos"
 import MostViewedTab from "@/components/viewer/MostViewed"
 import MostLikedTab from "@/components/viewer/MostLiked"
-interface BlogPost {
-  id: string
-  title: string
-  content: string
-  author: {
-    username: string
-  }
-  created_at: string
-  views?: number
-  likes?: number
-  is_trending?: boolean
-}
-interface VideoPost {
-  id: string
-  title: string
-  author: {
-    username: string
-  }
-  created_at: string
-  views?: number
-  likes?: number
-  is_trending?: boolean
-  thumbnail?: string
-}
+
+
 export default function ViewerDashboard() {
   const router = useRouter()
   const user = useSelector((state: any) => state.user)
   const [activeTab, setActiveTab] = useState("trending-blogs")
-  const [trendingBlogs, setTrendingBlogs] = useState<BlogPost[]>([])
-  const [mostViewedBlogs, setMostViewedBlogs] = useState<BlogPost[]>([])
-  const [trendingVideos, setTrendingVideos] = useState<VideoPost[]>([])
-  const [mostViewedVideos, setMostViewedVideos] = useState<VideoPost[]>([])
-  const [mostLikedContent, setMostLikedContent] = useState<(BlogPost | VideoPost)[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const tabs = [
     {
@@ -78,96 +50,21 @@ export default function ViewerDashboard() {
     },
   ]
   useEffect(() => {
-    if (!user || !user.role) return
+    // if (!user || !user.role) return
     const role = user.role.toLowerCase()
     if (role === "creator") {
-      router.push("/creator/dashboard")
-      return
+      router.push("/dashboard")
+      return;
     } else if (role === "admin") {
-      router.push("/admin/dashboard")
-      return
+      router.push("/admin") 
+      return;
     }
-    fetchDashboardData()
+
+    if(role==="viewer")
+    setIsLoading(false);
+    console.log(isLoading);
   }, [user, router])
-  const fetchDashboardData = async () => {
-    try {
-      const response = await getBlog()
-      if (response?.data?.blogs) {
-        const blogs = response.data.blogs
-        const trending = blogs.filter((blog: BlogPost) => blog.is_trending).slice(0, 6)
-        const mostViewed = blogs.sort((a: BlogPost, b: BlogPost) => (b.views || 0) - (a.views || 0)).slice(0, 6)
-        setTrendingBlogs(trending)
-        setMostViewedBlogs(mostViewed)
-      }
-      // Mock video data - replace with actual API call
-      const mockVideos: VideoPost[] = [
-        {
-          id: "1",
-          title: "Introduction to React Hooks",
-          author: { username: "techguru" },
-          created_at: "2024-01-15",
-          views: 1250,
-          likes: 89,
-          is_trending: true,
-        },
-        {
-          id: "2",
-          title: "Advanced TypeScript Patterns",
-          author: { username: "codewizard" },
-          created_at: "2024-01-14",
-          views: 980,
-          likes: 156,
-          is_trending: true,
-        },
-        {
-          id: "3",
-          title: "Building Scalable APIs",
-          author: { username: "backendpro" },
-          created_at: "2024-01-13",
-          views: 2100,
-          likes: 234,
-          is_trending: false,
-        },
-        {
-          id: "4",
-          title: "CSS Grid Mastery",
-          author: { username: "designpro" },
-          created_at: "2024-01-12",
-          views: 1800,
-          likes: 198,
-          is_trending: true,
-        },
-        {
-          id: "5",
-          title: "Node.js Performance Tips",
-          author: { username: "nodemaster" },
-          created_at: "2024-01-11",
-          views: 1450,
-          likes: 167,
-          is_trending: false,
-        },
-        {
-          id: "6",
-          title: "Database Optimization",
-          author: { username: "dbexpert" },
-          created_at: "2024-01-10",
-          views: 1650,
-          likes: 145,
-          is_trending: true,
-        },
-      ]
-      setTrendingVideos(mockVideos.filter((video) => video.is_trending))
-      setMostViewedVideos(mockVideos.sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6))
-      // Combine blogs and videos for most liked
-      const allContent = [...(response?.data?.blogs || []), ...mockVideos]
-      const mostLiked = allContent.sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 6)
-      setMostLikedContent(mostLiked)
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -191,9 +88,9 @@ export default function ViewerDashboard() {
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-8 mb-8 text-white">
+        {/* <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-8 mb-8 text-white">
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -214,7 +111,7 @@ export default function ViewerDashboard() {
           </div>
           <div className="absolute -top-4 -right-4 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
           <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-purple-400/20 rounded-full blur-2xl"></div>
-        </div>
+        </div> */}
         {/* Enhanced Tab Navigation */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-8 overflow-hidden">
           <div className="flex flex-wrap border-b border-slate-200">

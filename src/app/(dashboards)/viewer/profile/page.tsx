@@ -2,8 +2,10 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Camera, User, Mail, Shield, Edit3 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import { updateProfile } from "@/api/user"
+import Loader from "@/components/Loader"
 
 // This is a mock of your Redux state and API calls for demonstration purposes.
 // You can replace these with your actual Redux and API logic.
@@ -21,22 +23,30 @@ export default function ProfilePage() {
   const initialUser = useSelector((state: any) => state.user)
   console.log("Initial User Data:", initialUser)
 
+
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [username, setUsername] = useState(initialUser.username)
   const [profileImage, setProfileImage] = useState(initialUser.profileImage)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading,setIsLoading]=useState(true);
 
   // Store original values to compare against
   const [originalUsername, setOriginalUsername] = useState(initialUser.username)
   const [originalProfileImage, setOriginalProfileImage] = useState(initialUser.profileImage)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const router=useRouter();
 
   useEffect(() => {
+    if(!initialUser.isLogin){
+         router.push('/login');
+         return ;
+    }
     setUsername(initialUser.username)
     setProfileImage(initialUser.profileImage)
     setOriginalUsername(initialUser.username)
     setOriginalProfileImage(initialUser.profileImage)
+    setIsLoading(false);
   }, [initialUser])
 
   // Function to check if there are any changes
@@ -97,6 +107,10 @@ export default function ProfilePage() {
     setUsername(originalUsername)
     setProfileImage(originalProfileImage)
     setImageFile(null)
+  }
+
+  if(isLoading){
+     return <Loader></Loader>
   }
 
   return (

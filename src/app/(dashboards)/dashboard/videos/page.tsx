@@ -378,6 +378,7 @@ export default function VideoDashboard() {
           videos: userVideos,
         }))
       }
+        setIsLoading(false)
     } catch (error) {
       console.error("Error fetching user videos:", error)
       setFetchError("Failed to fetch your videos")
@@ -397,7 +398,7 @@ export default function VideoDashboard() {
         }))
         fetchUserVideos()
       }
-      setIsLoading(false)
+    
     }
   }, [user, router])
 
