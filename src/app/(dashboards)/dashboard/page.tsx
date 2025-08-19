@@ -14,7 +14,7 @@ import {
   BarChart3Icon,
   Loader2Icon,
 } from "lucide-react"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 
 interface BlogStats {
   archived: number
@@ -91,7 +91,7 @@ export default function CreatorDashboard() {
 
   if (loading) {
     return (
-     <Loader></Loader>
+     <Loader2></Loader2>
     )
   }
 
@@ -200,7 +200,7 @@ export default function CreatorDashboard() {
                 <button
                   onClick={() => {
                     // Add analytics route when available
-                    console.log("Analytics coming soon!")
+                    //console.log("Analytics coming soon!")
                   }}
                   className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm"
                 >

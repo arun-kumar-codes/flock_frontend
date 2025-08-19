@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { DollarSign, Clock, PlaySquare, AlertCircle } from "lucide-react"
 import { getEarnings, getEarningHistory, getCpmRate } from "@/api/earnings"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 
 type Creator = {
   id: number
@@ -168,7 +168,7 @@ export default function CreatorEarningsPage() {
   }, [])
 
   if(isLoading){
-    return <Loader></Loader>
+    return <Loader2></Loader2>
   }
 
   return (

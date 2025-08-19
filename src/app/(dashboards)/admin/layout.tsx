@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import AdminHeader from "@/components/admin/AdminHeader"
 import AdminSidebar from "@/components/admin/AdminSidebar"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 
 export default function AdminLayout({
   children,
@@ -16,7 +16,7 @@ export default function AdminLayout({
 }) {
   const router = useRouter()
   const user = useSelector((state: any) => state.user)
-   if (user.loading || user.role.toLowerCase() !== "admin") return <Loader/>
+   if (user.loading || user.role.toLowerCase() !== "admin") return <Loader2/>
 
   return (
     <div className="flex h-screen bg-gray-50">

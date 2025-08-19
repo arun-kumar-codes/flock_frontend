@@ -10,7 +10,7 @@ import { logOut } from "@/slice/userSlice"
 
 const menuItems = [
   {
-    title: "Dashboard",
+    title: "FlockTogether",
     url: "/viewer",
     icon: HomeIcon,
   },
@@ -71,7 +71,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
       onMouseLeave={handleMouseLeave}
     >
       {/* Header */}
-      <div className="p-4 theme-border-b">
+      <div className="p-4 h-20 theme-border-b">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <TrendingUpIcon className="w-5 h-5 text-white" />
@@ -169,7 +169,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg theme-text-primary hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg theme-text-primary hover:bg-red-500 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
             title={!isExpanded ? "Sign Out" : undefined}
           >
             <LogOutIcon className="w-5 h-5 flex-shrink-0" />
@@ -184,13 +184,18 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
         </div>
       ) : (
         // Logged-out state → Sign In
-        <div className="absolute bottom-0 left-0 right-0 p-4 theme-border-t">
+        <div
+  className={`absolute bottom-0 left-0 right-0 theme-border-t transition-all duration-300 ${
+    isExpanded ? "p-4" : "px-2 py-3"
+  }`}
+>
+
           <button
             onClick={() => router.push("/login")}
             className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-md"
             title={!isExpanded ? "Sign In" : undefined}
           >
-            <UserIcon className="w-5 h-5 flex-shrink-0" />
+            <UserIcon className="w-5 h-5 flex-shrink-0 " />
             <span
               className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
                 isExpanded ? "" : "hidden"

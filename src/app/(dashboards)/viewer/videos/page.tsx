@@ -1,22 +1,21 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { SearchIcon, HeartIcon, PlayIcon, AlertCircleIcon, RefreshCwIcon, TrendingUpIcon, UserIcon, FilterIcon } from "lucide-react"
-// Removed Redux dependency to fix store error
+import {
+  SearchIcon,
+  ThumbsUpIcon,
+  PlayIcon,
+  RefreshCwIcon,
+  UserIcon,
+  FilterIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+} from "lucide-react"
 import Loader from "@/components/Loader"
 import { VideoModal } from "@/components/viewer/video-modal"
-import {
-  getAllVideo,
-  addCommentToVideo,
-  toggleVideoLike,
-  editVideoComment,
-  deleteVideoComment,
-  getFollowings,
-  getAllVideoCretor,
-} from "@/api/content"
+import { getAllVideo, toggleVideoLike, getFollowings, getAllVideoCretor } from "@/api/content"
 import { useSelector } from "react-redux"
-
-// ... existing interfaces ...
+import { getAllCreators } from "@/api/user"
 
 interface Creator {
   email: string
@@ -62,10 +61,9 @@ interface Video {
   viewed_by: number[]
   archived: boolean
   status: string
-  // UI-only fields
   category?: string
   isFavorite?: boolean
-  author?: Creator // For consistency with blog component
+  author?: Creator
 }
 
 interface Following {
@@ -83,16 +81,11 @@ interface FollowingResponse {
   following_count: number
 }
 
-
-// Utility function to strip HTML tags and decode HTML entities
 const stripHtmlAndDecode = (html: string): string => {
   if (!html) return ""
-  // Create a temporary div element to parse HTML
   const tempDiv = document.createElement("div")
   tempDiv.innerHTML = html
-  // Get text content (this automatically strips HTML tags)
   let text = tempDiv.textContent || tempDiv.innerText || ""
-  // Additional cleanup for common HTML entities that might remain
   text = text
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
@@ -105,13 +98,11 @@ const stripHtmlAndDecode = (html: string): string => {
   return text
 }
 
-// Utility function to truncate text to a specific length
 const truncateText = (text: string, maxLength = 120): string => {
   if (text.length <= maxLength) return text
   return text.substring(0, maxLength).trim() + "..."
 }
 
-// Function to format video duration properly
 const formatDuration = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
@@ -125,12 +116,8 @@ const formatDuration = (seconds: number): string => {
 
 export default function VideoPage() {
   const router = useRouter()
-    
-
- const user=useSelector((state:any)=>state.user);
-
- const isDark=user.theme==="dark";
-
+  const user = useSelector((state: any) => state.user)
+  const isDark = user.theme === "dark"
 
   // Video states
   const [videos, setVideos] = useState<Video[]>([])
@@ -150,27 +137,36 @@ export default function VideoPage() {
   const [showVideoModal, setShowVideoModal] = useState(false)
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
 
+  const [currentPage, setCurrentPage] = useState(0)
+  const videosPerPage = 8
+
+ useEffect(()=>{
+    //console.log(followings);
+ },[followings]);
 
   const fetchFollowingData = async () => {
-  
     setFollowingError("")
     try {
-      console.log("Fetching following data...")
-      const response = await getFollowings()
-      console.log("Following response:", response)
+      let response;
 
+      if(user.isLogin){
+        response = await getFollowings();
+      }else{
+        response=await getAllCreators();
+      }
+      //console.log(response);
       if (response?.data) {
-        const followingData: FollowingResponse = response.data
-        if (followingData.following && Array.isArray(followingData.following)) {
+        const followingData = response.data;
+        if (followingData.following ) {
           setFollowings(followingData.following)
           setFollowingCount(followingData.following_count || followingData.following.length)
-          console.log("Following data set:", followingData.following)
-        } else {
-          console.error("Following data is not in expected format:", followingData)
+        }else if(followingData.creators){
+              setFollowings(followingData.creators);
+        }
+         else {
           setFollowingError("Following data format is incorrect")
         }
       } else {
-        console.error("No data in following response:", response)
         setFollowingError("No following data received")
       }
     } catch (error) {
@@ -183,27 +179,19 @@ export default function VideoPage() {
 
   const fetchVideos = async () => {
     setFetchError("")
-  
     try {
       let response
 
-      // If a specific following is selected, get their videos
       if (selectedFollowing !== "all") {
         const selectedUser = followings.find((f) => f.username === selectedFollowing)
         if (selectedUser) {
-          console.log("Fetching videos for creator:", selectedUser.id)
           response = await getAllVideoCretor(selectedUser.id)
         } else {
-          console.log("Selected user not found, fetching all videos")
           response = await getAllVideo()
         }
       } else {
-        // Get all videos
-        console.log("Fetching all videos")
         response = await getAllVideo()
       }
-
-      console.log("Video API Response:", response)
 
       if (response?.data?.videos) {
         const videosWithUIFields = response.data.videos
@@ -218,7 +206,6 @@ export default function VideoPage() {
             comments_count: video.comments_count || video.comments?.length || 0,
           }))
         setVideos(videosWithUIFields)
-        console.log("Videos set:", videosWithUIFields.length)
 
         if (selectedVideo) {
           const updatedSelectedVideo = videosWithUIFields.find((video: any) => video.id === selectedVideo.id)
@@ -227,7 +214,6 @@ export default function VideoPage() {
           }
         }
       } else {
-        console.error("Unexpected API response structure:", response)
         setFetchError("Failed to fetch videos - unexpected response structure")
       }
     } catch (error) {
@@ -238,25 +224,18 @@ export default function VideoPage() {
     }
   }
 
-  // Initialize data fetching on component mount
   useEffect(() => {
-    if(user.isLogIn){
-      fetchFollowingData();
-    }
+  
+    fetchFollowingData()
+    
     fetchVideos()
   }, [])
 
-  // Update videos when selected following changes
   useEffect(() => {
     if (followings.length > 0 || selectedFollowing === "all") {
-      console.log("Selected following changed:", selectedFollowing)
       fetchVideos()
     }
   }, [selectedFollowing])
-
-
-
-  // ... existing functions ...
 
   const toggleFavorite = (videoId: number) => {
     setVideos((prev) =>
@@ -266,8 +245,7 @@ export default function VideoPage() {
 
   const toggleLike = async (videoId: number) => {
     try {
-      const response = await toggleVideoLike(videoId)
-      console.log("Like toggle response:", response)
+      await toggleVideoLike(videoId)
       await fetchVideos()
     } catch (error) {
       console.error("Error toggling video like:", error)
@@ -275,8 +253,6 @@ export default function VideoPage() {
       setTimeout(() => setFetchError(""), 3000)
     }
   }
-
-
 
   const filteredVideos = videos.filter((video) => {
     const plainDescription = stripHtmlAndDecode(video.description)
@@ -286,6 +262,21 @@ export default function VideoPage() {
       plainDescription.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesSearch
   })
+
+  const totalPages = Math.ceil(filteredVideos.length / videosPerPage)
+  const currentVideos = filteredVideos.slice(currentPage * videosPerPage, (currentPage + 1) * videosPerPage)
+
+  const nextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  const prevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -308,12 +299,6 @@ export default function VideoPage() {
     setSelectedVideo(video)
     setShowVideoModal(true)
     setShowContentMenu(null)
-    try {
-      // await markVideoAsViewed(video.id)
-      // fetchVideos()
-    } catch (error) {
-      console.error("Error marking video as viewed:", error)
-    }
   }
 
   const handleLikeToggle = (e: any, videoId: number) => {
@@ -321,39 +306,27 @@ export default function VideoPage() {
     toggleLike(videoId)
   }
 
-  const handleFavoriteToggle = (e: any, videoId: number) => {
-    e.stopPropagation()
-    toggleFavorite(videoId)
-  }
-
   if (isLoading && isLoadingFollowing) {
-    return (
-      <div
-        className={`flex items-center justify-center min-h-screen ${isDark ? "bg-slate-900" : "bg-gradient-to-br from-slate-50 to-blue-50"}`}
-      >
-        <Loader />
-      </div>
-    )
+    return <Loader />
   }
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-      <div className=" px-4 sm:px-6 lg:px-8 py-8">
-
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filter */}
-           <div className=" mb-8 shadow-sm theme-border">
+        <div className="mb-8 theme-border">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 theme-text-muted" />
               <input
                 type="text"
-                placeholder="Search articles by title, author, or content..."
+                placeholder="Search videos by title, author, or content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 theme-input rounded-xl theme-text-primary placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               />
             </div>
-            <div className="flex gap-3">
+            {/* <div className="flex gap-3">
               <div className="relative">
                 <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 theme-text-muted" />
                 <select
@@ -373,7 +346,7 @@ export default function VideoPage() {
 
               <button
                 onClick={() => {
-                  fetchVideos();
+                  fetchVideos()
                   fetchFollowingData()
                 }}
                 disabled={isLoading}
@@ -382,13 +355,76 @@ export default function VideoPage() {
                 <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                 <span>{isLoading ? "Loading..." : "Refresh"}</span>
               </button>
-            </div>
+            </div> */}
+
+
+            <div className="flex flex-wrap gap-4 items-center">
+  {/* Select with Filter Icon */}
+  {/* <div className="relative">
+    <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
+    <select
+      value={selectedFollowing}
+      onChange={(e) => setSelectedFollowing(e.target.value)}
+      disabled={isLoadingFollowing}
+      className="pl-10 pr-8 py-3 rounded-lg min-w-[200px] bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-300 dark:border-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm text-gray-800 dark:text-gray-100"
+    >
+      <option value="all">All Creators</option>
+      {followings.map((following) => (
+        <option key={following.id} value={following.username}>
+          {following.username}
+        </option>
+      ))}
+    </select>
+  </div> */}
+
+  <div className="relative">
+  <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
+<select
+  value={selectedFollowing}
+  onChange={(e) => setSelectedFollowing(e.target.value)}
+  disabled={isLoadingFollowing}
+  className="appearance-none pl-10 pr-8 py-3 rounded-lg min-w-[200px] 
+             bg-gray-50 dark:bg-gray-800 
+             border border-gray-300 dark:border-gray-700 
+             shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 
+             text-sm text-gray-900 dark:text-gray-200"
+>
+  <option value="all">All Creators</option>
+  {followings.map((following) => (
+    <option key={following.id} value={following.username}>
+      {following.username}
+    </option>
+  ))}
+</select>
+
+</div>
+
+
+  
+
+
+
+  {/* Refresh Button */}
+  <button
+    onClick={() => {
+      fetchVideos();
+      fetchFollowingData();
+    }}
+    disabled={isLoading}
+    className="flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+    <span>{isLoading ? "Loading..." : "Refresh"}</span>
+  </button>
+</div>
+
           </div>
         </div>
+
         {/* Video Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredVideos.length > 0 ? (
-            filteredVideos.map((video) => {
+          {currentVideos.length > 0 ? (
+            currentVideos.map((video) => {
               const plainDescription = stripHtmlAndDecode(video.description)
               const truncatedDescription = truncateText(plainDescription, 80)
 
@@ -427,7 +463,7 @@ export default function VideoPage() {
                     </div>
 
                     <div className="p-4 flex-1 flex flex-col">
-                      <div className="flex gap-3 flex-1">
+                      <div className="flex gap-3 flex-1 h-24">
                         {/* Avatar */}
                         <div className="flex-shrink-0">
                           <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden theme-bg-secondary">
@@ -451,12 +487,12 @@ export default function VideoPage() {
                         <div className="flex-1 min-w-0 flex flex-col">
                           <h3
                             title={video.title}
-                            className="font-semibold text-sm leading-5 line-clamp-2 group-hover:text-purple-500 transition-colors theme-text-primary mb-2 h-10 flex items-start"
+                            className="font-semibold text-md leading-5 line-clamp-2 group-hover:text-purple-500 transition-colors theme-text-primary pt-2 flex items-start"
                           >
                             {video.title}
                           </h3>
 
-                          <p className="text-sm theme-text-secondary mb-2 truncate">
+                          <p className="text-sm theme-text-secondary mt-2 truncate">
                             {video.creator?.username || "Unknown Creator"}
                           </p>
 
@@ -470,10 +506,10 @@ export default function VideoPage() {
                             <button
                               onClick={(e) => handleLikeToggle(e, video.id)}
                               className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs ${
-                                video.is_liked ? "text-red-500" : "theme-text-muted hover:text-red-500"
+                                video.is_liked ? "bg-blue-500/10 text-blue-500" : "theme-text-muted hover:text-blue-500"
                               }`}
                             >
-                              <HeartIcon className={`w-3 h-3 ${video.is_liked ? "fill-current" : ""}`} />
+                              <ThumbsUpIcon className={`w-3 h-3 ${video.is_liked ? "fill-current" : ""}`} />
                               <span>{video.likes}</span>
                             </button>
                           </div>
@@ -509,6 +545,32 @@ export default function VideoPage() {
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center space-x-4 mt-12">
+            <button
+              onClick={prevPage}
+              disabled={currentPage === 0}
+              className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowLeftIcon className="w-5 h-5 theme-text-secondary" />
+            </button>
+
+            <div className="px-4 py-2 rounded-lg theme-bg-card theme-border">
+              <span className="text-sm font-medium theme-text-primary">
+                {currentPage + 1} of {totalPages}
+              </span>
+            </div>
+
+            <button
+              onClick={nextPage}
+              disabled={currentPage === totalPages - 1}
+              className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowRightIcon className="w-5 h-5 theme-text-secondary" />
+            </button>
+          </div>
+        )}
 
         {/* Video Modal */}
         {showVideoModal && selectedVideo && (

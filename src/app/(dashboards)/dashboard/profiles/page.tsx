@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Camera, User, Mail, Shield, Edit3 } from "lucide-react"
 import { useSelector } from "react-redux"
 import { updateProfile } from "@/api/user"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 
 
 interface UserData {
@@ -19,7 +19,7 @@ interface UserData {
 export default function ProfilePage() {
   // Simulate Redux state for initial user data.
   const initialUser = useSelector((state: any) => state.user)
-  console.log("Initial User Data:", initialUser)
+  //console.log("Initial User Data:", initialUser)
 
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [username, setUsername] = useState(initialUser.username)
@@ -102,7 +102,7 @@ export default function ProfilePage() {
   }
 
   if(isLoading){
-    return <Loader></Loader>
+    return <Loader2></Loader2>
   }
 
   return (

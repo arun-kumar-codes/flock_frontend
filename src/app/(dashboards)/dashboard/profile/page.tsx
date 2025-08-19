@@ -29,13 +29,13 @@ interface PasswordData {
 export default function ProfilePage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("profile")
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [updateLoading, setUpdateLoading] = useState(false)
   const [updatePasswordLoading, setUpdatePasswordLoading] = useState(false)
 
   const user=useSelector((state:any)=>state.user);
 
-  console.log(user);
+  //console.log(user);
 //   setUser(user);
 
   // Profile form data
@@ -62,40 +62,40 @@ export default function ProfilePage() {
   })
 
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      setIsLoading(true)
-      const token = localStorage.getItem("access_token")
-      if (!token) {
-        router.push("/login")
-        return
-      }
+  // useEffect(() => {
+  //   const fetchUserProfile = async () => {
+  //     setIsLoading(true)
+  //     const token = localStorage.getItem("access_token")
+  //     if (!token) {
+  //       router.push("/login")
+  //       return
+  //     }
 
-      try {
-        const response = await getUserProfile()
-        if (response.status === 200) {
-          const userData = response.data.user
-          setProfileFormData({
-            username: userData.username || "",
-            email: userData.email || "",
-            role: userData.role || "",
-            imageUrl: userData.imageUrl || "/placeholder.svg?height=80&width=80",
-            password: "",
-          })
+  //     try {
+  //       const response = await getUserProfile()
+  //       if (response.status === 200) {
+  //         const userData = response.data.user
+  //         setProfileFormData({
+  //           username: userData.username || "",
+  //           email: userData.email || "",
+  //           role: userData.role || "",
+  //           imageUrl: userData.imageUrl || "/placeholder.svg?height=80&width=80",
+  //           password: "",
+  //         })
 
-        } else {
-          setErrorMessage("Failed to fetch profile data")
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error)
-        setErrorMessage("An error occurred while fetching your profile")
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  //       } else {
+  //         setErrorMessage("Failed to fetch profile data")
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching profile:", error)
+  //       setErrorMessage("An error occurred while fetching your profile")
+  //     } finally {
+  //       setIsLoading(false)
+  //     }
+  //   }
 
-    // fetchUserProfile()
-  }, [router])
+  //   // fetchUserProfile()
+  // }, [router])
 
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,6 +237,10 @@ export default function ProfilePage() {
       setUpdatePasswordLoading(false)
     }
   }
+
+  useEffect(()=>{
+    setIsLoading(false);
+  },[])
 
   if (isLoading) {
     return <><Loader/></>

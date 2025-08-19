@@ -1,7 +1,7 @@
 // import React from 'react';
 
 // const Video = ({ url }: any) => {
-//   console.log("Video URL:", url);
+//   //console.log("Video URL:", url);
 
 //   return (
 //     <div className="w-full">

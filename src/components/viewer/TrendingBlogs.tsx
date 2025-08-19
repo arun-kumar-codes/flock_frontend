@@ -112,7 +112,7 @@ export default function TrendingBlogsTab() {
 
   const handleToggleFavorite = async (blogId: number) => {
     // Implement favorite functionality if needed
-    console.log("Toggle favorite for blog:", blogId)
+    //console.log("Toggle favorite for blog:", blogId)
   }
 
   const handleRefreshBlogs = () => {

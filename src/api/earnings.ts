@@ -30,3 +30,13 @@ export const getCpmRate=async()=>{
     return error.response;
   }
 }
+
+export const getEarning=async()=>{
+       try {
+    const response = await axiosInstance.get('earnings/available-for-withdrawal');
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching creator data:", error);
+    return error.response;
+  }
+}

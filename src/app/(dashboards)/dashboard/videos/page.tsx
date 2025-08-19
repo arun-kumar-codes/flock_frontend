@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 import {
   getMyVideos,
   createVideo,
@@ -275,13 +275,13 @@ export default function VideoDashboard() {
 
   // Simplified video URL function - just return the URL as-is since full URLs are coming from API
   const getVideoUrl = (videoPath: string | null | undefined): string | null => {
-    console.log("getVideoUrl called with:", videoPath)
+    //console.log("getVideoUrl called with:", videoPath)
     if (!videoPath) {
-      console.log("No video path provided")
+      //console.log("No video path provided")
       return null
     }
     // Since full URLs are coming from the API, just return them directly
-    console.log("Returning video URL:", videoPath)
+    //console.log("Returning video URL:", videoPath)
     return videoPath
   }
 
@@ -362,7 +362,7 @@ export default function VideoDashboard() {
     try {
       setFetchError("")
       const response = await getMyVideos()
-      console.log("Fetch videos response:", response)
+      //console.log("Fetch videos response:", response)
       if (response?.data?.videos) {
         const userVideos = response.data.videos
           .filter((video: VideoType) => video.created_by === user?.id || video.author?.id === user?.id)
@@ -403,7 +403,7 @@ export default function VideoDashboard() {
   }, [user, router])
 
   if (isLoading) {
-    return <Loader />
+    return <Loader2 />
   }
 
   // Send video for approval
@@ -516,8 +516,8 @@ export default function VideoDashboard() {
 
   // Enhanced edit video handler
   const handleEditVideo = (video: VideoType) => {
-    console.log("Edit video clicked:", video.id)
-    console.log("Video data:", video)
+    //console.log("Edit video clicked:", video.id)
+    //console.log("Video data:", video)
     setShowActionMenu(null)
     setUpdateError("")
     setUpdateSuccess("")
@@ -532,7 +532,7 @@ export default function VideoDashboard() {
       existingVideoUrl: video.video_url || video.video || "",
     }
 
-    console.log("Edit data:", editData)
+    //console.log("Edit data:", editData)
     setEditVideoForm(editData)
     setOriginalEditData(editData)
     setShowEditModal(true)
@@ -540,7 +540,7 @@ export default function VideoDashboard() {
 
   // Handle view video
   const handleViewVideo = async (video: VideoType) => {
-    console.log("View video clicked:", video)
+    //console.log("View video clicked:", video)
     setShowActionMenu(null)
     setViewVideo(video)
     setComments(video.comments || [])
@@ -696,7 +696,7 @@ export default function VideoDashboard() {
       formData.append("video", videoForm.video)
 
       const response = await createVideo(formData)
-      console.log("Create video response:", response)
+      //console.log("Create video response:", response)
 
       if (response?.status === 200 || response?.status === 201 || response?.data) {
         setCreateSuccess("Video created successfully!")

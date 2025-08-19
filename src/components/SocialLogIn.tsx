@@ -20,7 +20,7 @@ const SocialLogin = () => {
   const [isLoading, setIsLoading] = useState<string | null>(null)
 
   const router = useRouter()
-  // console.log("Token from params:", token);
+  // //console.log("Token from params:", token);
 
   const loginWithProvider = async (provider: any, providerName: string) => {
     setIsLoading(providerName)
@@ -36,7 +36,7 @@ const SocialLogin = () => {
 
         if(response.status === 200) {
           // Handle successful login, e.g., redirect or update state
-          console.log("Login successful:", response.data);
+          //console.log("Login successful:", response.data);
           const access_token = response.data.access_token;
           const refresh_token = response.data.refresh_token;
 

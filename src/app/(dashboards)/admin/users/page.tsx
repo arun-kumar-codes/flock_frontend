@@ -63,8 +63,8 @@ export default function UsersPage() {
       }
       // Check Action Menu
       if (showActionMenu && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
-        console.log("ACTION MENU",actionMenuRef.current)
-        console.log("EVENT",event.target)
+        //console.log("ACTION MENU",actionMenuRef.current)
+        //console.log("EVENT",event.target)
         setShowActionMenu(null)
       }
     }

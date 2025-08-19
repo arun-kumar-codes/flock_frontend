@@ -5,11 +5,11 @@ import { usePathname, useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import Link from "next/link"
 import Image from "next/image"
-import { Home, Video, FileText, Building2, LogOutIcon, PenToolIcon, Building2Icon, FileChartColumnIncreasing } from "lucide-react"
+import { Home, Video, FileText, Building2, LogOutIcon, PenToolIcon, Building2Icon, FileChartColumnIncreasing, BadgeDollarSign } from "lucide-react"
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
 import { Suspense } from "react"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 
 const navigationItems = [
   {
@@ -36,6 +36,11 @@ const navigationItems = [
   name:"Analytics",
   href: "/dashboard/analytics",
   icon: FileChartColumnIncreasing,
+ },
+ {
+  name:"Payout",
+  href:"/dashboard/payout",
+  icon:BadgeDollarSign 
  }
 ]
 
@@ -56,7 +61,7 @@ export default function DashboardLayout({
   const notificationRef = useRef<HTMLDivElement>(null)
   const logoutRef = useRef<HTMLDivElement>(null)
 
-  console.log(user);
+  //console.log(user);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -87,7 +92,7 @@ export default function DashboardLayout({
   
   const currentPageName = navigationItems.find((item) => item.href === pathname)?.name || "Dashboard";
 
-  if (user.loading || user.role.toLowerCase() !== "creator") return <Loader/>
+  if (user.loading || user.role.toLowerCase() !== "creator") return <Loader2/>
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -140,20 +145,14 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* Creator Status */}
-        <div className="px-3 py-2 border-t border-gray-200">
-          <div className="flex items-center min-w-0">
-            <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
-            {isExpanded && <span className="ml-3 text-sm text-gray-600 whitespace-nowrap">Creator Mode</span>}
-          </div>
-        </div>
+
 
         {/* User Profile */}
         <div className="p-3 border-t border-gray-200 relative group "  onClick={()=>router.push("/dashboard/profiles")}>
-          <div className="flex items-center min-w-0">
+          <div className="flex items-center min-w-0 cursor-pointer">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
-                src={user.profileImage || profileImg|| "/placeholder.svg"}
+                src={user.profileImage}
                 alt="User Avatar"
                 width={32}
                 height={32}

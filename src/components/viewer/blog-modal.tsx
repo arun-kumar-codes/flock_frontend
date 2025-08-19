@@ -2,25 +2,25 @@
 import { useState, useRef, useEffect } from "react"
 import type React from "react"
 import {
-  XIcon,
-  CalendarIcon,
-  ClockIcon,
-  ThumbsUpIcon,
-  MessageCircleIcon,
-  SendIcon,
-  EditIcon,
-  CheckIcon,
-  TrashIcon,
-  MoreVerticalIcon,
+  X,
+  Calendar,
+  Clock,
+  ThumbsUp,
+  MessageCircle,
+  Send,
+  Edit,
+  Check,
+  Trash,
+  MoreVertical,
   UserCheck,
   Loader2,
   UserPlus,
 } from "lucide-react"
 import Image from "next/image"
-import profileImg from "@/assets/profile.png"
-import { addComment, editComments, deleteComment,viewBLog ,addFollowing,removeFollowing} from "@/api/content"
+import { addComment, editComments, deleteComment, viewBLog, addFollowing, removeFollowing } from "@/api/content"
 import { useSelector } from "react-redux"
-import TipTapContentDisplay from "@/components/tiptap-content-display"
+import TipTapContentDisplay from "@/components/tiptap-content-display";
+import { useRouter } from "next/navigation"
 
 interface BlogModalProps {
   blog: any
@@ -38,8 +38,9 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null)
   const modalRef = useRef<HTMLDivElement>(null)
   const commentMenuRef = useRef<HTMLDivElement>(null)
-  const [isFollowing, setFollowing] = useState(blog.is_following_author);
+  const [isFollowing, setFollowing] = useState(blog.is_following_author)
   const [isLoading, setIsLoading] = useState(false)
+  const router=useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -65,12 +66,29 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
     })
   }
 
+  const handleRoute=()=>{
+           //console.log("user:::",user);
+            if(user.isLogin){
+              return true;
+            }
+            router.push("/login");
+
+  }
+
   const handleViewBlog = async () => {
+
+      
     try {
+
+      if(!handleRoute()){
+            return;
+      }
+
       await viewBLog(blog.id)
     } catch (error) {
-      console.error("Error viewing blog:", error) 
-    }}
+      console.error("Error viewing blog:", error)
+    }
+  }
 
   const formatCommentDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -85,6 +103,9 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if(!handleRoute()){
+            return;
+      }
     if (!newComment.trim()) return
 
     try {
@@ -135,18 +156,28 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
   }
 
   const handleLike = async () => {
-    await onToggleLike(blog.id)
+    if(!handleRoute()){
+            return;
+      }
+    onToggleLike(blog.id)
     onRefreshBlogs()
   }
-  useEffect(() => {
-    if (!blog.is_viewed) {
-      handleViewBlog() 
-    }
-  }) 
 
-  const handleClick=async()=>{
+  useEffect(() => {
+    if (!blog.is_viewed&&user.isLogin) {
+      handleViewBlog()
+    }
+  })
+
+  const handleFollowClick = async () => {
+
+    if(!handleRoute()){
+      return;
+    }
     setIsLoading(true)
+
     try {
+    
       if (isFollowing) {
         await removeFollowing(blog.author.id)
         setFollowing(false)
@@ -162,57 +193,54 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
     }
   }
 
-
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div
         ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
+        className="theme-bg-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-200"
       >
         {/* Modal Header */}
-        <div className="p-6 border-b border-slate-200 flex-shrink-0">
+        <div className="p-6 theme-border-b flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-4">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">{blog.title}</h2>
-              <div className="flex items-center space-x-4 text-sm text-slate-600">
+              <h2 className="text-2xl font-bold theme-text-primary mb-2">{blog.title}</h2>
+              <div className="flex items-center space-x-4 text-sm theme-text-secondary">
                 <span>by {blog.author.username}</span>
                 <span className="flex items-center space-x-1">
-                  <CalendarIcon className="w-4 h-4" />
+                  <Calendar className="w-4 h-4" />
                   <span>{formatDate(blog.created_at)}</span>
                 </span>
                 <span className="flex items-center space-x-1">
-                  <ClockIcon className="w-4 h-4" />
+                  <Clock className="w-4 h-4" />
                   <span>{blog.readTime}</span>
                 </span>
               </div>
-         <button
-      onClick={handleClick}
-      disabled={isLoading}
-      className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium
-        ${isFollowing 
-          ? 'bg-white text-gray-800 hover:bg-gray-100 border-gray-300' 
-          : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500'
-        }
-        disabled:opacity-60 disabled:cursor-not-allowed
-      `}
-    >
-      {isLoading ? (
-        <Loader2 className="animate-spin w-5 h-5" />
-      ) : isFollowing ? (
-        <>
-          <UserCheck className="w-5 h-5 text-green-600" />
-          <span>Following</span>
-        </>
-      ) : (
-        <>
-          <UserPlus className="w-5 h-5 text-white" />
-          <span>Follow</span>
-        </>
-      )}
-    </button>
+              <button
+                onClick={handleFollowClick}
+                disabled={isLoading}
+                className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium ${
+                  isFollowing
+                    ? "theme-button-secondary theme-text-secondary hover:theme-text-primary theme-border"
+                    : "theme-button-primary text-white hover:opacity-90"
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
+              >
+                {isLoading ? (
+                  <Loader2 className="animate-spin w-5 h-5" />
+                ) : isFollowing ? (
+                  <>
+                    <UserCheck className="w-5 h-5 text-green-600" />
+                    <span>Following</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-5 h-5 text-white" />
+                    <span>Follow</span>
+                  </>
+                )}
+              </button>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0">
-              <XIcon className="w-6 h-6 text-slate-500" />
+            <button onClick={onClose} className="p-2 theme-button-secondary rounded-lg transition-colors flex-shrink-0">
+              <X className="w-6 h-6 theme-text-muted" />
             </button>
           </div>
         </div>
@@ -221,7 +249,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
         <div className="flex-1 overflow-y-auto">
           {/* Blog Image */}
           {blog.image && (
-            <div className="p-6 border-b border-slate-200">
+            <div className="p-6 theme-border-b">
               <Image
                 src={blog.image || "/placeholder.svg"}
                 alt={blog.title}
@@ -232,68 +260,60 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
             </div>
           )}
 
-          {/* Blog Content - Now with proper TipTap formatting */}
-          <div className="p-6 border-b border-slate-200">
-            <TipTapContentDisplay content={blog.content} className="text-slate-700" />
+          {/* Blog Content */}
+          <div className="p-6 theme-border-b">
+            <TipTapContentDisplay content={blog.content} className="theme-text-secondary" />
           </div>
 
           {/* Engagement Section */}
-          <div className="p-6 border-b border-slate-200">
+          <div className="p-6 theme-border-b">
             <div className="flex items-center space-x-6">
               <button
                 onClick={handleLike}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   blog.is_liked
-                    ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                    : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
                 }`}
               >
-                <ThumbsUpIcon className={`w-5 h-5 ${blog.is_liked ? "fill-current" : ""}`} />
+                <ThumbsUp className={`w-5 h-5 ${blog.is_liked ? "fill-current" : ""}`} />
                 <span>{blog.likes} Likes</span>
               </button>
-{/* 
-              <button
-                onClick={() => onToggleFavorite(blog.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  blog.isFavorite
-                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <HeartIcon className={`w-5 h-5 ${blog.isFavorite ? "fill-current" : ""}`} />
-                <span>{blog.isFavorite ? "Favorited" : "Add to Favorites"}</span>
-              </button> */}
             </div>
           </div>
 
           {/* Comments Section */}
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Comments ({blog.comments_count})</h3>
+            <h3 className="text-lg font-semibold theme-text-primary mb-4">Comments ({blog.comments_count})</h3>
 
             {/* Add Comment Form */}
             <form onSubmit={handleCommentSubmit} className="mb-6">
               <div className="flex space-x-3">
                 <Image
-                  src={profileImg || "/placeholder.svg"}
+                  src="/profile.png"
                   alt="Your avatar"
-                  
+                  width={40}
+                  height={40}
                   className="rounded-full flex-shrink-0 w-10 h-10"
+                  onError={(e) => {
+                    e.currentTarget.src = "/diverse-user-avatars.png"
+                  }}
                 />
                 <div className="flex-1">
                   <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Write a comment..."
-                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full p-3 theme-input rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                     rows={3}
                   />
                   <div className="flex justify-end mt-2">
                     <button
                       type="submit"
                       disabled={!newComment.trim()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      className="px-4 py-2 theme-button-primary text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      <SendIcon className="w-4 h-4" />
+                      <Send className="w-4 h-4" />
                       <span>Post Comment</span>
                     </button>
                   </div>
@@ -306,47 +326,48 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
               {blog.comments
                 .sort((a: any, b: any) => new Date(b.commented_at).getTime() - new Date(a.commented_at).getTime())
                 .map((comment: any) => (
-                  <div key={comment.id} className="flex space-x-3">
+                  <div key={comment.id} className="flex space-x-3 items-center">
                     <Image
-                      src={profileImg || "/placeholder.svg"}
+                      src={comment.commenter.profile_picture}
                       alt={comment.commenter.username}
-                    
+                      width={40}
+                      height={40}
                       className="rounded-full flex-shrink-0 w-10 h-10"
+                      onError={(e) => {
+                        e.currentTarget.src = "/diverse-user-avatars.png"
+                      }}
                     />
                     <div className="flex-1">
-                      <div className="bg-slate-50 rounded-lg p-3">
+                      <div className="theme-bg-secondary rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium text-slate-800 text-sm">{comment.commenter.username}</span>
-                            <span className="text-xs text-slate-500">{formatCommentDate(comment.commented_at)}</span>
+                            <span className="font-medium theme-text-primary text-sm">{comment.commenter.username}</span>
+                            <span className="text-xs theme-text-muted">{formatCommentDate(comment.commented_at)}</span>
                           </div>
 
                           {/* Comment Actions Menu */}
                           {user && comment.commented_by === user.id && (
-                            <div className="relative">
+                            <div className="relative" ref={commentMenuRef}>
                               <button
                                 onClick={() => toggleCommentMenu(comment.id)}
-                                className="p-1 hover:bg-slate-200 rounded transition-colors"
+                                className="p-1 theme-button-secondary rounded transition-colors"
                               >
-                                <MoreVerticalIcon className="w-3 h-3 text-slate-500" />
+                                <MoreVertical className="w-3 h-3 theme-text-muted" />
                               </button>
                               {showCommentMenu === comment.id && (
-                                <div
-                                  className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10"
-                                  ref={commentMenuRef}
-                                >
+                                <div className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10">
                                   <button
                                     onClick={() => handleEditComment(comment)}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
                                   >
-                                    <EditIcon className="w-3 h-3 text-slate-500" />
-                                    <span>Edit</span>
+                                    <Edit className="w-3 h-3 theme-text-muted" />
+                                    <span className="theme-text-secondary">Edit</span>
                                   </button>
                                   <button
                                     onClick={() => handleDeleteComment(comment.id)}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                                   >
-                                    <TrashIcon className="w-3 h-3 text-red-500" />
+                                    <Trash className="w-3 h-3 text-red-500" />
                                     <span>Delete</span>
                                   </button>
                                 </div>
@@ -360,7 +381,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
                             <textarea
                               value={editCommentText}
                               onChange={(e) => setEditCommentText(e.target.value)}
-                              className="w-full p-2 border border-slate-300 rounded text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-2 theme-input rounded text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               rows={2}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
@@ -376,21 +397,21 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
                               <button
                                 onClick={() => handleSaveEditComment(comment.id)}
                                 disabled={!editCommentText.trim()}
-                                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-1"
+                                className="px-3 py-1 theme-button-primary text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
                               >
-                                <CheckIcon className="w-3 h-3" />
+                                <Check className="w-3 h-3" />
                                 <span>Save</span>
                               </button>
                               <button
                                 onClick={handleCancelEdit}
-                                className="px-3 py-1 bg-slate-300 text-slate-700 rounded text-xs hover:bg-slate-400 transition-colors"
+                                className="px-3 py-1 theme-button-secondary theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
                               >
                                 Cancel
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <p className="text-slate-700 text-sm">{comment.comment}</p>
+                          <p className="theme-text-secondary text-sm">{comment.comment}</p>
                         )}
                       </div>
                     </div>
@@ -400,8 +421,8 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
 
             {blog.comments.length === 0 && (
               <div className="text-center py-8">
-                <MessageCircleIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">No comments yet. Be the first to comment!</p>
+                <MessageCircle className="w-12 h-12 theme-text-muted mx-auto mb-3" />
+                <p className="theme-text-muted">No comments yet. Be the first to comment!</p>
               </div>
             )}
           </div>

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const baseURL=process.env.NEXT_PUBLIC_API_URL;
-console.log("Base URL:", baseURL);
+//console.log("Base URL:", baseURL);
 
 const axiosInstance = axios.create({
   baseURL: baseURL,
@@ -43,7 +43,7 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        console.log("Refresh Token:", refreshToken);
+        //console.log("Refresh Token:", refreshToken);
         const response = await axios.post(
           `${baseURL}/auth/refresh`,
           {},

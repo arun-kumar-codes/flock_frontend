@@ -68,7 +68,8 @@ export async function getAllUser() {
 }
 
 
-export async function getAllCreator() {
+
+export async function getAllViewer() {
   try {
     const response = await axiosInstance.get('/auth/all-users');
     return response;
@@ -78,9 +79,10 @@ export async function getAllCreator() {
   }
 }
 
-export async function getAllViewer() {
+
+export async function getAllCreators() {
   try {
-    const response = await axiosInstance.get('/auth/all-users');
+    const response = await axiosInstance.get('/auth/all-creators');
     return response;
   } catch (error:any) {
     console.error("Error changing password:", error);

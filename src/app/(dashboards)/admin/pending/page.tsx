@@ -249,11 +249,11 @@ export default function PendingPage() {
   }
 
   const handleViewBlog = (blog: Blog) => {
-    console.log("handleViewBlog called with:", blog) // Debug log
+    //console.log("handleViewBlog called with:", blog) // Debug log
     setBlogToView(blog)
     setShowBlogModal(true)
     setShowBlogActionMenu(null)
-    console.log("Blog modal should show:", true) // Debug log
+    //console.log("Blog modal should show:", true) // Debug log
   }
 
   // Double-click handlers

@@ -47,7 +47,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
 
     switch (lastSegment) {
       case "viewer":
-        return "Dashboard"
+        return "FlockTogether"
       case "blogs":
         return "Blog Posts"
       case "videos":
@@ -99,7 +99,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
           <div className="flex flex-col justify-center">
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
-              <Sparkles className="w-5 h-5 theme-text-accent animate-pulse" />
+              {/* <Sparkles className="w-5 h-5 theme-text-accent animate-pulse" /> */}
             </div>
             <p className="text-sm theme-text-secondary mt-1 font-medium opacity-80">{getPageDescription()}</p>
           </div>

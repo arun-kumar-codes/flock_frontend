@@ -6,7 +6,7 @@ import { getBlogByStatus } from "@/api/content"
 import { getVideoByStatus } from "@/api/content"
 import { UsersIcon, FileTextIcon, VideoIcon, EyeIcon, ClockIcon } from "lucide-react"
 import Link from "next/link"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 
 
 interface User {
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
   }
 
   if(loading){
-    return <Loader></Loader>
+    return <Loader2></Loader2>
   }
 
   return (

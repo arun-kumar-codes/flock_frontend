@@ -27,7 +27,7 @@ import Image from "next/image"
 import { useSelector } from "react-redux"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 
 interface UserData {
   email: string
@@ -364,7 +364,7 @@ export default function BlogsPage() {
     try {
       setFetchError("")
       const response = await getMyBlog()
-      console.log("Fetch blogs response:", response)
+      //console.log("Fetch blogs response:", response)
       if (response?.data?.blogs) {
         const userBlogs = response.data.blogs
           .filter((blog: Blog) => blog.created_by === user?.id || blog.author?.id === user?.id)
@@ -515,7 +515,7 @@ export default function BlogsPage() {
 
   // Enhanced edit blog handler
   const handleEditBlog = (blog: Blog) => {
-    console.log("Edit blog clicked:", blog.id)
+    //console.log("Edit blog clicked:", blog.id)
     setShowActionMenu(null)
     setUpdateError("")
     setUpdateSuccess("")
@@ -551,7 +551,7 @@ export default function BlogsPage() {
 
   // Handle view blog
   const handleViewBlog = (blog: Blog) => {
-    console.log("View blog clicked:", blog.id)
+    //console.log("View blog clicked:", blog.id)
     setShowActionMenu(null)
     setViewBlog(blog)
     setShowViewModal(true)
@@ -712,7 +712,7 @@ export default function BlogsPage() {
       }
 
       const response = await createBlog(formData)
-      console.log("Create blog response:", response)
+      //console.log("Create blog response:", response)
 
       if (response?.status === 200 || response?.status === 201 || response?.data) {
         setCreateSuccess("Blog created successfully!")
@@ -845,7 +845,7 @@ export default function BlogsPage() {
 
   if (isLoading) {
     return (
-    <Loader></Loader>
+    <Loader2></Loader2>
     )
   }
 

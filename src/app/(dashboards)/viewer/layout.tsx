@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { CustomSidebar } from "@/components/viewer/app-sidebar"
 import { HeaderNavbar } from "@/components/viewer/app-header"
 import { useSelector } from "react-redux"
@@ -12,12 +12,20 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
-  const user = useSelector((state: any) => state.user)
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isLoading,setIsLoading]=useState(true);
+  const user = useSelector((state: any) => state.user);
 
-  if(user.role==="") return <Loader></Loader>;
+  useEffect(()=>{
+      const token=localStorage.getItem("token");
+      if(user.role==="viewer"||!token){
+      setIsLoading(false);
+     }
+  },[]);
 
-  if (user.isLogIn&&(user.loading || user.role.toLowerCase() !== "viewer")) return <Loader />
+  if(isLoading) return <Loader></Loader>;
+
+
 
   return (
     <div className="min-h-screen theme-bg-primary">

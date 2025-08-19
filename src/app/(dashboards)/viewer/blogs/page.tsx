@@ -97,9 +97,9 @@ export default function BlogPageRedesigned() {
 
   const isDark=user.theme==="dark";
 
-  console.log(user);
+  //console.log(user);
 
-  console.log(isDark);
+  //console.log(isDark);
 
   const blogsPerPage = 6
 
@@ -172,7 +172,7 @@ export default function BlogPageRedesigned() {
       if (response?.data?.blogs) {
         const blogsWithUIFields = response.data.blogs.map((blog: Blog) => ({
           ...blog,
-          excerpt: generateExcerpt(blog.content),
+          excerpt: generateExcerpt(blog.content,blog.image),
           readAt: new Date().toISOString().split("T")[0],
           readTime: calculateReadTime(blog.content),
           isFavorite: false,
@@ -219,7 +219,7 @@ export default function BlogPageRedesigned() {
       if (response?.data?.blogs) {
         const blogsWithUIFields = response.data.blogs.map((blog: Blog) => ({
           ...blog,
-          excerpt: generateExcerpt(blog.content),
+          excerpt: generateExcerpt(blog.content,blog.image),
           thumbnail: "/placeholder.svg?height=200&width=300",
           readAt: new Date().toISOString().split("T")[0],
           readTime: calculateReadTime(blog.content),
@@ -242,7 +242,8 @@ export default function BlogPageRedesigned() {
     }
   }
 
-  const generateExcerpt = (content: string, maxLength = 150): string => {
+  const generateExcerpt = (content: string, image:string|undefined): string => {
+     const maxLength=image?150:600;
     const textContent = content.replace(/<[^>]*>/g, "")
     return textContent.length > maxLength ? textContent.substring(0, maxLength) + "..." : textContent
   }
@@ -267,19 +268,7 @@ export default function BlogPageRedesigned() {
     }
   }
 
-  const handleContentAction = (action: string, blogId: number) => {
-    switch (action) {
-      case "favorite":
-        toggleFavorite(blogId)
-        break
-      case "remove":
-        setBlogs((prev) => prev.filter((blog) => blog.id !== blogId))
-        break
-      default:
-        break
-    }
-    setShowContentMenu(null)
-  }
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -315,19 +304,9 @@ export default function BlogPageRedesigned() {
     }
   }
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light")
-  }, [isDark])
-
   if (isLoading && isLoadingFollowing) {
     return (
-     <div
-        className={`flex items-center justify-center min-h-screen ${
-          isDark ? "bg-slate-900" : "bg-gradient-to-br from-slate-50 to-blue-50"
-        }`}
-      >
         <Loader/>
-      </div>
     )
   }
 
@@ -502,31 +481,7 @@ export default function BlogPageRedesigned() {
                         <span>•</span>
                         <span>{formatDate(blog.created_at)}</span>
                       </div>
-                      <div className="relative" ref={contentMenuRef}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setShowContentMenu(showContentMenu === blog.id.toString() ? null : blog.id.toString())
-                          }}
-                          className="p-1 rounded-lg theme-button-secondary hover:opacity-80 transition-colors"
-                        >
-                          <MoreVerticalIcon className="w-4 h-4 theme-text-muted" />
-                        </button>
-                        {showContentMenu === blog.id.toString() && (
-                          <div className="absolute right-0 top-full mt-2 w-48 theme-bg-card theme-border rounded-xl shadow-lg py-2 z-10">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleContentAction("favorite", blog.id)
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-2 text-left text-sm theme-text-secondary hover:theme-text-primary hover:theme-bg-hover transition-colors"
-                            >
-                              <HeartIcon className="w-4 h-4" />
-                              <span>{blog.isFavorite ? "Remove Favorite" : "Add Favorite"}</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
+               
                     </div>
 
                     <h3 className="text-lg font-bold mb-3 theme-text-primary group-hover:text-purple-500 transition-colors line-clamp-2">

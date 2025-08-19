@@ -10,7 +10,6 @@ import {
   EyeIcon,
   EyeOffIcon,
   SparklesIcon,
-  StarIcon,
   VideoIcon,
   BarChart3Icon,
   HeartIcon,
@@ -20,6 +19,7 @@ import SocialLogIn from "@/components/SocialLogIn"
 import { logIn } from "@/api/auth"
 import { useRouter } from "next/navigation"
 import ReCAPTCHA from "react-google-recaptcha"
+import Loader from "@/components/Loader";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -32,6 +32,7 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [isLoading,setIsLoading]=useState(false);
   const router = useRouter()
   const recaptchaRef = useRef<ReCAPTCHA>(null)
 
@@ -83,7 +84,7 @@ export default function Login() {
         localStorage.setItem("access_token", response.data.access_token)
         localStorage.setItem("refresh_token", response.data.refresh_token)
         const user = response.data.user
-        console.log(user)
+        // //console.log(user)
         if (user.role.toLowerCase() === "admin") {
           router.push("/admin")
         } else {
@@ -96,6 +97,7 @@ export default function Login() {
       setErrorMessage("An error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
+      setIsLoading(false);
       if (recaptchaRef.current) {
         recaptchaRef.current.reset()
       }
@@ -128,6 +130,10 @@ export default function Login() {
       gradient: "from-amber-500 to-orange-500",
     },
   ]
+
+  if(isLoading){
+    return <Loader></Loader>
+  }
 
   return (
     <div className="flex flex-col lg:flex-row h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">

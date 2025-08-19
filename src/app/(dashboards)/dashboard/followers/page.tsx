@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { SearchIcon, UsersIcon, AlertCircleIcon, RefreshCwIcon, FilterIcon, UserIcon, MailIcon } from 'lucide-react'
 import Image from "next/image"
 import { useSelector } from "react-redux"
-import Loader from "@/components/Loader"
+import Loader2 from "@/components/Loader2"
 import { getFollower } from "@/api/content"
 
 interface Follower {
@@ -56,16 +56,16 @@ export default function FollowersPage() {
     setFetchError("")
     setIsLoading(true)
     try {
-      console.log("Fetching followers data...")
+      //console.log("Fetching followers data...")
       const response = await getFollower()
-      console.log("Followers response:", response)
+      //console.log("Followers response:", response)
       
       if (response?.data) {
         const followerData: FollowerResponse = response.data
         if (followerData.followers && Array.isArray(followerData.followers)) {
           setFollowers(followerData.followers)
           setFollowersCount(followerData.followers_count || followerData.followers.length)
-          console.log("Followers data set:", followerData.followers)
+          //console.log("Followers data set:", followerData.followers)
         } else {
           console.error("Followers data is not in expected format:", followerData)
           setFetchError("Followers data format is incorrect")
@@ -121,9 +121,8 @@ export default function FollowersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <Loader />
-      </div>
+        <Loader2 />
+
     )
   }
 

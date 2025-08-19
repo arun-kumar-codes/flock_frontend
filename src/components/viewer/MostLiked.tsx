@@ -1,39 +1,11 @@
 "use client"
 
-import { Heart, VideoIcon, FileTextIcon, Loader2, EyeIcon, MessageCircle, Calendar, User, PlayIcon } from "lucide-react"
+import { Heart, Loader2, User, PlayIcon, ThumbsUpIcon } from "lucide-react"
 import { useState, useEffect } from "react"
-import { getMostViewed, toggleBlogLike, toggleVideoLike } from "@/api/content"
-import { BlogModal } from "./blog-modal"
+import { useSelector } from "react-redux"
+import { getMostViewed, toggleVideoLike } from "@/api/content"
 import { VideoModal } from "./video-modal"
 import { useRouter } from "next/navigation"
-
-interface BlogPost {
-  id: number
-  title: string
-  content: string
-  author: {
-    id: number
-    username: string
-    email: string
-    profile_picture: string
-    role: string
-  }
-  created_at: string
-  views: number
-  likes: number
-  comments_count: number
-  image?: string
-  is_liked: boolean
-  is_viewed: boolean
-  liked_by: number[]
-  viewed_by: number[]
-  status: string
-  archived: boolean
-  comments: any[]
-  category?: string
-  readTime?: string
-  type: "blog"
-}
 
 interface VideoPost {
   id: number
@@ -69,99 +41,80 @@ interface VideoPost {
   type: "video"
 }
 
-type ContentItem = BlogPost | VideoPost
-
 export default function MostLikedTab() {
-  const [content, setContent] = useState<ContentItem[]>([])
+  const user = useSelector((state: any) => state.user)
+  const [videos, setVideos] = useState<VideoPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null)
+  const [selectedVideo, setSelectedVideo] = useState<VideoPost | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 
-  const loadMostLikedContent = async () => {
+  const loadMostLikedVideos = async () => {
     try {
       setError(null)
       setLoading(true)
 
-      // Use the same API call but sort by likes
       const response = await getMostViewed()
 
-      // Process blogs
-      const blogs: BlogPost[] = response.data.blogs.map((blog: any) => ({
-        ...blog,
-        author: blog.author,
-        type: "blog" as const,
-      }))
+      const videos: VideoPost[] = response.data.videos
+        .map((video: any) => ({
+          ...video,
+          author: video.creator,
+          type: "video" as const,
+        }))
+        .sort((a: VideoPost, b: VideoPost) => (b.likes || 0) - (a.likes || 0))
+        .slice(0, 12)
 
-      // Process videos
-      const videos: VideoPost[] = response.data.videos.map((video: any) => ({
-        ...video,
-        author: video.creator, // Map creator to author for consistency
-        type: "video" as const,
-      }))
+      setVideos(videos)
 
-      // Combine and sort by likes (descending)
-      const allContent = [...blogs, ...videos].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 12) // Show top 12 most liked
-
-      setContent(allContent)
-
-      // Update selected content if it exists
-      if (selectedContent) {
-        const updatedSelected = allContent.find(
-          (item) => item.id === selectedContent.id && item.type === selectedContent.type,
-        )
-        setSelectedContent(updatedSelected || null)
+      if (selectedVideo) {
+        const updatedSelected = videos.find((video) => video.id === selectedVideo.id)
+        setSelectedVideo(updatedSelected || null)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch most liked content")
+      setError(err instanceof Error ? err.message : "Failed to fetch most liked videos")
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    loadMostLikedContent()
+    loadMostLikedVideos()
   }, [])
 
   const handleRefresh = async () => {
-    loadMostLikedContent()
+    loadMostLikedVideos()
   }
 
-  const openContentModal = (item: ContentItem) => {
-    setSelectedContent(item)
+  const openVideoModal = (video: VideoPost) => {
+    setSelectedVideo(video)
     setIsModalOpen(true)
   }
 
-  const closeContentModal = () => {
-    setSelectedContent(null)
+  const closeVideoModal = () => {
+    setSelectedVideo(null)
     setIsModalOpen(false)
   }
 
-  const handleToggleLike = async (contentId: number, contentType: "blog" | "video") => {
+  const handleToggleLike = async (videoId: number) => {
     try {
-      if (contentType === "blog") {
-        await toggleBlogLike(contentId)
-      } else {
-        await toggleVideoLike(contentId)
-      }
+      await toggleVideoLike(videoId)
 
-      // Update the content in the local state
-      setContent((prevContent) =>
-        prevContent.map((item) =>
-          item.id === contentId && item.type === contentType
+      setVideos((prevVideos) =>
+        prevVideos.map((video) =>
+          video.id === videoId
             ? {
-                ...item,
-                is_liked: !item.is_liked,
-                likes: item.is_liked ? item.likes - 1 : item.likes + 1,
+                ...video,
+                is_liked: !video.is_liked,
+                likes: video.is_liked ? video.likes - 1 : video.likes + 1,
               }
-            : item,
+            : video,
         ),
       )
 
-      // Update selected content if it's the one being liked
-      if (selectedContent && selectedContent.id === contentId && selectedContent.type === contentType) {
-        setSelectedContent((prev) =>
+      if (selectedVideo && selectedVideo.id === videoId) {
+        setSelectedVideo((prev) =>
           prev
             ? {
                 ...prev,
@@ -176,46 +129,39 @@ export default function MostLikedTab() {
     }
   }
 
-  const handleToggleFavorite = async (contentId: number) => {
-    console.log("Toggle favorite for content:", contentId)
+  const handleToggleFavorite = async (videoId: number) => {
+    //console.log("Toggle favorite for video:", videoId)
   }
 
-  const handleRefreshContent = () => {
-    loadMostLikedContent()
+  const handleRefreshVideos = () => {
+    loadMostLikedVideos()
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+  const formatDate = (date: string | number | Date) => {
+    return new Date(date).toLocaleDateString()
   }
 
-  const truncateContent = (content: string, maxLength = 120) => {
-    const textContent = content.replace(/<[^>]*>/g, "")
-    if (textContent.length <= maxLength) return textContent
-    return textContent.substring(0, maxLength) + "..."
-  }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Heart className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-800">Most Liked Content</h3>
-              <p className="text-slate-600 text-sm">Discover the most loved content</p>
+      <div className="theme-bg-primary min-h-screen p-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Heart className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold theme-text-primary">Most Liked Videos</h3>
+                <p className="theme-text-secondary text-sm">Discover the most loved videos</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center justify-center py-16 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 rounded-2xl border border-red-200">
-          <div className="text-center">
-            <Loader2 className="w-10 h-10 text-red-500 animate-spin mx-auto mb-4" />
-            <p className="text-slate-600 font-medium">Loading most liked content...</p>
+          <div className="flex items-center justify-center py-16 theme-bg-secondary rounded-2xl theme-border border">
+            <div className="text-center">
+              <Loader2 className="w-10 h-10 text-red-500 animate-spin mx-auto mb-4" />
+              <p className="theme-text-secondary font-medium">Loading most liked videos...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -224,37 +170,39 @@ export default function MostLikedTab() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Heart className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-800">Most Liked Content</h3>
-              <p className="text-slate-600 text-sm">Discover the most loved content</p>
+      <div className="theme-bg-primary min-h-screen p-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Heart className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold theme-text-primary">Most Liked Videos</h3>
+                <p className="theme-text-secondary text-sm">Discover the most loved videos</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="text-center py-16 bg-gradient-to-br from-red-50 to-pink-50 rounded-2xl border border-red-200">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Heart className="w-10 h-10 text-red-500" />
+          <div className="text-center py-16 theme-bg-secondary rounded-2xl theme-border border">
+            <div className="w-20 h-20 theme-bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
+              <Heart className="w-10 h-10 text-red-500" />
+            </div>
+            <h4 className="text-xl font-semibold theme-text-primary mb-2">Oops! Something went wrong</h4>
+            <p className="theme-text-secondary mb-6 max-w-md mx-auto">{error}</p>
+            <button
+              onClick={handleRefresh}
+              className="theme-button-secondary font-semibold text-sm px-4 py-2 rounded-xl transition-all duration-200"
+            >
+              Try Again
+            </button>
           </div>
-          <h4 className="text-xl font-semibold text-slate-800 mb-2">Oops! Something went wrong</h4>
-          <p className="text-slate-600 mb-6 max-w-md mx-auto">{error}</p>
-          <button
-            onClick={handleRefresh}
-            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Try Again
-          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <>
+    <div className="theme-bg-primary min-h-screen p-6">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -262,142 +210,122 @@ export default function MostLikedTab() {
               <Heart className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-800">Most Liked Content</h3>
-              <p className="text-slate-600 text-sm">Discover the most loved content</p>
+              <h3 className="text-2xl font-bold theme-text-primary">Most Liked Videos</h3>
+              <p className="theme-text-secondary text-sm">Discover the most loved videos</p>
             </div>
-            <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
-              {content.length} items
+            <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
+              {videos.length} videos
             </div>
           </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={handleRefresh}
-              className="text-red-600 hover:text-red-700 font-semibold text-sm px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 transition-all duration-200 border border-red-200"
+              className="theme-button-secondary font-semibold text-sm px-4 py-2 rounded-xl transition-all duration-200"
             >
               Refresh
             </button>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => router.push("/viewer/blogs")}
-                className="text-red-600 hover:text-red-700 font-semibold text-sm px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 transition-all duration-200"
-              >
-                Blogs
-              </button>
-              <button
-                onClick={() => router.push("/viewer/videos")}
-                className="text-red-600 hover:text-red-700 font-semibold text-sm px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 transition-all duration-200"
-              >
-                Videos
-              </button>
-            </div>
+            <button
+              onClick={() => router.push("/viewer/videos")}
+              className="theme-button-secondary font-semibold text-sm px-3 py-2 rounded-lg transition-all duration-200"
+            >
+              All Videos
+            </button>
           </div>
         </div>
 
-        {content.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {content.map((item, index) => (
-              <div
-                key={`${item.type}-${item.id}`}
-                onClick={() => openContentModal(item)}
-                className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:border-red-300 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-              >
-                {/* Content Image/Thumbnail */}
-                {item.type === "video" ? (
-                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-red-100 via-pink-100 to-rose-100">
-                    {item.thumbnail ? (
-                      <>
-                        <img
-                          src={item.thumbnail || "/placeholder.svg"}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                            <PlayIcon className="w-8 h-8 text-red-600 ml-1" />
-                          </div>
+        {videos.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {videos.map((video, index) => (
+              <div key={video.id} className="group cursor-pointer h-full" onClick={() => openVideoModal(video)}>
+                <div className="theme-bg-card rounded-xl shadow-sm hover:shadow-md theme-border overflow-hidden transition-all duration-300 h-full flex flex-col">
+                  <div className="relative aspect-video overflow-hidden rounded-t-xl flex-shrink-0">
+                    <img
+                      src={
+                        video.thumbnail && video.thumbnail !== ""
+                          ? video.thumbnail
+                          : `/placeholder.svg?height=180&width=320&text=${encodeURIComponent(video.title)}&query=Professional video thumbnail design, red/pink colored object, modern minimalist composition, high contrast colors`
+                      }
+                      alt={video.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        if (!target.src.includes("placeholder.svg")) {
+                          target.src = `/placeholder.svg?height=180&width=320&text=${encodeURIComponent(video.title)}&query=Professional video thumbnail design, red/pink colored object, modern minimalist composition, high contrast colors`
+                        }
+                      }}
+                    />
+
+                    {/* Duration overlay */}
+                    <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2 py-1 rounded font-medium">
+                      {video.duration_formatted || "8:38"}
+                    </div>
+
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transform scale-0 group-hover:scale-100 transition-all duration-300 shadow-lg">
+                        <PlayIcon className="w-5 h-5 text-gray-900 ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 flex-1 flex flex-col">
+                    <div className="flex gap-3 flex-1">
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden theme-bg-secondary">
+                          {video.author?.profile_picture && video.author.profile_picture !== "" ? (
+                            <img
+                              src={video.author.profile_picture || "/placeholder.svg"}
+                              alt={video.author.username}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.style.display = "none"
+                                target.nextElementSibling?.classList.remove("hidden")
+                              }}
+                            />
+                          ) : null}
+                          <User
+                            className={`w-5 h-5 theme-text-muted ${video.author?.profile_picture ? "hidden" : ""}`}
+                          />
                         </div>
-                      </>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <VideoIcon className="w-16 h-16 text-red-400" />
                       </div>
-                    )}
-                    <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs font-medium px-2 py-1 rounded">
-                      {item.duration_formatted}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative h-48 overflow-hidden">
-                    {item.image ? (
-                      <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="h-full bg-gradient-to-br from-red-100 via-pink-100 to-rose-100 flex items-center justify-center">
-                        <FileTextIcon className="w-16 h-16 text-red-400" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                  </div>
-                )}
 
-                <div className="p-6 space-y-4">
-                  {/* Author Info */}
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
-                      {item.author.profile_picture ? (
-                        <img
-                          src={item.author.profile_picture || "/placeholder.svg"}
-                          alt={item.author.username}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-5 h-5 text-white" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-800 truncate">{item.author.username}</p>
-                      <p className="text-xs text-slate-500 flex items-center">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {formatDate(item.created_at)}
-                      </p>
-                    </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        item.type === "video" ? "bg-purple-100 text-purple-600" : "bg-green-100 text-green-600"
-                      }`}
-                    >
-                      {item.type}
-                    </span>
-                  </div>
+                      {/* Video Info */}
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <h3
+                          title={video.title}
+                          className="font-semibold text-sm leading-5 line-clamp-2 group-hover:text-red-500 transition-colors theme-text-primary mb-2 h-10 flex items-start"
+                        >
+                          {video.title}
+                        </h3>
 
-                  {/* Content Title */}
-                  <h4 className="font-bold text-lg text-slate-800 group-hover:text-red-600 transition-colors duration-200 line-clamp-2 leading-tight">
-                    {item.title}
-                  </h4>
+                        <p className="text-sm theme-text-secondary mb-2 truncate">
+                          {video.author?.username || "Unknown Creator"}
+                        </p>
 
-                  {/* Content Preview */}
-                  <p className="text-slate-600 text-sm line-clamp-2 leading-relaxed">
-                    {item.type === "video" ? truncateContent(item.description) : truncateContent(item.content)}
-                  </p>
+                        <div className="flex items-center justify-between mt-auto">
+                          <div className="flex items-center text-xs theme-text-muted">
+                            <span>{video.views || 0} views</span>
+                            <span className="mx-1">•</span>
+                            <span>{formatDate(video.created_at)}</span>
+                          </div>
 
-                  {/* Engagement Stats */}
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-1 text-red-500">
-                        <Heart className={`w-4 h-4 ${item.is_liked ? "fill-current" : ""}`} />
-                        <span className="text-sm font-medium">{item.likes}</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-slate-500">
-                        <EyeIcon className="w-4 h-4" />
-                        <span className="text-sm font-medium">{item.views}</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-slate-500">
-                        <MessageCircle className="w-4 h-4" />
-                        <span className="text-sm font-medium">{item.comments_count}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleToggleLike(video.id)
+                            }}
+                            className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs ${
+                              video.is_liked ? "text-red-500" : "theme-text-muted hover:text-red-500"
+                            }`}
+                          >
+                            {/* <Heart className={`w-3 h-3 ${video.is_liked ? "fill-current" : ""}`} /> */}
+                               <ThumbsUpIcon className={`w-3 h-3 ${video.is_liked ? "fill-current" : ""}`} />
+                            <span>{video.likes}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -406,36 +334,25 @@ export default function MostLikedTab() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 rounded-2xl border border-red-200">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="text-center py-16 theme-bg-secondary rounded-2xl theme-border border">
+            <div className="w-20 h-20 theme-bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
               <Heart className="w-10 h-10 text-red-500" />
             </div>
-            <h4 className="text-xl font-semibold text-slate-800 mb-2">No content available</h4>
-            <p className="text-slate-600 max-w-md mx-auto">Start liking content to see the most loved posts!</p>
+            <h4 className="text-xl font-semibold theme-text-primary mb-2">No videos available</h4>
+            <p className="theme-text-secondary max-w-md mx-auto">Start liking videos to see the most loved content!</p>
           </div>
         )}
       </div>
 
-      {/* Conditional Modal Rendering */}
-      {isModalOpen && selectedContent && selectedContent.type === "blog" && (
-        <BlogModal
-          blog={selectedContent}
-          onClose={closeContentModal}
-          onToggleLike={(id) => handleToggleLike(id, "blog")}
-          onToggleFavorite={handleToggleFavorite}
-          onRefreshBlogs={handleRefreshContent}
-        />
-      )}
-
-      {isModalOpen && selectedContent && selectedContent.type === "video" && (
+      {isModalOpen && selectedVideo && (
         <VideoModal
-          video={selectedContent}
-          onClose={closeContentModal}
-          onToggleLike={(id) => handleToggleLike(id, "video")}
+          video={selectedVideo}
+          onClose={closeVideoModal}
+          onToggleLike={handleToggleLike}
           onToggleFavorite={handleToggleFavorite}
-          onRefreshVideos={handleRefreshContent}
+          onRefreshVideos={handleRefreshVideos}
         />
       )}
-    </>
+    </div>
   )
 }
