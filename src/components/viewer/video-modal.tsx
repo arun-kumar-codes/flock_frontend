@@ -117,9 +117,9 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
     }
     //console.log("Modal closing, final watch time:", finalWatchTime, "seconds")
     // Send watch time to API before closing
-    if (finalWatchTime > 0&&user.isLogin) {
-      sendWatchTimeToAPI(finalWatchTime)
-    }
+    // if (finalWatchTime > 0&&user.isLogin) {
+    //   sendWatchTimeToAPI(finalWatchTime)
+    // }
     onClose()
   }
   // Handle click outside modal
@@ -149,7 +149,7 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
       }
       //console.log("Component unmounting, final watch time:", finalWatchTime, "seconds")
       // Send watch time to API on unmount
-      if (finalWatchTime > 0) {
+      if (finalWatchTime > 0&&user.isLogin) {
         sendWatchTimeToAPI(finalWatchTime)
       }
     }

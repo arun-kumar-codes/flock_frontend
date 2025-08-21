@@ -379,6 +379,32 @@ export default function VideoPage() {
 
   <div className="relative">
   <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
+{/* <select
+  value={selectedFollowing}
+  onChange={(e) => setSelectedFollowing(e.target.value)}
+  disabled={isLoadingFollowing}
+  className="appearance-none pl-10 pr-8 py-3 rounded-lg min-w-[200px] 
+             bg-gray-50 dark:bg-gray-800 
+             border border-gray-300 dark:border-gray-700 
+             shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 
+             text-sm text-gray-900 dark:text-gray-200"
+>
+  <option value="all">
+{  user.isLogin?
+"All Following":"All Creator"}
+  </option>
+
+
+
+  {followings.length!==0?followings.map((following) => (
+    <option key={following.id} value={following.username}>
+      {following.username}
+    </option>
+  )):
+  <option value="">No Followings</option>
+}
+</select> */}
+
 <select
   value={selectedFollowing}
   onChange={(e) => setSelectedFollowing(e.target.value)}
@@ -389,13 +415,23 @@ export default function VideoPage() {
              shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 
              text-sm text-gray-900 dark:text-gray-200"
 >
-  <option value="all">All Creators</option>
-  {followings.map((following) => (
-    <option key={following.id} value={following.username}>
-      {following.username}
+  <option value="all">
+    {user.isLogin ? "All Following" : "All Creator"}
+  </option>
+
+  {followings.length > 0 ? (
+    followings.map((following) => (
+      <option key={following.id} value={following.username}>
+        {following.username}
+      </option>
+    ))
+  ) : (
+    <option value="" disabled>
+      No Followers
     </option>
-  ))}
+  )}
 </select>
+
 
 </div>
 
