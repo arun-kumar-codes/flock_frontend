@@ -1104,7 +1104,7 @@ export default function BlogsPage() {
                           <MoreVerticalIcon className="w-5 h-5 text-slate-500 group-hover:text-slate-700" />
                         </button>
                         {showActionMenu === item.id && (
-                          <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                          <div className="fixed right-4 top-1/2 transform -translate-y-1/2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[9999]">
                             {/* View button - always show except for rejected */}
                             {item.status !== "rejected" && (
                               <button

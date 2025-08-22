@@ -56,7 +56,7 @@ export const getStripeAccount=async()=>{
     const response = await axiosInstance.get('/earnings/stripe-account');
     return response;
   } catch (error:any) {
-    console.error("Error fetching creator data:", error);
+    // console.error("Error fetching creator data:", error);
     return error.response;
   }
 }

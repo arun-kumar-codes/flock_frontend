@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import { updateProfile } from "@/api/user"
 import Loader from "@/components/Loader"
+import { toast } from "react-hot-toast"
 
 // This is a mock of your Redux state and API calls for demonstration purposes.
 // You can replace these with your actual Redux and API logic.
@@ -96,7 +97,7 @@ export default function ProfilePage() {
       setImageFile(null) // Reset image file after successful upload
     } catch (error) {
       console.error("Error updating profile:", error)
-      alert("Error: Failed to connect to the server. Please try again.")
+      toast.error("Error: Failed to connect to the server. Please try again.")
     } finally {
       setIsSaving(false)
     }

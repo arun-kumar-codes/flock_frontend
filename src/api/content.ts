@@ -422,7 +422,7 @@ export async function addWatchTime(videoId: string,watchTime: number) {
     const response = await axiosInstance.post(`/video/${videoId}/watch-time`,{watch_time: watchTime});
     return response;
   } catch (error:any) {
-    console.error("Error updating watch time:", error);
+    // console.error("Error updating watch time:", error);
     return error.response;
   }
 }

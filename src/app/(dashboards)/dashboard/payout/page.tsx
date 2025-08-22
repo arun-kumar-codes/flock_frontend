@@ -526,14 +526,14 @@ export default function PayoutPage() {
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+                      className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer rounded disabled:opacity-50"
                     >
                       Prev
                     </button>
                     <button
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+                      className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer rounded disabled:opacity-50"
                     >
                       Next
                     </button>

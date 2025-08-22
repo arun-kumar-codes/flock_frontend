@@ -152,7 +152,7 @@ export default function DashboardLayout({
           <div className="flex items-center min-w-0 cursor-pointer">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
-                src={user.profileImage}
+                src={user.profileImage||profileImg}
                 alt="User Avatar"
                 width={32}
                 height={32}
@@ -215,7 +215,7 @@ export default function DashboardLayout({
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden"  >
                         <Image
-                          src={user.profileImage||profileImg || "/placeholder.svg"}
+                          src={user.profileImage||profileImg}
                           alt="User Avatar"
                           width={40}
                           height={40}

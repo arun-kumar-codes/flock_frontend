@@ -6,6 +6,7 @@ import { signUp } from "@/api/auth"
 import { useRouter } from "next/navigation"
 import SocialLogin from "@/components/SocialLogIn"
 import ReCAPTCHA from "react-google-recaptcha"
+import { toast } from "react-hot-toast"
 import {
   UserPlusIcon,
   MailIcon,
@@ -83,14 +84,14 @@ export default function Signup() {
     try {
       const response = await signUp(formData)
       if (response.status === 201) {
-        alert("Account created successfully!")
+        toast.success("Account created successfully!")
         router.push("/login")
       } else {
-        alert("Error creating account. Please try again.")
+        toast.error("Error creating account. Please try again.")
       }
     } catch (error) {
       console.error("Sign up error:", error)
-      alert("An error occurred while creating your account. Please try again later.")
+      toast.error("An error occurred while creating your account. Please try again later.")
     } finally {
       setIsSubmitting(false)
       if (recaptchaRef.current) {

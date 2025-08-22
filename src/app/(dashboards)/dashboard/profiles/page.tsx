@@ -5,6 +5,7 @@ import { Camera, User, Mail, Shield, Edit3 } from "lucide-react"
 import { useSelector } from "react-redux"
 import { updateProfile } from "@/api/user"
 import Loader2 from "@/components/Loader2"
+import { toast } from "react-hot-toast"
 
 
 interface UserData {
@@ -88,7 +89,7 @@ export default function ProfilePage() {
       setImageFile(null) // Reset image file after successful upload
     } catch (error) {
       console.error("Error updating profile:", error)
-      alert("Error: Failed to connect to the server. Please try again.")
+      toast.error("Error: Failed to connect to the server. Please try again.")
     } finally {
       setIsSaving(false)
     }

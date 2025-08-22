@@ -14,6 +14,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { logInWithSocial } from "@/api/auth"
 // import { log } from "console"
+import { toast } from "react-hot-toast"
 
 const SocialLogin = () => {
   const [user, setUser] = useState<any>(null)
@@ -46,7 +47,7 @@ const SocialLogin = () => {
         }else{
           // Handle login error
           console.error("Login failed:", response.data);
-          alert("Login failed. Please try again.");
+          toast.error("Login failed. Please try again.");
         }
 
     } catch (error) {
