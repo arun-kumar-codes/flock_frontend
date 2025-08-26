@@ -24,7 +24,7 @@ const navigationItems = [
   { name: "Users", href: "/admin/users", icon: UsersIcon },
   { name: "Blogs", href: "/admin/blogs", icon: FileTextIcon },
   { name: "Videos", href: "/admin/videos", icon: VideoIcon },
-  { name: "Pending", href: "/admin/pending", icon: ClockIcon },
+  // { name: "Pending", href: "/admin/pending", icon: ClockIcon },
   // { name: "Analytics", href: "/admin/analytics", icon: BarChart3Icon },
   {name:"CPM",href:"/admin/cpm",icon:UserRoundCheck}
 ]

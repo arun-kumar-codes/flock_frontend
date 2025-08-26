@@ -73,7 +73,7 @@ export default function CreatorDashboard() {
       try {
         setLoading(true)
         const response = await getCreatorData()
-        const data=response.data;
+        const data = response.data;
         setCreatorData(data)
         setError(null)
       } catch (err) {
@@ -91,7 +91,7 @@ export default function CreatorDashboard() {
 
   if (loading) {
     return (
-     <Loader2></Loader2>
+      <Loader2></Loader2>
     )
   }
 
@@ -164,37 +164,37 @@ export default function CreatorDashboard() {
   ]
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-2 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Hero Banner */}
         <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl mb-8">
           <div className="absolute inset-0 bg-black/20"></div>
-          <div className="relative px-8 py-12 md:py-16">
+          <div className="relative px-6 py-12 md:py-16">
             <div className="max-w-3xl">
               <div className="flex items-center space-x-2 mb-4">
                 <SparklesIcon className="w-6 h-6 text-yellow-300" />
                 <span className="text-yellow-300 font-medium">Creator Dashboard</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              <h1 className="text-xl md:text-5xl font-bold text-white mb-4">
                 Welcome back, {user?.username || "Creator"}! 👋
               </h1>
-              <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
+              <p className="text-base md:text-xl text-indigo-100 mb-8 leading-relaxed">
                 Your creative hub awaits. Manage your content, track your progress, and engage with your audience all in
                 one place.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => router.push("/dashboard/blogs")}
-                  className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors"
+                  className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
                 >
-                  <FileTextIcon className="w-5 h-5 mr-2" />
+                  <FileTextIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Blog
                 </button>
                 <button
                   onClick={() => router.push("/dashboard/videos")}
-                  className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors"
+                  className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
                 >
-                  <VideoIcon className="w-5 h-5 mr-2" />
+                  <VideoIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Video
                 </button>
                 <button
@@ -202,9 +202,9 @@ export default function CreatorDashboard() {
                     // Add analytics route when available
                     //console.log("Analytics coming soon!")
                   }}
-                  className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm"
+                  className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm text-sm md:text-base"
                 >
-                  <BarChart3Icon className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   View Analytics
                 </button>
               </div>
@@ -284,8 +284,8 @@ export default function CreatorDashboard() {
           {/* Content Types */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">Content Management</h2>
-              <p className="text-slate-600">Choose the type of content you want to create or manage</p>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-2">Content Management</h2>
+              <p className="text-slate-600 text-sm md:text-base">Choose the type of content you want to create or manage</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {contentTypes.map((type) => (
@@ -294,15 +294,17 @@ export default function CreatorDashboard() {
                   className="group bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer"
                   onClick={() => router.push(type.href)}
                 >
-                  <div
-                    className={`w-14 h-14 ${type.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}
-                  >
-                    <type.icon className={`w-7 h-7 ${type.iconColor}`} />
+                  <div className="flex flex-row gap-2 items-center">
+                    <div
+                      className={`w-10 h-10 md:w-14 md:h-14 ${type.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}
+                    >
+                      <type.icon className={`w-5 h-5 md:w-7 md:h-7 ${type.iconColor}`} />
+                    </div>
+                    <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors">
+                      {type.title}
+                    </h3>
                   </div>
-                  <h3 className="text-xl font-semibold text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors">
-                    {type.title}
-                  </h3>
-                  <p className="text-slate-600 mb-4 leading-relaxed">{type.description}</p>
+                  <p className="text-slate-600 mb-4 leading-relaxed text-sm md:text-base">{type.description}</p>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-slate-700">{type.stats}</span>

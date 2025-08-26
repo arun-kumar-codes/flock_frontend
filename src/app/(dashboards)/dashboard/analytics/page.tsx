@@ -175,14 +175,14 @@ export default function CreatorEarningsPage() {
     <div className="min-h-screen w-full bg-slate-50">
 
 
-      <header className="mx-auto  px-6 sm:px-8 pt-10 pb-6">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Creator Earnings</h1>
+      <header className="mx-auto md:px-8 pt-5 md:pt-10 pb-6">
+        <h1 className="text-xl md:text-4xl font-bold tracking-tight text-slate-900">Creator Earnings</h1>
         <p className="mt-2 text-slate-600">
           Track your current month, lifetime totals, CPM rate, and per-video earnings.
         </p>
       </header>
 
-      <main className="mx-auto px-6 sm:px-8 pb-20 space-y-8">
+      <main className="mx-auto md:px-8 pb-20 space-y-8">
         {/* Stats */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">

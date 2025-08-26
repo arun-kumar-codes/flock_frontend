@@ -184,7 +184,7 @@ export default function PayoutPage() {
   }
 
   const handleWithdraw = async () => {
-    if(!isAccountConnected){
+    if (!isAccountConnected) {
       toast.error("No connected account found.")
     }
 
@@ -241,12 +241,12 @@ export default function PayoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Creator Earnings</h1>
-          <p className="text-gray-600">Manage your earnings and withdrawals</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Creator Earnings</h1>
+          <p className="text-gray-600 text-sm md:text-base">Manage your earnings and withdrawals</p>
         </div>
 
         {/* Earnings Overview Cards */}
@@ -528,14 +528,18 @@ export default function PayoutPage() {
                       disabled={currentPage === 1}
                       className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer rounded disabled:opacity-50"
                     >
-                      Prev
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
                     </button>
                     <button
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
                       className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer rounded disabled:opacity-50"
                     >
-                      Next
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </button>
                   </div>
                 </div>

@@ -66,6 +66,15 @@ export async function getBlogByStatus(status: any) {
   }
 }
 
+export async function deleteBlogByCreator(blogId:any) {
+  try {
+    const response = await axiosInstance.delete(`/blog/${blogId}/delete`);
+    return response;
+  } catch (error:any) {
+    console.error("Error deleting blog:", error);
+    return error.response;
+  }
+}
 
 export async function deleteBlog(blogId:any) {
   try {
@@ -101,6 +110,18 @@ export async function sendForApproval(blogId: any) {
   }
 }
 
+
+export async function sendForPublish(blogId: any) {
+  try {
+    const response = await axiosInstance.patch(`/blog/${blogId}/publish`);
+    return response;
+  } catch (error:any) {
+    console.error("Error sending blog for approval:", error);
+    return error.response;
+  }
+}
+
+
 export async function approveBlog(blogId: any) {
   try {
     const response = await axiosInstance.patch(`/blog/${blogId}/approve`);
@@ -111,9 +132,9 @@ export async function approveBlog(blogId: any) {
   }
 }
 
-export async function rejectBlog(blogId: any) {
+export async function rejectBlog(blogId: any,reason:string) {
   try {
-    const response = await axiosInstance.patch(`/blog/${blogId}/reject`);
+    const response = await axiosInstance.patch(`/blog/${blogId}/reject`,{reason});
     return response;
   } catch (error:any) {
     console.error("Error approving blog:", error);
@@ -243,9 +264,9 @@ export async function getMyVideos() {
   }
 }
 
-export async function sendVideoForApproval(videoId: any) {
+export async function publishContent(videoId: any) {
   try {
-    const response = await axiosInstance.patch(`/video/${videoId}/send-for-approval`);
+    const response = await axiosInstance.patch(`/video/${videoId}/publish`);
     return response;
   } catch (error:any) {
     console.error("Error sending video for approval:", error);
@@ -286,6 +307,16 @@ export async function addCommentToVideo(videoId: any, comment: string) {
 export async function deleteVideo(videoId: any) {
   try {
     const response = await axiosInstance.delete(`/video/${videoId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error deleting video:", error);
+    return error.response;
+  }
+}
+
+export async function deleteCretorVideo(videoId: any) {
+  try {
+    const response = await axiosInstance.delete(`/video/${videoId}/delete`);
     return response;
   } catch (error:any) {
     console.error("Error deleting video:", error);
@@ -396,9 +427,9 @@ export async function approveVideo(videoId: any) {
   }
 }
 
-export async function rejectVideo(videoId: any) {
+export async function rejectVideo(videoId: any,reason:string) {
   try {
-    const response = await axiosInstance.patch(`/video/${videoId}/reject`);
+    const response = await axiosInstance.patch(`/video/${videoId}/reject`,{reason});
     return response;
   } catch (error:any) {
     console.error("Error rejecting video:", error);

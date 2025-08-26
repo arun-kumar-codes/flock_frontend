@@ -276,7 +276,7 @@ export default function DashboardLayout({
           </header>
 
           {/* Page Content */}
-          <main className="flex-1 overflow-auto p-6">{children}</main>
+          <main className="flex-1 overflow-auto md:p-6">{children}</main>
         </div>
       </Suspense>
     </div>

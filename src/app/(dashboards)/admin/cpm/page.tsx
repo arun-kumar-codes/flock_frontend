@@ -186,15 +186,15 @@ export default function CPMAdminPage() {
       </div>
 
       <header className="mx-auto px-6 sm:px-8 pt-5 pb-6">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-slate-900">
           CPM Configuration
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-slate-600 text-xs md:text-base">
           View the active CPM, update the rate, and manage history.
         </p>
       </header>
 
-      <main className="mx-auto  px-6 sm:px-8 pb-20 space-y-8">
+      <main className="mx-auto md:px-8 pb-20 space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Active Card */}
           <section className="lg:col-span-2">

@@ -25,13 +25,13 @@ interface FollowerResponse {
 export default function FollowersPage() {
   const router = useRouter()
   const user = useSelector((state: any) => state.user)
-  
+
   // Followers states
   const [followers, setFollowers] = useState<Follower[]>([])
   const [followersCount, setFollowersCount] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState("")
-  
+
   // UI states
   const [searchTerm, setSearchTerm] = useState("")
   const [filterRole, setFilterRole] = useState("all")
@@ -39,7 +39,7 @@ export default function FollowersPage() {
 
   useEffect(() => {
     if (!user || !user.role) return
-    
+
     const role = user.role.toLowerCase()
     if (role === "viewer") {
       router.push("/viewer/dashboard")
@@ -48,7 +48,7 @@ export default function FollowersPage() {
       router.push("/admin/dashboard")
       return
     }
-    
+
     fetchFollowers()
   }, [user, router])
 
@@ -59,7 +59,7 @@ export default function FollowersPage() {
       //console.log("Fetching followers data...")
       const response = await getFollower()
       //console.log("Followers response:", response)
-      
+
       if (response?.data) {
         const followerData: FollowerResponse = response.data
         if (followerData.followers && Array.isArray(followerData.followers)) {
@@ -85,13 +85,13 @@ export default function FollowersPage() {
   // Filter and sort followers
   const filteredAndSortedFollowers = followers
     .filter((follower) => {
-      const matchesSearch = 
+      const matchesSearch =
         follower.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         follower.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         follower.role.toLowerCase().includes(searchTerm.toLowerCase())
-      
+
       const matchesRole = filterRole === "all" || follower.role.toLowerCase() === filterRole.toLowerCase()
-      
+
       return matchesSearch && matchesRole
     })
     .sort((a, b) => {
@@ -121,30 +121,39 @@ export default function FollowersPage() {
 
   if (isLoading) {
     return (
-        <Loader2 />
+      <Loader2 />
 
     )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 md:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <UsersIcon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-slate-800">My Followers</h1>
-              <p className="text-slate-600 text-lg">
-                Manage and view your followers
-                {followersCount > 0 && (
-                  <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    {followersCount} {followersCount === 1 ? 'follower' : 'followers'}
-                  </span>
-                )}
-              </p>
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-600/10 rounded-2xl blur-3xl"></div>
+            <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <h1 className="text-xl md:text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3">
+                    My Followers
+                  </h1>
+                  <p className="text-slate-600 text-sm md:text-base lg:text-lg">
+                    Manage and view your followers
+                  </p>
+                  {followersCount > 0 && (
+                    <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {followersCount} {followersCount === 1 ? 'follower' : 'followers'}
+                    </span>
+                  )}
+                </div>
+                <div className="flex justify-center sm:justify-end">
+                  <div className="w-10 h-10 md:w-12 md:h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <UsersIcon className="w-5 h-5 md:w-6 md:h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -169,23 +178,23 @@ export default function FollowersPage() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <SearchIcon className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 w-3 h-4 md:w-4 md:h-5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search followers by username, email"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                className="w-full pl-6 md:pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-sm md:text-base"
               />
             </div>
             <div className="flex gap-3">
-            
-        
+
+
 
               <button
                 onClick={fetchFollowers}
                 disabled={isLoading}
-                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
               >
                 <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                 <span>{isLoading ? "Loading..." : "Refresh"}</span>
@@ -219,7 +228,7 @@ export default function FollowersPage() {
                     </div>
                   </div>
                 </div>
-           
+
               </div>
             </div>
           )}
@@ -252,13 +261,12 @@ export default function FollowersPage() {
                     )}
                     {/* Role Badge */}
                     <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        follower.role === 'Creator' 
-                          ? 'bg-purple-100 text-purple-800' 
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${follower.role === 'Creator'
+                          ? 'bg-purple-100 text-purple-800'
                           : follower.role === 'Admin'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
                         {follower.role}
                       </span>
                     </div>
@@ -292,11 +300,11 @@ export default function FollowersPage() {
                 {followers.length === 0 ? "No followers yet" : "No followers found"}
               </h3>
               <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                {followers.length === 0 
+                {followers.length === 0
                   ? "Start creating content to attract followers to your profile."
                   : searchTerm || filterRole !== "all"
-                  ? "Try adjusting your search or filter criteria to find what you're looking for."
-                  : "No followers match your current filters."
+                    ? "Try adjusting your search or filter criteria to find what you're looking for."
+                    : "No followers match your current filters."
                 }
               </p>
               {(searchTerm || filterRole !== "all") && followers.length > 0 && (

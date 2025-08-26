@@ -80,6 +80,8 @@ export default function Login() {
 
     try {
       const response = await logIn(formData)
+
+      console.log(response);
       if (response.status === 200) {
         localStorage.setItem("access_token", response.data.access_token)
         localStorage.setItem("refresh_token", response.data.refresh_token)
@@ -91,7 +93,7 @@ export default function Login() {
           router.push("/dashboard")
         }
       } else {
-        setErrorMessage("Invalid credentials")
+        setErrorMessage(response.data.error || "Login failed. Please try again.");
       }
     } catch (error: any) {
       setErrorMessage("An error occurred. Please try again.")

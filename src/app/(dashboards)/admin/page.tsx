@@ -169,22 +169,22 @@ export default function AdminDashboard() {
     <div>
       {/* Welcome Section */}
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-800 mb-2">Admin Dashboard 🛡️</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Admin Dashboard 🛡️</h2>
         <p className="text-slate-600">Welcome back! Here's what's happening on your platform.</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         {stats.map((stat) => (
           <Link key={stat.title} href={stat.href}>
             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getColorClasses(stat.color)}`}>
-                  <stat.icon className="w-6 h-6" />
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center ${getColorClasses(stat.color)}`}>
+                  <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
-                  <p className="text-sm font-medium text-slate-600">{stat.title}</p>
+                  <p className="text-xs md:text-sm font-medium text-slate-600">{stat.title}</p>
                 </div>
               </div>
               <p className="text-xs text-slate-500">{stat.subtitle}</p>
@@ -203,12 +203,12 @@ export default function AdminDashboard() {
               href="/admin/users"
               className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
             >
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 md:w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <UsersIcon className="w-4 h-4 text-blue-600" />
               </div>
               <div>
                 <p className="font-medium text-slate-800">Manage Users</p>
-                <p className="text-sm text-slate-500">View and manage user accounts</p>
+                <p className="text-xs md:text-sm text-slate-500">View and manage user accounts</p>
               </div>
             </Link>
 
@@ -216,12 +216,12 @@ export default function AdminDashboard() {
               href="/admin/pending"
               className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
             >
-              <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 md:w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <ClockIcon className="w-4 h-4 text-yellow-600" />
               </div>
               <div>
                 <p className="font-medium text-slate-800">Review Pending Content</p>
-                <p className="text-sm text-slate-500">Approve or reject pending submissions</p>
+                <p className="text-xs md:text-sm text-slate-500">Approve or reject pending submissions</p>
               </div>
             </Link>
 
@@ -233,22 +233,22 @@ export default function AdminDashboard() {
           <h3 className="text-lg font-semibold text-slate-800 mb-4">Platform Overview</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Total Content</span>
-              <span className="font-semibold text-slate-800">{totalBlogs + totalVideos}</span>
+              <span className="text-slate-600 text-sm md:text-base">Total Content</span>
+              <span className="font-semibold text-slate-800 text-sm md:text-base">{totalBlogs + totalVideos}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Total Engagement</span>
-              <span className="font-semibold text-slate-800">
+              <span className="text-slate-600 text-sm md:text-base">Total Engagement</span>
+              <span className="font-semibold text-slate-800 text-sm md:text-base">
                 {totalBlogLikes + totalVideoLikes + totalBlogComments + totalVideoComments}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Pending Reviews</span>
-              <span className="font-semibold text-slate-800">{totalPendingBlogs + totalPendingVideos}</span>
+              <span className="text-slate-600 text-sm md:text-base">Pending Reviews</span>
+              <span className="font-semibold text-slate-800 text-sm md:text-base">{totalPendingBlogs + totalPendingVideos}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Active Users</span>
-              <span className="font-semibold text-slate-800">{totalUsers}</span>
+              <span className="text-slate-600 text-sm md:text-base">Active Users</span>
+              <span className="font-semibold text-slate-800 text-sm md:text-base">{totalUsers}</span>
             </div>
           </div>
         </div>

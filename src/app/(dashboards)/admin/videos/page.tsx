@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react"
 import type React from "react"
 
 import Image from "next/image"
-import { getVideoByStatus, deleteVideo } from "@/api/content"
+import { getVideoByStatus, deleteVideo, rejectVideo } from "@/api/content"
 import {
   SearchIcon,
   AlertCircleIcon,
@@ -16,18 +16,11 @@ import {
   CalendarIcon,
   XIcon,
   PlayIcon,
-  FilterIcon,
   RefreshCwIcon,
-  BarChart3Icon,
   ClockIcon,
   CheckCircleIcon,
-  PlusIcon,
-  DownloadIcon,
   EditIcon,
-  PauseIcon,
-  Volume2Icon,
-  VolumeXIcon,
-  MaximizeIcon,
+  XCircleIcon,
 } from "lucide-react"
 import Video from "@/components/Video"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
@@ -55,7 +48,7 @@ interface Author {
   username: string
 }
 
-interface Video {
+interface VideoType {
   video_id: any
   videoId: any
   id: number
@@ -84,18 +77,25 @@ interface Video {
 const IMAGE_BASE_URL = "http://116.202.210.102:5055/"
 
 export default function AdminVideosPage() {
-  const [videos, setVideos] = useState<Video[]>([])
+  const [videos, setVideos] = useState<VideoType[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [filterAuthor, setFilterAuthor] = useState("all")
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [videoToDelete, setVideoToDelete] = useState<Video | null>(null)
+  const [videoToDelete, setVideoToDelete] = useState<VideoType | null>(null)
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState("")
   const [showVideoModal, setShowVideoModal] = useState(false)
-  const [videoToView, setVideoToView] = useState<Video | null>(null)
+  const [videoToView, setVideoToView] = useState<VideoType | null>(null)
+  const [activeTab, setActiveTab] = useState<"published" | "rejected">("published")
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [videoToReject, setVideoToReject] = useState<VideoType | null>(null)
+  const [isRejecting, setIsRejecting] = useState(false)
+  const [rejectError, setRejectError] = useState("")
+  const [rejectReason, setRejectReason] = useState("")
+  const [reasonError, setReasonError] = useState("")
 
   // Video player states
   const [isPlaying, setIsPlaying] = useState(false)
@@ -108,10 +108,11 @@ export default function AdminVideosPage() {
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const videoModalRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const rejectModalRef = useRef<HTMLDivElement>(null) // Added reject modal ref
 
   useEffect(() => {
     fetchVideos()
-  }, [])
+  }, [activeTab]) // Added activeTab dependency to refetch when tab changes
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -121,13 +122,16 @@ export default function AdminVideosPage() {
       if (videoModalRef.current && !videoModalRef.current.contains(event.target as Node) && showVideoModal) {
         setShowVideoModal(false)
       }
+      if (rejectModalRef.current && !rejectModalRef.current.contains(event.target as Node) && showRejectModal) {
+        setShowRejectModal(false)
+      }
       if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
         setShowActionMenu(null)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showDeleteModal, showVideoModal])
+  }, [showDeleteModal, showVideoModal, showRejectModal]) // Added showRejectModal dependency
 
   // Initialize video when component mounts
   useEffect(() => {
@@ -140,7 +144,7 @@ export default function AdminVideosPage() {
     setIsLoading(true)
     setError("")
     try {
-      const response = await getVideoByStatus("published")
+      const response = await getVideoByStatus(activeTab)
       if (response?.data?.videos) {
         setVideos(response.data.videos)
       } else if (response?.videos) {
@@ -191,14 +195,70 @@ export default function AdminVideosPage() {
     }
   }
 
-  const handleDeleteClick = (video: Video) => {
+  const handleRejectVideo = async (videoId: number) => {
+    // Validate reason has at least 10 words
+    const wordCount = rejectReason
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length
+    if (wordCount < 10) {
+      setReasonError("Rejection reason must be at least 10 words long")
+      return
+    }
+
+    setIsRejecting(true)
+    setRejectError("")
+    setReasonError("")
+    try {
+      const response = await rejectVideo(videoId, rejectReason)
+      if (
+        response?.status === 200 ||
+        response?.status === 204 ||
+        response?.success === true ||
+        response?.message?.toLowerCase().includes("success") ||
+        response?.data?.success === true
+      ) {
+        setVideos((prevVideos) => prevVideos.filter((video) => video.id !== videoId))
+        setShowRejectModal(false)
+        setVideoToReject(null)
+        setRejectReason("")
+      } else {
+        setRejectError(
+          `Failed to reject video. Server response: ${response?.status || response?.message || "Unknown error"}`,
+        )
+      }
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        setRejectError("Video not found. It may have already been processed.")
+      } else if (error?.response?.status === 403) {
+        setRejectError("You don't have permission to reject this video.")
+      } else if (error?.response?.status === 401) {
+        setRejectError("Authentication failed. Please log in again.")
+      } else {
+        setRejectError(`Failed to reject video: ${error?.message || error?.response?.data?.message || "Network error"}`)
+      }
+    } finally {
+      setIsRejecting(false)
+    }
+  }
+
+  const handleRejectClick = (video: VideoType) => {
+    setVideoToReject(video)
+    setShowRejectModal(true)
+    setShowActionMenu(null)
+    setRejectReason("")
+    setRejectError("")
+    setReasonError("")
+  }
+
+  const handleDeleteClick = (video: VideoType) => {
     setVideoToDelete(video)
     setShowDeleteModal(true)
     setShowActionMenu(null)
     setDeleteError("")
   }
 
-  const handleVideoDoubleClick = (video: Video) => {
+  const handleVideoDoubleClick = (video: VideoType) => {
     setVideoToView(video)
     setShowVideoModal(true)
     setShowActionMenu(null)
@@ -330,19 +390,24 @@ export default function AdminVideosPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-600 to-purple-600 rounded-2xl mb-6 shadow-lg">
-            <VideoIcon className="w-8 h-8 text-white" />
+          <div className="flex flex-col md:flex-row items-center md:items-start">
+            <div className="inline-flex items-center justify-center w-10 h-10 md:w-16 md:h-16 bg-gradient-to-r from-red-600 to-purple-600 rounded-2xl mb-4 md:mb-0 md:mr-6 shadow-lg">
+              <VideoIcon className="w-5 h-5 md:w-8 md:h-8 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-2xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-red-800 to-purple-900 bg-clip-text text-transparent mb-4">
+                Video Management
+              </h1>
+              <p className="text-sm md:text-xl text-gray-600 max-w-2xl mx-auto md:mx-0">
+                Monitor and manage all video content across the platform
+              </p>
+            </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-red-800 to-purple-900 bg-clip-text text-transparent mb-4">
-            Video Management
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Monitor and manage all video content across the platform
-          </p>
         </div>
+
 
         {/* Quick Actions */}
         {/* <div className="flex justify-center mb-8">
@@ -368,12 +433,12 @@ export default function AdminVideosPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <VideoIcon className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <VideoIcon className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{totalVideos}</div>
-                  <div className="text-sm font-medium text-red-600">Total Videos</div>
+                  <div className="text-xl md:text-3xl font-bold text-gray-900">{totalVideos}</div>
+                  <div className="text-xs md:text-sm font-medium text-red-600">Total Videos</div>
                 </div>
               </div>
             </div>
@@ -382,12 +447,12 @@ export default function AdminVideosPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <EyeIcon className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <EyeIcon className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{totalViews.toLocaleString()}</div>
-                  <div className="text-sm font-medium text-indigo-600">Total Views</div>
+                  <div className="text-xl md:text-3xl font-bold text-gray-900">{totalViews.toLocaleString()}</div>
+                  <div className="text-xs md:text-sm font-medium text-indigo-600">Total Views</div>
                 </div>
               </div>
             </div>
@@ -396,12 +461,12 @@ export default function AdminVideosPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <ThumbsUpIcon className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <ThumbsUpIcon className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{totalLikes.toLocaleString()}</div>
-                  <div className="text-sm font-medium text-purple-600">Total Likes</div>
+                  <div className="text-xl md:text-3xl font-bold text-gray-900">{totalLikes.toLocaleString()}</div>
+                  <div className="text-xs md:text-sm font-medium text-purple-600">Total Likes</div>
                 </div>
               </div>
             </div>
@@ -410,12 +475,12 @@ export default function AdminVideosPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <MessageCircleIcon className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <MessageCircleIcon className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{totalComments.toLocaleString()}</div>
-                  <div className="text-sm font-medium text-green-600">Total Comments</div>
+                  <div className="text-xl md:text-3xl font-bold text-gray-900">{totalComments.toLocaleString()}</div>
+                  <div className="text-xs md:text-sm font-medium text-green-600">Total Comments</div>
                 </div>
               </div>
             </div>
@@ -424,12 +489,12 @@ export default function AdminVideosPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <ClockIcon className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <ClockIcon className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{formatTotalDuration()}</div>
-                  <div className="text-sm font-medium text-amber-600">Total Duration</div>
+                  <div className="text-xl md:text-3xl font-bold text-gray-900">{formatTotalDuration()}</div>
+                  <div className="text-xs md:text-sm font-medium text-amber-600">Total Duration</div>
                 </div>
               </div>
             </div>
@@ -462,9 +527,13 @@ export default function AdminVideosPage() {
           <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-8 border-b border-gray-200/50">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Published Videos</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {activeTab === "published" ? "Published Videos" : "Rejected Videos"}
+                </h2>
                 <p className="text-gray-600">
-                  Manage and monitor all published video content. Double-click any video to view details.
+                  {activeTab === "published"
+                    ? "Manage and monitor all published video content. Double-click any video to view details."
+                    : "Review and manage rejected video content."}
                 </p>
               </div>
               <button
@@ -476,6 +545,24 @@ export default function AdminVideosPage() {
                 {isLoading ? "Refreshing..." : "Refresh Videos"}
               </button>
             </div>
+
+            <div className="flex flex-col md:flex-row space-x-2 mt-8 bg-gray-500/50 rounded-2xl p-1">
+              <button
+                onClick={() => setActiveTab("published")}
+                className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeTab === "published" ? "bg-white text-red-700 shadow-md" : "text-gray-600 hover:text-gray-900"
+                  }`}
+              >
+                Published Videos
+              </button>
+              <button
+                onClick={() => setActiveTab("rejected")}
+                className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeTab === "rejected" ? "bg-white text-red-700 shadow-md" : "text-gray-600 hover:text-gray-900"
+                  }`}
+              >
+                Rejected Videos
+              </button>
+            </div>
+
             {/* Search and Filter */}
             <div className="flex flex-col lg:flex-row gap-4 mt-8">
               <div className="relative flex-1">
@@ -488,12 +575,11 @@ export default function AdminVideosPage() {
                   className="w-full pl-12 pr-4 py-4 bg-white/80 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
                 />
               </div>
-             
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-8">
+          <div className="md:p-8">
             {isLoading ? (
               <div className="text-center py-20">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-600 to-purple-600 rounded-2xl mb-6 animate-pulse">
@@ -538,10 +624,10 @@ export default function AdminVideosPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
+                            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
                               {video.title}
                             </h3>
-                            <p className="text-gray-600 leading-relaxed mb-4 line-clamp-2">
+                            <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 line-clamp-2">
                               {generateExcerpt(video.description, 180)}
                             </p>
                           </div>
@@ -553,7 +639,7 @@ export default function AdminVideosPage() {
                                 e.stopPropagation()
                                 setShowActionMenu(showActionMenu === video.id.toString() ? null : video.id.toString())
                               }}
-                              className="p-2 hover:bg-gray-100 rounded-xl transition-colors opacity-0 group-hover:opacity-100"
+                              className="p-2 hover:bg-gray-100 rounded-xl transition-colors opacity-100"
                             >
                               <MoreVerticalIcon className="w-5 h-5 text-gray-500" />
                             </button>
@@ -565,27 +651,30 @@ export default function AdminVideosPage() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    /* Add edit functionality */
+                                    handleVideoDoubleClick(video)
                                   }}
                                   className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
                                 >
                                   <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                                    <EditIcon className="w-4 h-4 text-amber-600" />
+                                    <EyeIcon className="w-4 h-4 text-amber-600" />
                                   </div>
-                                  <span className="font-medium text-gray-900">Edit Video</span>
+                                  <span className="font-medium text-gray-900">View Content</span>
                                 </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleDeleteClick(video)
-                                  }}
-                                  className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-red-50 transition-colors"
-                                >
-                                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                                    <TrashIcon className="w-4 h-4 text-red-600" />
-                                  </div>
-                                  <span className="font-medium text-red-600">Delete Video</span>
-                                </button>
+                                {activeTab === "published" && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleRejectClick(video)
+                                    }}
+                                    className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-red-50 transition-colors"
+                                  >
+                                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                                      <XCircleIcon className="w-4 h-4 text-red-600" />
+                                    </div>
+                                    <span className="font-medium text-red-600">Reject Video</span>
+                                  </button>
+                                )}
+
                               </div>
                             )}
                           </div>
@@ -608,9 +697,21 @@ export default function AdminVideosPage() {
                           <div className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
                             ID: {video.id}
                           </div>
-                          <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex items-center">
-                            <CheckCircleIcon className="w-3 h-3 mr-1" />
-                            Published
+                          <div
+                            className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${activeTab === "published" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                              }`}
+                          >
+                            {activeTab === "published" ? (
+                              <>
+                                <CheckCircleIcon className="w-3 h-3 mr-1" />
+                                Published
+                              </>
+                            ) : (
+                              <>
+                                <XCircleIcon className="w-3 h-3 mr-1" />
+                                Rejected
+                              </>
+                            )}
                           </div>
                         </div>
 
@@ -643,11 +744,15 @@ export default function AdminVideosPage() {
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-2xl mb-6">
                   <VideoIcon className="w-10 h-10 text-gray-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">No videos found</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  {activeTab === "published" ? "No published videos found" : "No rejected videos found"}
+                </h3>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
                   {searchTerm || filterAuthor !== "all"
                     ? "Try adjusting your search criteria or filters to find what you're looking for"
-                    : "No published videos are available at the moment."}
+                    : activeTab === "published"
+                      ? "No published videos are available at the moment."
+                      : "No rejected videos are available at the moment."}
                 </p>
                 {(searchTerm || filterAuthor !== "all") && (
                   <button
@@ -810,83 +915,11 @@ export default function AdminVideosPage() {
                 </div>
               </div>
 
-              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)] ">
                 {/* Video Player */}
                 <div className="mb-8">
                   <div className="relative bg-black rounded-2xl overflow-hidden">
-                    {/* <video
-                      ref={videoRef}
-                      className="w-full aspect-video object-contain"
-                      onTimeUpdate={handleTimeUpdate}
-                      onLoadedMetadata={handleLoadedMetadata}
-                      onPlay={handleVideoPlay}
-                      onPause={handleVideoPause}
-                      poster={videoToView.thumbnail}
-                      preload="metadata"
-                      crossOrigin="anonymous"
-                    >
-                      <source src={videoToView.video} type="video/mp4" />
-                      <source src={videoToView.video} type="video/webm" />
-                      <source src={videoToView.video} type="video/ogg" />
-                      Your browser does not support the video tag.
-                    </video> */}
-
                     {/* Video Controls */}
-                    {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <div className="flex items-center space-x-4">
-                        <button
-                          onClick={handlePlayPause}
-                          className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                        >
-                          {isPlaying ? (
-                            <PauseIcon className="w-5 h-5 text-white" />
-                          ) : (
-                            <PlayIcon className="w-5 h-5 text-white" />
-                          )}
-                        </button>
-
-                        <div className="flex-1 flex items-center space-x-2">
-                          <span className="text-white text-sm min-w-[40px]">{formatTime(currentTime)}</span>
-                          <input
-                            type="range"
-                            min="0"
-                            max={duration || 0}
-                            value={currentTime}
-                            onChange={handleSeek}
-                            className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                            style={{
-                              background: `linear-gradient(to right, #ffffff ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 1)) * 100}%)`,
-                            }}
-                          />
-                          <span className="text-white text-sm min-w-[40px]">{formatTime(duration)}</span>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <button onClick={toggleMute} className="p-1 hover:bg-white/20 rounded transition-colors">
-                            {isMuted ? (
-                              <VolumeXIcon className="w-4 h-4 text-white" />
-                            ) : (
-                              <Volume2Icon className="w-4 h-4 text-white" />
-                            )}
-                          </button>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={isMuted ? 0 : volume}
-                            onChange={handleVolumeChange}
-                            className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                          />
-                          <button
-                            onClick={handleFullscreen}
-                            className="p-1 hover:bg-white/20 rounded transition-colors"
-                          >
-                            <MaximizeIcon className="w-4 h-4 text-white" />
-                          </button>
-                        </div>
-                      </div>
-                    </div> */}
                     <Video videoId={videoToView.video_id}></Video>
                   </div>
                 </div>
@@ -895,7 +928,7 @@ export default function AdminVideosPage() {
                 <div className="mb-8">
                   <h4 className="text-xl font-semibold text-gray-900 mb-4">Description</h4>
                   <div className="prose prose-lg prose-slate max-w-none bg-gray-50 p-6 rounded-2xl">
-                      <TipTapContentDisplay content={videoToView.description} className="text-gray-700" />
+                    <TipTapContentDisplay content={videoToView.description} className="text-gray-700" />
                   </div>
                 </div>
 
@@ -1006,6 +1039,157 @@ export default function AdminVideosPage() {
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
               }
             `}</style>
+          </div>
+        )}
+
+        {showRejectModal && videoToReject && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+            <div
+              ref={rejectModalRef}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg transform transition-all duration-200 overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 p-8 border-b border-red-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                      <XCircleIcon className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">Reject Video</h3>
+                      <p className="text-red-600 text-sm">This will move the video to rejected status</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowRejectModal(false)
+                      setVideoToReject(null)
+                      setRejectError("")
+                      setRejectReason("")
+                      setReasonError("")
+                    }}
+                    className="p-2 hover:bg-red-100 rounded-xl transition-colors"
+                  >
+                    <XIcon className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-8">
+                <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+                  <div className="flex items-start space-x-4">
+                    {videoToReject.thumbnail && (
+                      <div className="w-24 h-16 relative flex-shrink-0 rounded-lg overflow-hidden">
+                        <Image
+                          src={getImageUrl(videoToReject.thumbnail) || "/placeholder.svg"}
+                          alt={videoToReject.title}
+                          width={96}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <PlayIcon className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900 mb-2">{videoToReject.title}</h4>
+                      <p className="text-gray-600 text-sm mb-2">{generateExcerpt(videoToReject.description, 100)}</p>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span>by {videoToReject.creator.username}</span>
+                        <span>{formatDate(videoToReject.created_at)}</span>
+                        <span>{videoToReject.views || 0} views</span>
+                        <span>{videoToReject.likes} likes</span>
+                        <span>{videoToReject.comments_count} comments</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  Are you sure you want to reject <strong>"{videoToReject.title}"</strong>? This will change the video
+                  status to rejected and it will no longer be visible to users.
+                </p>
+
+                <div className="mb-6">
+                  <label htmlFor="rejectReason" className="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for rejection <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="rejectReason"
+                    value={rejectReason}
+                    onChange={(e) => {
+                      setRejectReason(e.target.value)
+                      if (reasonError) setReasonError("")
+                    }}
+                    placeholder="Please provide a detailed reason for rejecting this video (minimum 10 words)..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                    rows={4}
+                    disabled={isRejecting}
+                  />
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-gray-500">
+                      Word count:{" "}
+                      {
+                        rejectReason
+                          .trim()
+                          .split(/\s+/)
+                          .filter((word) => word.length > 0).length
+                      }{" "}
+                      / 10 minimum
+                    </p>
+                  </div>
+                </div>
+
+                {reasonError && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircleIcon className="w-4 h-4 text-red-600" />
+                      <p className="text-red-800 text-sm">{reasonError}</p>
+                    </div>
+                  </div>
+                )}
+
+                {rejectError && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircleIcon className="w-4 h-4 text-red-600" />
+                      <p className="text-red-800 text-sm">{rejectError}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRejectModal(false)
+                      setVideoToReject(null)
+                      setRejectError("")
+                      setRejectReason("")
+                      setReasonError("")
+                    }}
+                    disabled={isRejecting}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl hover:bg-gray-50 transition-colors disabled:opacity-50 font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleRejectVideo(videoToReject.id)}
+                    disabled={isRejecting}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-2xl hover:from-red-700 hover:to-red-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium shadow-lg"
+                  >
+                    {isRejecting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Rejecting...
+                      </>
+                    ) : (
+                      "Reject Video"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

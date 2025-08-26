@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react"
 import type React from "react"
 import { useRouter } from "next/navigation"
 import { useDispatch } from "react-redux"
+
 import {
   PlusIcon,
   SearchIcon,
@@ -23,17 +24,18 @@ import {
   RefreshCwIcon,
   PlayIcon,
   UploadIcon,
+  TrashIcon,
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
-import Loader2 from "@/components/Loader2"
 import {
   getMyVideos,
   createVideo,
   updateVideo,
-  sendVideoForApproval,
+  publishContent,
   archiveVideo,
   unarchiveVideo,
+  deleteCretorVideo,
 } from "@/api/content"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
@@ -100,6 +102,7 @@ interface CreateVideoData {
   status?: string
   category?: string
   video?: File | null
+  is_draft?: boolean
 }
 
 interface EditVideoData {
@@ -110,6 +113,7 @@ interface EditVideoData {
   category?: string
   videoId?: string
   existingVideoUrl?: string
+  is_draft?: boolean
 }
 
 export default function VideoDashboard() {
@@ -127,7 +131,7 @@ export default function VideoDashboard() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
-  const [activeTab, setActiveTab] = useState<"active" | "archived">("active")
+  const [activeTab, setActiveTab] = useState<"active" | "archived" | "rejected">("active")
   const [showActionMenu, setShowActionMenu] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
@@ -158,6 +162,7 @@ export default function VideoDashboard() {
     status: "draft",
     category: "General",
     video: null,
+    is_draft: true,
   })
 
   // Edit video form state
@@ -169,6 +174,7 @@ export default function VideoDashboard() {
     category: "General",
     videoId: "",
     existingVideoUrl: "",
+    is_draft: true,
   })
 
   // Store original edit form data for comparison
@@ -180,6 +186,7 @@ export default function VideoDashboard() {
     category: "General",
     videoId: "",
     existingVideoUrl: "",
+    is_draft: true,
   })
 
   // Comment states
@@ -273,16 +280,8 @@ export default function VideoDashboard() {
     return video.archived === true
   }
 
-  // Simplified video URL function - just return the URL as-is since full URLs are coming from API
-  const getVideoUrl = (videoPath: string | null | undefined): string | null => {
-    //console.log("getVideoUrl called with:", videoPath)
-    if (!videoPath) {
-      //console.log("No video path provided")
-      return null
-    }
-    // Since full URLs are coming from the API, just return them directly
-    //console.log("Returning video URL:", videoPath)
-    return videoPath
+  const getActiveVideos = (video: VideoType): boolean => {
+    return video.archived !== true && video.status !== "rejected"
   }
 
   const getThumbnailUrl = (thumbnailPath: string | null | undefined): string | null => {
@@ -378,7 +377,7 @@ export default function VideoDashboard() {
           videos: userVideos,
         }))
       }
-        setIsLoading(false)
+      setIsLoading(false)
     } catch (error) {
       console.error("Error fetching user videos:", error)
       setFetchError("Failed to fetch your videos")
@@ -398,35 +397,37 @@ export default function VideoDashboard() {
         }))
         fetchUserVideos()
       }
-    
     }
   }, [user, router])
 
-  if (isLoading) {
-    return <Loader2 />
-  }
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    videoId: number | null
+    videoTitle: string
+  }>({
+    isOpen: false,
+    videoId: null,
+    videoTitle: "",
+  })
 
-  // Send video for approval
-  const handleSendForApproval = async (videoId: number) => {
+  const handleSendForPublish = async (videoId: number) => {
     try {
       setActionLoading(videoId, "approval", true)
       setUpdateError("")
-      const response = await sendVideoForApproval(videoId)
+      const response = await publishContent(videoId) // This should be updated to publish directly
       if (response?.status === 200) {
         setUserData((prev) => ({
           ...prev,
-          videos:
-            prev.videos?.map((video) => (video.id === videoId ? { ...video, status: "pending_approval" } : video)) ||
-            [],
+          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, status: "published" } : video)) || [],
         }))
-        setUpdateSuccess("Video sent for approval successfully!")
+        setUpdateSuccess("Video published successfully!")
         setTimeout(() => setUpdateSuccess(""), 3000)
       } else {
-        throw new Error("Failed to send video for approval")
+        throw new Error("Failed to publish video")
       }
     } catch (error: any) {
-      console.error("Error sending video for approval:", error)
-      setUpdateError(error?.response?.data?.message || "Failed to send video for approval")
+      console.error("Error publishing video:", error)
+      setUpdateError(error?.response?.data?.message || "Failed to publish video")
       setTimeout(() => setUpdateError(""), 3000)
     } finally {
       setActionLoading(videoId, "approval", false)
@@ -434,66 +435,46 @@ export default function VideoDashboard() {
     }
   }
 
-  // Archive video
-  const handleArchiveVideo = async (videoId: number) => {
+  const handleDeleteVideo = async (videoId: number) => {
     try {
-      setActionLoading(videoId, "archive", true)
+      setActionLoading(videoId, "delete", true)
       setUpdateError("")
-      const response = await archiveVideo(videoId)
+      const response = await deleteCretorVideo(videoId)
       if (response?.status === 200) {
         setUserData((prev) => ({
           ...prev,
-          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, archived: true } : video)) || [],
+          videos: prev.videos?.filter((video) => video.id !== videoId) || [],
         }))
-        setUpdateSuccess("Video archived successfully!")
+        setUpdateSuccess("Video deleted successfully!")
         setTimeout(() => setUpdateSuccess(""), 3000)
       } else {
-        throw new Error("Failed to archive video")
+        throw new Error("Failed to delete video")
       }
     } catch (error: any) {
-      console.error("Error archiving video:", error)
-      setUpdateError(error?.response?.data?.message || "Failed to archive video")
+      console.error("Error deleting video:", error)
+      setUpdateError(error?.response?.data?.message || "Failed to delete video")
       setTimeout(() => setUpdateError(""), 3000)
     } finally {
-      setActionLoading(videoId, "archive", false)
+      setActionLoading(videoId, "delete", false)
       setShowActionMenu(null)
+      setDeleteConfirmation({ isOpen: false, videoId: null, videoTitle: "" })
+      fetchUserVideos();
     }
   }
 
-  // Unarchive video
-  const handleUnarchiveVideo = async (videoId: number) => {
-    try {
-      setActionLoading(videoId, "unarchive", true)
-      setUpdateError("")
-      const response = await unarchiveVideo(videoId)
-      if (response?.status === 200) {
-        setUserData((prev) => ({
-          ...prev,
-          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, archived: false } : video)) || [],
-        }))
-        setUpdateSuccess("Video unarchived successfully!")
-        setTimeout(() => setUpdateSuccess(""), 3000)
-      } else {
-        throw new Error("Failed to unarchive video")
-      }
-    } catch (error: any) {
-      console.error("Error unarchiving video:", error)
-      setUpdateError(error?.response?.data?.message || "Failed to unarchive video")
-      setTimeout(() => setUpdateError(""), 3000)
-    } finally {
-      setActionLoading(videoId, "unarchive", false)
-      setShowActionMenu(null)
-    }
+  const openDeleteConfirmation = (videoId: number, videoTitle: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      videoId,
+      videoTitle,
+    })
   }
 
-  // Update video status (draft to published)
   const updateVideoStatus = async (videoId: number, newStatus: string) => {
     try {
       setActionLoading(videoId, "status", true)
       setUpdateError("")
-      const formData = new FormData()
-      formData.append("status", newStatus)
-      const response = await updateVideo(videoId, formData)
+      const response = await updateVideo(videoId, { status: newStatus })
       if (response?.status === 200 || response?.data) {
         setUserData((prev) => ({
           ...prev,
@@ -530,6 +511,7 @@ export default function VideoDashboard() {
       category: video.category || "General",
       videoId: video.video_id || video.id.toString(),
       existingVideoUrl: video.video_url || video.video || "",
+      is_draft: video.status === "draft",
     }
 
     //console.log("Edit data:", editData)
@@ -624,9 +606,9 @@ export default function VideoDashboard() {
             prev.videos?.map((video) =>
               video.id === editVideoForm.id
                 ? {
-                    ...video,
-                    ...updatedVideo,
-                  }
+                  ...video,
+                  ...updatedVideo,
+                }
                 : video,
             ) || [],
         }))
@@ -643,6 +625,7 @@ export default function VideoDashboard() {
             category: "General",
             videoId: "",
             existingVideoUrl: "",
+            is_draft: true,
           })
           setOriginalEditData({
             id: 0,
@@ -652,6 +635,7 @@ export default function VideoDashboard() {
             category: "General",
             videoId: "",
             existingVideoUrl: "",
+            is_draft: true,
           })
         }, 2000)
       } else {
@@ -693,6 +677,7 @@ export default function VideoDashboard() {
       const formData = new FormData()
       formData.append("title", videoForm.title.trim())
       formData.append("description", videoForm.description.trim())
+      formData.append("is_draft", videoForm.is_draft ? "true" : "false")
       formData.append("video", videoForm.video)
 
       const response = await createVideo(formData)
@@ -704,6 +689,7 @@ export default function VideoDashboard() {
           title: "",
           description: "",
           video: null,
+          is_draft: true,
         })
         setVideoPreview(null)
         setVideoError("")
@@ -726,7 +712,7 @@ export default function VideoDashboard() {
     }
   }
 
-  const handleFormChange = (field: keyof CreateVideoData, value: string) => {
+  const handleFormChange = (field: keyof CreateVideoData, value: string | boolean) => {
     setVideoForm((prev) => ({
       ...prev,
       [field]: value,
@@ -736,7 +722,7 @@ export default function VideoDashboard() {
     }
   }
 
-  const handleEditFormChange = (field: keyof EditVideoData, value: string) => {
+  const handleEditFormChange = (field: keyof EditVideoData, value: string | boolean) => {
     setEditVideoForm((prev) => ({
       ...prev,
       [field]: value,
@@ -797,21 +783,25 @@ export default function VideoDashboard() {
   }
 
   // Get active (non-archived) videos
-  const activeVideos = userData.videos?.filter((item) => !isArchived(item)) || []
+  const activeVideos = userData.videos?.filter((item) => !item.archived && item.status === "published") || []
 
   // Get archived videos
-  const archivedVideos = userData.videos?.filter((item) => isArchived(item)) || []
+  const archivedVideos = userData.videos?.filter((item) => item.archived) || []
+
+  const rejectedVideos = userData.videos?.filter((item) => item.status === "rejected") || []
 
   // Filter content based on active tab and search/filter criteria
   const getFilteredContent = () => {
-    const sourceVideos = activeTab === "active" ? activeVideos : archivedVideos
+    const sourceVideos =
+      activeTab === "active" ? activeVideos : activeTab === "archived" ? archivedVideos : rejectedVideos
+
     return sourceVideos.filter((item) => {
       const matchesSearch =
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.description && getPlainTextDescription(item.description).toLowerCase().includes(searchTerm.toLowerCase()))
 
-      if (activeTab === "archived") {
-        return matchesSearch // For archived tab, just match search
+      if (activeTab === "archived" || activeTab === "rejected") {
+        return matchesSearch // For archived and rejected tabs, just match search
       }
 
       // For active tab, also apply status filter
@@ -822,14 +812,64 @@ export default function VideoDashboard() {
 
   const filteredContent = getFilteredContent()
 
+  const handleArchiveVideo = async (videoId: number) => {
+    try {
+      setActionLoading(videoId, "archive", true)
+      setUpdateError("")
+      const response = await archiveVideo(videoId)
+      if (response?.status === 200) {
+        setUserData((prev) => ({
+          ...prev,
+          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, archived: true } : video)) || [],
+        }))
+        setUpdateSuccess("Video archived successfully!")
+        setTimeout(() => setUpdateSuccess(""), 3000)
+      } else {
+        throw new Error("Failed to archive video")
+      }
+    } catch (error: any) {
+      console.error("Error archiving video:", error)
+      setUpdateError(error?.response?.data?.message || "Failed to archive video")
+      setTimeout(() => setUpdateError(""), 3000)
+    } finally {
+      setActionLoading(videoId, "archive", false)
+      setShowActionMenu(null)
+    }
+  }
+
+  const handleUnarchiveVideo = async (videoId: number) => {
+    try {
+      setActionLoading(videoId, "unarchive", true)
+      setUpdateError("")
+      const response = await unarchiveVideo(videoId)
+      if (response?.status === 200) {
+        setUserData((prev) => ({
+          ...prev,
+          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, archived: false } : video)) || [],
+        }))
+        setUpdateSuccess("Video unarchived successfully!")
+        setTimeout(() => setUpdateSuccess(""), 3000)
+      } else {
+        throw new Error("Failed to unarchive video")
+      }
+    } catch (error: any) {
+      console.error("Error unarchiving video:", error)
+      setUpdateError(error?.response?.data?.message || "Failed to unarchive video")
+      setTimeout(() => setUpdateError(""), 3000)
+    } finally {
+      setActionLoading(videoId, "unarchive", false)
+      setShowActionMenu(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-slate-800 mb-2">Video Management</h2>
-          <p className="text-slate-600">Manage your videos and track your performance</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Video Management</h2>
+          <p className="text-slate-600 text-sm md:text-base">Manage your videos and track your performance</p>
         </div>
 
         {/* Success/Error Messages */}
@@ -860,52 +900,40 @@ export default function VideoDashboard() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-8">
+          <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Total Active</p>
-                <p className="text-2xl font-bold text-slate-800">{activeVideos.length}</p>
+                <p className="text-xs lg:text-sm font-medium text-slate-600">Total Active</p>
+                <p className="text-xl lg:text-2xl font-bold text-slate-800">{activeVideos.length}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <VideoIcon className="w-6 h-6 text-purple-600" />
+              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <VideoIcon className="w-5 h-5 lg:w-6 lg:h-6 text-purple-600" />
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+          <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Published</p>
-                <p className="text-2xl font-bold text-slate-800">
+                <p className="text-xs lg:text-sm font-medium text-slate-600">Published</p>
+                <p className="text-xl lg:text-2xl font-bold text-slate-800">
                   {activeVideos.filter((item) => item.status === "published").length}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <TrendingUpIcon className="w-6 h-6 text-emerald-600" />
+              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <TrendingUpIcon className="w-5 h-5 lg:w-6 lg:h-6 text-emerald-600" />
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+
+          <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Pending Approval</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {activeVideos.filter((item) => item.status === "pending_approval").length}
-                </p>
+                <p className="text-xs lg:text-sm font-medium text-slate-600">Archived</p>
+                <p className="text-xl lg:text-2xl font-bold text-slate-800">{archivedVideos.length}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <ClockIcon className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Archived</p>
-                <p className="text-2xl font-bold text-slate-800">{archivedVideos.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <ArchiveIcon className="w-6 h-6 text-gray-600" />
+              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <ArchiveIcon className="w-5 h-5 lg:w-6 lg:h-6 text-gray-600" />
               </div>
             </div>
           </div>
@@ -913,33 +941,34 @@ export default function VideoDashboard() {
 
         {/* Content Management Section */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="p-6 border-b border-slate-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h3 className="text-xl font-semibold text-slate-800">Your Videos</h3>
+          <div className="p-4 lg:p-6 border-b border-slate-200">
+            <div className="flex flex-col md:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <h3 className="text-lg lg:text-xl font-semibold text-slate-800">Your Videos</h3>
               <button
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm lg:text-base"
                 onClick={() => setShowCreateModal(true)}
               >
                 <PlusIcon className="w-4 h-4 mr-2" />
-                Upload New Video
+                <span className="hidden sm:inline">Upload New Video</span>
+                <span className="sm:hidden">Upload</span>
               </button>
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg mb-4">
+            <div className="flex flex-col md:flex-row space-x-1 bg-slate-100 p-2 rounded-lg mb-4">
               <button
                 onClick={() => {
                   setActiveTab("active")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                  }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <VideoIcon className="w-4 h-4" />
-                  <span>Active Videos</span>
-                  <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs">
+                <div className="flex items-center justify-center space-x-1 lg:space-x-2">
+                  <VideoIcon className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span className="hidden sm:inline">Active Videos</span>
+                  <span className="sm:hidden">Active</span>
+                  <span className="bg-slate-200 text-slate-700 px-1.5 lg:px-2 py-0.5 rounded-full text-xs">
                     {activeVideos.length}
                   </span>
                 </div>
@@ -949,22 +978,39 @@ export default function VideoDashboard() {
                   setActiveTab("archived")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                  }`}
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <ArchiveIcon className="w-4 h-4" />
-                  <span>Archived</span>
-                  <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs">
+                <div className="flex items-center justify-center space-x-1 lg:space-x-2">
+                  <ArchiveIcon className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span className="hidden sm:inline">Archived</span>
+                  <span className="sm:hidden">Archive</span>
+                  <span className="bg-slate-200 text-slate-700 px-1.5 lg:px-2 py-0.5 rounded-full text-xs">
                     {archivedVideos.length}
+                  </span>
+                </div>
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("rejected")
+                  setFilterStatus("all")
+                }}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "rejected" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                  }`}
+              >
+                <div className="flex items-center justify-center space-x-1 lg:space-x-2">
+                  <XIcon className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span className="hidden sm:inline">Rejected</span>
+                  <span className="sm:hidden">Reject</span>
+                  <span className="bg-red-100 text-red-700 px-1.5 lg:px-2 py-0.5 rounded-full text-xs">
+                    {rejectedVideos.length}
                   </span>
                 </div>
               </button>
             </div>
 
             {/* Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -972,68 +1018,190 @@ export default function VideoDashboard() {
                   placeholder={`Search ${activeTab} videos...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm lg:text-base"
                 />
               </div>
               {activeTab === "active" && (
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="px-3 lg:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm lg:text-base min-w-0 sm:min-w-[140px]"
                 >
                   <option value="all">All Status</option>
                   <option value="published">Published</option>
                   <option value="draft">Draft</option>
-                  <option value="pending_approval">Pending Approval</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="approved">Approved</option>
                 </select>
               )}
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 lg:p-6">
             {filteredContent.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3 lg:space-y-4">
                 {filteredContent.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 lg:p-4 border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
                   >
-                    <div className="flex items-start space-x-4 flex-1">
+                    <div className="flex flex-col md:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4">
                       {/* Video Thumbnail */}
                       {item.thumbnail && (
                         <div className="flex-shrink-0 relative">
-                          <Image
-                            src={getThumbnailUrl(item.thumbnail) || "/placeholder.svg?height=60&width=80"}
-                            alt={item.title}
-                            width={80}
-                            height={60}
-                            className="rounded-lg object-cover"
-                          />
+                          <div className="relative w-full h-40 sm:h-32 sm:w-48 rounded-lg sm:rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
+                            <Image
+                              src={getThumbnailUrl(item.thumbnail) || "/placeholder.svg?height=60&width=80"}
+                              alt={item.title}
+                              fill
+                              className="rounded-lg object-cover w-16 h-12 sm:w-20 sm:h-15 lg:w-20 lg:h-15"
+                            />
+                          </div>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-6 h-6 bg-black/50 rounded-full flex items-center justify-center">
-                              <PlayIcon className="w-3 h-3 text-white ml-0.5" />
+                            <div className="w-5 h-5 lg:w-6 lg:h-6 bg-black/50 rounded-full flex items-center justify-center">
+                              <PlayIcon className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-white ml-0.5" />
                             </div>
                           </div>
                           {item.duration && (
-                            <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">
+                            <div className="absolute bottom-0.5 right-0.5 lg:bottom-1 lg:right-1 bg-black/70 text-white text-xs px-1 rounded">
                               {item.duration_formatted}
                             </div>
                           )}
                         </div>
                       )}
                       <div
-                        className="flex-1 cursor-pointer"
+                        className="flex-1 cursor-pointer min-w-0"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleViewVideo(item)
                         }}
                       >
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h4 className="font-semibold text-slate-800">{item.title}</h4>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                          <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-slate-800 text-sm lg:text-base truncate">{item.title}</h4>
+                          <div className="sm:hidden relative action-menu-container flex-shrink-0 self-start sm:self-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowActionMenu(showActionMenu === item.id ? null : item.id)
+                              }}
+                              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                              disabled={Object.values(loadingActions).some((loading) => loading)}
+                            >
+                              <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
+                            </button>
+                            {showActionMenu === item.id && (
+                              <div className="absolute right-0 top-full mt-1 w-48 lg:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                                {/* View button - always show except for rejected */}
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleViewVideo(item)
+                                  }}
+                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                                >
+                                  <EyeIcon className="w-4 h-4" />
+                                  <span>View</span>
+                                </button>
+
+
+                                {/* Edit button - show for non-archived videos */}
+                                {!isArchived(item) && item.status === "draft" && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleEditVideo(item)
+                                    }}
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                                  >
+                                    <EditIcon className="w-4 h-4" />
+                                    <span>Edit</span>
+                                  </button>
+                                )}
+
+                                {!isArchived(item) && item.status === "draft" && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleSendForPublish(item.id)
+                                    }}
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
+                                    disabled={isActionLoading(item.id, "approval")}
+                                  >
+                                    {isActionLoading(item.id, "approval") ? (
+                                      <LoaderIcon className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <SendIcon className="w-4 h-4" />
+                                    )}
+                                    <span>{isActionLoading(item.id, "approval") ? "Publishing..." : "Publish"}</span>
+                                  </button>
+                                )}
+                                {!isArchived(item) && item.status === "approved" && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      updateVideoStatus(item.id, "published")
+                                    }}
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 text-emerald-600 transition-colors"
+                                    disabled={isActionLoading(item.id, "status")}
+                                  >
+                                    {isActionLoading(item.id, "status") ? (
+                                      <LoaderIcon className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <SendIcon className="w-4 h-4" />
+                                    )}
+                                    <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
+                                  </button>
+                                )}
+                                {!isArchived(item) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleArchiveVideo(item.id)
+                                    }}
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-orange-50 text-orange-600 transition-colors"
+                                    disabled={isActionLoading(item.id, "archive")}
+                                  >
+                                    {isActionLoading(item.id, "archive") ? (
+                                      <LoaderIcon className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <ArchiveIcon className="w-4 h-4" />
+                                    )}
+                                    <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
+                                  </button>
+                                )}
+                                {isArchived(item) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleUnarchiveVideo(item.id)
+                                    }}
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-green-50 text-green-600 transition-colors"
+                                    disabled={isActionLoading(item.id, "unarchive")}
+                                  >
+                                    {isActionLoading(item.id, "unarchive") ? (
+                                      <LoaderIcon className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <RefreshCwIcon className="w-4 h-4" />
+                                    )}
+                                    <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
+                                  </button>
+                                )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    openDeleteConfirmation(item.id, item.title)
+                                  }}
+                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors"
+                                >
+                                  <TrashIcon className="w-4 h-4" />
+                                  <span>Delete</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          </div>
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 ${getStatusColor(
+                            className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
                               item.status || "draft",
                               isArchived(item),
                             )}`}
@@ -1042,7 +1210,7 @@ export default function VideoDashboard() {
                             <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
                           </span>
                         </div>
-                        <div className="flex items-center space-x-4 text-xs text-slate-500">
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs text-slate-500">
                           <span className="flex items-center space-x-1">
                             <CalendarIcon className="w-3 h-3" />
                             <span>{new Date(item.created_at).toLocaleDateString()}</span>
@@ -1054,15 +1222,15 @@ export default function VideoDashboard() {
                             </span>
                           )}
                           <span className="flex items-center space-x-1">
-                            <span>👍 {item.likes} likes</span>
+                            <span>👍 {item.likes}</span>
                           </span>
                           <span className="flex items-center space-x-1">
-                            <span>💬 {item.comments_count} comments</span>
+                            <span>💬 {item.comments_count}</span>
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="relative action-menu-container">
+                    <div className="hidden sm:block relative action-menu-container flex-shrink-0 self-start sm:self-center">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -1074,44 +1242,40 @@ export default function VideoDashboard() {
                         <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
                       </button>
                       {showActionMenu === item.id && (
-                        <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                        <div className="absolute right-0 top-full mt-1 w-48 lg:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
                           {/* View button - always show except for rejected */}
-                          {item.status !== "rejected" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleViewVideo(item)
-                              }}
-                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
-                            >
-                              <EyeIcon className="w-4 h-4" />
-                              <span>View</span>
-                            </button>
-                          )}
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleViewVideo(item)
+                            }}
+                            className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                          >
+                            <EyeIcon className="w-4 h-4" />
+                            <span>View</span>
+                          </button>
+
 
                           {/* Edit button - show for non-archived videos */}
-                          {!isArchived(item) &&
-                            (item.status === "draft" ||
-                              item.status === "published" ||
-                              item.status === "pending_approval") && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleEditVideo(item)
-                                }}
-                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
-                              >
-                                <EditIcon className="w-4 h-4" />
-                                <span>Edit</span>
-                              </button>
-                            )}
-
-                          {/* Send for Approval button - only for draft videos that are not archived */}
                           {!isArchived(item) && item.status === "draft" && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                handleSendForApproval(item.id)
+                                handleEditVideo(item)
+                              }}
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                            >
+                              <EditIcon className="w-4 h-4" />
+                              <span>Edit</span>
+                            </button>
+                          )}
+
+                          {!isArchived(item) && item.status === "draft" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleSendForPublish(item.id)
                               }}
                               className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
                               disabled={isActionLoading(item.id, "approval")}
@@ -1119,13 +1283,11 @@ export default function VideoDashboard() {
                               {isActionLoading(item.id, "approval") ? (
                                 <LoaderIcon className="w-4 h-4 animate-spin" />
                               ) : (
-                                <ClockIcon className="w-4 h-4" />
+                                <SendIcon className="w-4 h-4" />
                               )}
-                              <span>{isActionLoading(item.id, "approval") ? "Sending..." : "Send for Approval"}</span>
+                              <span>{isActionLoading(item.id, "approval") ? "Publishing..." : "Publish"}</span>
                             </button>
                           )}
-
-                          {/* Publish button - only for approved videos that are not archived */}
                           {!isArchived(item) && item.status === "approved" && (
                             <button
                               onClick={(e) => {
@@ -1143,15 +1305,13 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
                             </button>
                           )}
-
-                          {/* Archive button - only for non-archived videos */}
                           {!isArchived(item) && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleArchiveVideo(item.id)
                               }}
-                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-amber-50 text-amber-600 transition-colors"
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-orange-50 text-orange-600 transition-colors"
                               disabled={isActionLoading(item.id, "archive")}
                             >
                               {isActionLoading(item.id, "archive") ? (
@@ -1162,8 +1322,6 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
                             </button>
                           )}
-
-                          {/* Unarchive button - only for archived videos */}
                           {isArchived(item) && (
                             <button
                               onClick={(e) => {
@@ -1181,6 +1339,16 @@ export default function VideoDashboard() {
                               <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
                             </button>
                           )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openDeleteConfirmation(item.id, item.title)
+                            }}
+                            className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                            <span>Delete</span>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -1219,6 +1387,48 @@ export default function VideoDashboard() {
         </div>
       </main>
 
+      {deleteConfirmation.isOpen && (
+        <div className="fixed inset-0  bg-black/50 backdrop-blur-sm  bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="flex-shrink-0">
+                <TrashIcon className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Delete Video</h3>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-500 mb-6">
+              Are you sure you want to delete "{deleteConfirmation.videoTitle}"? This action cannot be undone.
+            </p>
+
+            <div className="flex space-x-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmation({ isOpen: false, videoId: null, videoTitle: "" })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteConfirmation.videoId && handleDeleteVideo(deleteConfirmation.videoId)}
+                disabled={deleteConfirmation.videoId ? isActionLoading(deleteConfirmation.videoId, "delete") : false}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {deleteConfirmation.videoId && isActionLoading(deleteConfirmation.videoId, "delete") ? (
+                  <>
+                    <LoaderIcon className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create Video Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -1233,7 +1443,7 @@ export default function VideoDashboard() {
                 <button
                   onClick={() => {
                     setShowCreateModal(false)
-                    setVideoForm({ title: "", description: "", video: null })
+                    setVideoForm({ title: "", description: "", video: null, is_draft: true })
                     setVideoPreview(null)
                     setVideoError("")
                     setCreateError("")
@@ -1309,9 +1519,8 @@ export default function VideoDashboard() {
                     {/* Video Upload Area */}
                     {!videoPreview && (
                       <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                          isVideoDragOver ? "border-purple-500 bg-purple-50" : "border-slate-300 hover:border-slate-400"
-                        } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
+                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isVideoDragOver ? "border-purple-500 bg-purple-50" : "border-slate-300 hover:border-slate-400"
+                          } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
                         onDragOver={!isCreating ? handleVideoDragOver : undefined}
                         onDragLeave={!isCreating ? handleVideoDragLeave : undefined}
                         onDrop={!isCreating ? handleVideoDrop : undefined}
@@ -1403,13 +1612,24 @@ export default function VideoDashboard() {
                   </div>
                 </div>
 
+                <div className="mt-4 flex items-center space-x-2 gap-2">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 cursor-pointer"
+                    name="is_draft"
+                    checked={videoForm.is_draft}
+                    onChange={(e) => handleFormChange("is_draft", e.target.checked ? false : true)}
+                  />
+                  Publish content now (uncheck to save as draft)
+                </div>
+
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-6 border-t border-slate-200">
                   <button
                     type="button"
                     onClick={() => {
                       setShowCreateModal(false)
-                      setVideoForm({ title: "", description: "", video: null })
+                      setVideoForm({ title: "", description: "", video: null, is_draft: true })
                       setVideoPreview(null)
                       setVideoError("")
                       setCreateError("")
@@ -1743,3 +1963,4 @@ export default function VideoDashboard() {
     </div>
   )
 }
+
