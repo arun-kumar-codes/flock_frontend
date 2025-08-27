@@ -126,7 +126,7 @@ export default function CreatorEarningsPage() {
         earningsRes && earningsRes.status < 400 && (earningsRes.data as EarningsOverviewResponse)?.success
       const cpmOk = cpmRes && cpmRes.status < 400 && (cpmRes.data as CpmRateResponse)?.success
       if (!earningsOk) throw new Error("Failed to load earnings")
-      if (!cpmOk) throw new Error("Failed to load CPM rate")
+      if (!cpmOk) throw new Error("Failed to load RPM rate")
       const earnings = (earningsRes.data as EarningsOverviewResponse).earnings
       const cpm = cpmRes.data as CpmRateResponse
       setCurrentMonth(earnings.current_month_earnings)
@@ -178,7 +178,7 @@ export default function CreatorEarningsPage() {
       <header className="mx-auto md:px-8 pt-5 md:pt-10 pb-6">
         <h1 className="text-xl md:text-4xl font-bold tracking-tight text-slate-900">Creator Earnings</h1>
         <p className="mt-2 text-slate-600">
-          Track your current month, lifetime totals, CPM rate, and per-video earnings.
+          Track your current month, lifetime totals, RPM rate, and per-video earnings.
         </p>
       </header>
 
@@ -220,12 +220,12 @@ export default function CreatorEarningsPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">CPM Rate</p>
+                <p className="text-sm font-medium text-slate-600">RPM Rate</p>
                 {loadingStats ? (
                   <div className="h-7 w-28 bg-slate-100 animate-pulse rounded mt-2" />
                 ) : (
                   <p className="text-2xl font-bold text-slate-900 mt-1">
-                    ${cpmRate.toFixed(2)} <span className="text-sm font-normal text-slate-600">CPM</span>
+                    ${cpmRate.toFixed(2)} <span className="text-sm font-normal text-slate-600">RPM</span>
                   </p>
                 )}
                 {!loadingStats && cpmDesc ? <p className="text-xs text-slate-500 mt-1">{cpmDesc}</p> : null}
@@ -257,7 +257,7 @@ export default function CreatorEarningsPage() {
                   <th className="text-left font-semibold px-4 py-3">Date</th>
                   <th className="text-left font-semibold px-4 py-3">Video</th>
                   <th className="text-left font-semibold px-4 py-3">Watch Time</th>
-                  <th className="text-left font-semibold px-4 py-3">CPM Used</th>
+                  <th className="text-left font-semibold px-4 py-3">RPM Used</th>
                   <th className="text-left font-semibold px-4 py-3">Earnings</th>
                 </tr>
               </thead>

@@ -129,7 +129,7 @@ export default function CPMAdminPage() {
       setUpdating(true)
       const res = await updateCpm(parseFloat(rateInput))
       if (!res || res.status >= 400) throw new Error('Update failed')
-      pushToast({ title: 'CPM updated', description: `New CPM set to ${formatRate(rateInput)}.`, variant: 'success' })
+      pushToast({ title: 'RPM updated', description: `New RPM set to ${formatRate(rateInput)}.`, variant: 'success' })
       setRateInput('')
       await Promise.all([loadActive(), loadHistory()])
     } catch (e: any) {
@@ -187,10 +187,10 @@ export default function CPMAdminPage() {
 
       <header className="mx-auto px-6 sm:px-8 pt-5 pb-6">
         <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-slate-900">
-          CPM Configuration
+          RPM Configuration
         </h1>
         <p className="mt-2 text-slate-600 text-xs md:text-base">
-          View the active CPM, update the rate, and manage history.
+          View the active RPM, update the rate, and manage history.
         </p>
       </header>
 
@@ -201,7 +201,7 @@ export default function CPMAdminPage() {
             <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 px-6 py-5">
                 <h2 className="text-lg font-semibold text-slate-900">Active Configuration</h2>
-                <p className="text-sm text-slate-600">Current CPM rate and details</p>
+                <p className="text-sm text-slate-600">Current RPM rate and details</p>
               </div>
               <div className="p-6">
                 {active.loading ? (
@@ -224,7 +224,7 @@ export default function CPMAdminPage() {
                           Active
                         </span>
                         <div className="text-2xl font-semibold text-slate-900">
-                          CPM: <span className="tabular-nums">{formatRate(active.data.cpm_rate)}</span>
+                          RPM: <span className="tabular-nums">{formatRate(active.data.cpm_rate)}</span>
                         </div>
                       </div>
                     </div>
@@ -259,14 +259,14 @@ export default function CPMAdminPage() {
           <section className="lg:col-span-1">
             <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 px-6 py-5">
-                <h2 className="text-lg font-semibold text-slate-900">Update CPM</h2>
-                <p className="text-sm text-slate-600">Set a new CPM rate</p>
+                <h2 className="text-lg font-semibold text-slate-900">Update RPM</h2>
+                <p className="text-sm text-slate-600">Set a new RPM rate</p>
               </div>
               <div className="p-6">
                 <form onSubmit={onUpdate} className="space-y-4">
                   <div className="space-y-2">
                     <label htmlFor="cpm" className="text-sm font-medium text-slate-800">
-                      CPM Rate
+                      RPM Rate
                     </label>
                     <input
                       id="cpm"
@@ -333,7 +333,7 @@ export default function CPMAdminPage() {
                 <thead className="bg-slate-50 text-slate-700">
                   <tr>
                     <th className="text-left font-semibold px-4 py-3">ID</th>
-                    <th className="text-left font-semibold px-4 py-3">CPM</th>
+                    <th className="text-left font-semibold px-4 py-3">RPM</th>
                     <th className="text-left font-semibold px-4 py-3">Admin</th>
                     <th className="text-left font-semibold px-4 py-3">Created</th>
                     <th className="text-left font-semibold px-4 py-3">Updated</th>

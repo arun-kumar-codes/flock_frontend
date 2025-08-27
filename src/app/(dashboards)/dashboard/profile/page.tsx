@@ -1,16 +1,15 @@
 "use client"
-import { useState, useEffect, useRef, use } from "react"
+import { useState, useEffect } from "react"
 import type React from "react"
+import { useDispatch } from "react-redux" // Import useDispatch
 
 import { useRouter } from "next/navigation"
-import { getUserProfile, updateUserProfile, changePassword } from "@/api/user"
-import { EyeIcon, EyeOffIcon, UserIcon, KeyIcon, ChevronDownIcon } from "lucide-react"
+import { updateUserProfile, changePassword } from "@/api/user"
+import { Camera, User, Mail, Shield, Eye, EyeOff, Key } from "lucide-react"
 import Image from "next/image"
-import { useSelector } from "react-redux";
+import { useSelector } from "react-redux"
 import { setUser } from "@/slice/userSlice"
-import { useDispatch } from "react-redux";
 import Loader from "@/components/Loader"
-
 
 interface ProfileData {
   username: string
@@ -18,6 +17,7 @@ interface ProfileData {
   role: string
   imageUrl: string
   password: string
+  confirmPassword: string
 }
 
 interface PasswordData {
@@ -28,75 +28,41 @@ interface PasswordData {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("profile")
   const [isLoading, setIsLoading] = useState(true)
   const [updateLoading, setUpdateLoading] = useState(false)
   const [updatePasswordLoading, setUpdatePasswordLoading] = useState(false)
 
-  const user=useSelector((state:any)=>state.user);
+  const user = useSelector((state: any) => state.user)
 
-  //console.log(user);
-//   setUser(user);
+  const dispatch = useDispatch() // Declare useDispatch
 
-  // Profile form data
-  const [profileFormData, setProfileFormData] = useState<ProfileData>(user)
+  const [profileFormData, setProfileFormData] = useState<ProfileData>({
+    username: user.username || "",
+    email: user.email || "",
+    role: user.role || "",
+    imageUrl: user.imageUrl || "/placeholder.svg?height=80&width=80",
+    password: "",
+    confirmPassword: "",
+  })
 
-  // Password form data
   const [passwordFormData, setPasswordFormData] = useState<PasswordData>({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   })
 
-  // Error states
   const [profileErrors, setProfileErrors] = useState<any>({})
   const [passwordErrors, setPasswordErrors] = useState<any>({})
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
 
-  // Password visibility
   const [showPasswords, setShowPasswords] = useState({
     currentPassword: false,
     newPassword: false,
     confirmPassword: false,
+    profilePassword: false,
+    profileConfirmPassword: false,
   })
-
-
-  // useEffect(() => {
-  //   const fetchUserProfile = async () => {
-  //     setIsLoading(true)
-  //     const token = localStorage.getItem("access_token")
-  //     if (!token) {
-  //       router.push("/login")
-  //       return
-  //     }
-
-  //     try {
-  //       const response = await getUserProfile()
-  //       if (response.status === 200) {
-  //         const userData = response.data.user
-  //         setProfileFormData({
-  //           username: userData.username || "",
-  //           email: userData.email || "",
-  //           role: userData.role || "",
-  //           imageUrl: userData.imageUrl || "/placeholder.svg?height=80&width=80",
-  //           password: "",
-  //         })
-
-  //       } else {
-  //         setErrorMessage("Failed to fetch profile data")
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching profile:", error)
-  //       setErrorMessage("An error occurred while fetching your profile")
-  //     } finally {
-  //       setIsLoading(false)
-  //     }
-  //   }
-
-  //   // fetchUserProfile()
-  // }, [router])
-
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -104,7 +70,6 @@ export default function ProfilePage() {
       ...prev,
       [name]: value,
     }))
-    // Clear error for this field
     if (profileErrors[name]) {
       setProfileErrors((prev: any) => ({
         ...prev,
@@ -119,9 +84,8 @@ export default function ProfilePage() {
       ...prev,
       [name]: value,
     }))
-    // Clear error for this field
     if (passwordErrors[name]) {
-      setPasswordErrors((prev:any) => ({
+      setPasswordErrors((prev: any) => ({
         ...prev,
         [name]: "",
       }))
@@ -135,7 +99,7 @@ export default function ProfilePage() {
       reader.onload = (event) => {
         setProfileFormData((prev) => ({
           ...prev,
-          avatar: event.target?.result as string,
+          imageUrl: event.target?.result as string,
         }))
       }
       reader.readAsDataURL(file)
@@ -149,7 +113,6 @@ export default function ProfilePage() {
     }))
   }
 
-
   const validateProfileForm = () => {
     const errors: any = {}
 
@@ -157,10 +120,17 @@ export default function ProfilePage() {
       errors.username = "First name is required"
     }
 
-    if(!profileFormData.email.trim()){
+    if (!profileFormData.email.trim()) {
       errors.email = "Email is required"
     }
 
+    if (profileFormData.password && profileFormData.password !== profileFormData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match"
+    }
+
+    if (profileFormData.password && profileFormData.password.length > 0 && profileFormData.password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+    }
 
     setProfileErrors(errors)
     return Object.keys(errors).length === 0
@@ -196,7 +166,7 @@ export default function ProfilePage() {
       const response = await updateUserProfile(profileFormData)
       if (response.status === 200) {
         setSuccessMessage("Profile updated successfully!")
-        
+        dispatch(setUser(response.data.user))
       } else {
         setErrorMessage("Failed to update profile")
       }
@@ -238,68 +208,40 @@ export default function ProfilePage() {
     }
   }
 
-  useEffect(()=>{
-    setIsLoading(false);
-  },[])
+  useEffect(() => {
+    setIsLoading(false)
+  }, [])
 
   if (isLoading) {
-    return <><Loader/></>
+    return (
+      <>
+        <Loader />
+      </>
+    )
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">Profile Settings</h1>
-        <p className="text-slate-600">Manage your account settings and preferences</p>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6">
-        <div className="border-b border-slate-200">
-          <nav className="flex space-x-8 px-6">
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === "profile"
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <UserIcon className="w-4 h-4" />
-                <span>Profile Information</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab("password")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === "password"
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <KeyIcon className="w-4 h-4" />
-                <span>Change Password</span>
-              </div>
-            </button>
-          </nav>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6 lg:p-8">
+      <div className="mx-auto max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Profile Settings</h1>
+          <p className="text-gray-600 text-base md:text-lg">Manage your account information and security</p>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-6">
-          {activeTab === "profile" && (
-            <div className="space-y-6">
-              {/* Profile Avatar */}
-              <div className="flex items-center space-x-6">
+        {/* Combined Profile and Password Sections */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+          <div className="p-8">
+            <div className="space-y-8">
+              {/* Profile Avatar Section */}
+              <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 p-6 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-xl">
                 <div className="relative">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-slate-100">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-white shadow-lg ring-4 ring-white/20">
                     <Image
-                      src={profileFormData.imageUrl || "/placeholder.svg?height=96&width=96"}
+                      src={profileFormData.imageUrl || "/placeholder.svg?height=112&width=112"}
                       alt="Profile"
-                      width={96}
-                      height={96}
+                      width={112}
+                      height={112}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -313,244 +255,178 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => document.getElementById("profileImageInput")?.click()}
-                    className="absolute -bottom-2 -right-2 bg-indigo-600 hover:bg-indigo-700 rounded-full p-2 text-white shadow-lg transition-colors"
+                    className="absolute -bottom-2 -right-2 bg-white hover:bg-gray-50 rounded-full p-3 text-blue-600 shadow-lg transition-all duration-200 border-2 border-blue-600 hover:scale-105"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+                    <Camera className="w-4 h-4" />
                   </button>
                 </div>
-                <div>
-                  <h3 className="text-lg font-medium text-slate-800">Profile Photo</h3>
-                  <p className="text-sm text-slate-600">Upload a new profile photo</p>
+                <div className="text-center sm:text-left">
+                  <h3 className="text-xl font-semibold text-white mb-1">Profile Photo</h3>
+                  <p className="text-blue-100">Click the camera icon to upload a new photo</p>
                 </div>
               </div>
 
-              {/* Profile Form */}
-              <div className="grid grid-cols-1  gap-6">
-                {/* Name Fields */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">User Name</label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={profileFormData.username}
-                    onChange={handleProfileChange}
-                    placeholder="Enter first name"
-                    className={`w-full px-3.5 py-2.5 bg-white rounded-lg border ${
-                      profileErrors.username ? "border-red-300" : "border-slate-300"
-                    } text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500`}
-                  />
-                  {profileErrors.username && <p className="text-red-500 text-sm mt-1">{profileErrors.username}</p>}
-                </div>
-
-
-                {/* Contact Fields */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={profileFormData.email}
-                    onChange={handleProfileChange}
-                    disabled={user.email?true:false}
-                    className={`w-full px-3.5 py-2.5 ${user.email? "bg-slate-100" : "bg-white"} rounded-lg border border-slate-300 text-slate-500`}
-                  />
-                </div>
-
-
-             
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Role</label>
-                  <input
-                    type="text"
-                    name="role"
-                    value={profileFormData.role}
-                    disabled
-                    className="w-full px-3.5 py-2.5 bg-slate-100 rounded-lg border border-slate-300 text-slate-500"
-                  />
-                </div>
-
-
-                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={profileFormData.password}
-                    onChange={handleProfileChange}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-slate-500"
-                  />
-                </div>
-
-              </div>
-
-              {/* Messages */}
-              {successMessage && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                  <p className="text-emerald-800">{successMessage}</p>
-                </div>
-              )}
-              {errorMessage && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800">{errorMessage}</p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={handleProfileSubmit}
-                  disabled={updateLoading}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${
-                    updateLoading ? "bg-indigo-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
-                  } text-white`}
-                >
-                  {updateLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Updating...</span>
+              {/* Combined Profile Information and Password Change Sections */}
+              <div className="grid grid-cols-1 gap-8">
+                {/* Profile Information */}
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-2">
+                      <User className="h-5 w-5 text-white" />
                     </div>
-                  ) : (
-                    "Update Profile"
-                  )}
-                </button>
-                {/* <button type="button" className="text-sm text-slate-500 hover:text-red-600 transition-colors">
-                  Delete Account
-                </button> */}
-              </div>
-            </div>
-          )}
+                    <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
+                  </div>
 
-          {activeTab === "password" && (
-            <div className="space-y-6 max-w-md">
-              <div>
-                <h3 className="text-lg font-medium text-slate-800 mb-2">Change Password</h3>
-                <p className="text-sm text-slate-600">Enter your current password to change your password</p>
-              </div>
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                      <input
+                        type="text"
+                        name="username"
+                        value={profileFormData.username}
+                        onChange={handleProfileChange}
+                        placeholder="Enter username"
+                        className={`w-full px-4 py-3 bg-white rounded-lg border-2 transition-all duration-200 ${
+                          profileErrors.username
+                            ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                            : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
+                        } text-gray-900 focus:outline-none focus:ring-4`}
+                      />
+                      {profileErrors.username && <p className="text-red-500 text-sm mt-2">{profileErrors.username}</p>}
+                    </div>
 
-              {/* Password Fields */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Current Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPasswords.currentPassword ? "text" : "password"}
-                      name="currentPassword"
-                      value={passwordFormData.currentPassword}
-                      onChange={handlePasswordChange}
-                      placeholder="Enter current password"
-                      className="w-full px-3.5 py-2.5 pr-10 bg-white rounded-lg border border-slate-300 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                          type="email"
+                          name="email"
+                          value={profileFormData.email}
+                          onChange={handleProfileChange}
+                          disabled={user.email ? true : false}
+                          className={`w-full pl-12 pr-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+                            user.email
+                              ? "bg-gray-50 text-gray-500 border-gray-200"
+                              : "bg-white text-gray-900 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-200"
+                          } focus:outline-none`}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                      <div className="relative">
+                        <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                          type="text"
+                          name="role"
+                          value={profileFormData.role}
+                          disabled
+                          className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-lg border-2 border-gray-200 text-gray-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Password (Optional)</label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.profilePassword ? "text" : "password"}
+                          name="password"
+                          value={profileFormData.password}
+                          onChange={handleProfileChange}
+                          placeholder="Enter new password"
+                          className={`w-full px-4 py-3 pr-12 bg-white rounded-lg border-2 transition-all duration-200 ${
+                            profileErrors.password
+                              ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                              : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
+                          } text-gray-900 focus:outline-none focus:ring-4`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility("profilePassword")}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {showPasswords.profilePassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                      {profileErrors.password && <p className="text-red-500 text-sm mt-2">{profileErrors.password}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.profileConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          value={profileFormData.confirmPassword}
+                          onChange={handleProfileChange}
+                          placeholder="Confirm your password"
+                          className={`w-full px-4 py-3 pr-12 bg-white rounded-lg border-2 transition-all duration-200 ${
+                            profileErrors.confirmPassword
+                              ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                              : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
+                          } text-gray-900 focus:outline-none focus:ring-4`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility("profileConfirmPassword")}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {showPasswords.profileConfirmPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
+                      {profileErrors.confirmPassword && (
+                        <p className="text-red-500 text-sm mt-2">{profileErrors.confirmPassword}</p>
+                      )}
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => togglePasswordVisibility("currentPassword")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      onClick={handleProfileSubmit}
+                      disabled={updateLoading}
+                      className={`w-full px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                        updateLoading
+                          ? "bg-blue-400 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700 hover:shadow-lg transform hover:scale-[1.02]"
+                      } text-white`}
                     >
-                      {showPasswords.currentPassword ? (
-                        <EyeOffIcon className="w-5 h-5" />
+                      {updateLoading ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Updating Profile...</span>
+                        </div>
                       ) : (
-                        <EyeIcon className="w-5 h-5" />
+                        "Update Profile"
                       )}
                     </button>
                   </div>
-                  {passwordErrors.currentPassword && (
-                    <p className="text-red-500 text-sm mt-1">{passwordErrors.currentPassword}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">New Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPasswords.newPassword ? "text" : "password"}
-                      name="newPassword"
-                      value={passwordFormData.newPassword}
-                      onChange={handlePasswordChange}
-                      placeholder="Enter new password"
-                      className="w-full px-3.5 py-2.5 pr-10 bg-white rounded-lg border border-slate-300 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => togglePasswordVisibility("newPassword")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      {showPasswords.newPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  {passwordErrors.newPassword && (
-                    <p className="text-red-500 text-sm mt-1">{passwordErrors.newPassword}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Confirm New Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPasswords.confirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={passwordFormData.confirmPassword}
-                      onChange={handlePasswordChange}
-                      placeholder="Confirm new password"
-                      className="w-full px-3.5 py-2.5 pr-10 bg-white rounded-lg border border-slate-300 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => togglePasswordVisibility("confirmPassword")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      {showPasswords.confirmPassword ? (
-                        <EyeOffIcon className="w-5 h-5" />
-                      ) : (
-                        <EyeIcon className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  {passwordErrors.confirmPassword && (
-                    <p className="text-red-500 text-sm mt-1">{passwordErrors.confirmPassword}</p>
-                  )}
                 </div>
               </div>
 
-              {/* Messages */}
-              {successMessage && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                  <p className="text-emerald-800">{successMessage}</p>
-                </div>
-              )}
-              {errorMessage && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800">{errorMessage}</p>
-                </div>
-              )}
-
-              {/* Action Button */}
-              <div className="pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={handlePasswordSubmit}
-                  disabled={updatePasswordLoading}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${
-                    updatePasswordLoading ? "bg-indigo-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
-                  } text-white`}
-                >
-                  {updatePasswordLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Updating...</span>
+              {(successMessage || errorMessage) && (
+                <div className="space-y-4">
+                  {successMessage && (
+                    <div className="bg-emerald-50 border-l-4 border-emerald-400 rounded-lg p-4">
+                      <p className="text-emerald-800 font-medium">{successMessage}</p>
                     </div>
-                  ) : (
-                    "Update Password"
                   )}
-                </button>
-              </div>
+                  {errorMessage && (
+                    <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
+                      <p className="text-red-800 font-medium">{errorMessage}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
-

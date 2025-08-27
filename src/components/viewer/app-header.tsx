@@ -98,23 +98,23 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
         <div className="flex items-center space-x-4">
           <div className="flex flex-col justify-center">
             <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
+              <h1 className="text-xl md:text-2xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
               {/* <Sparkles className="w-5 h-5 theme-text-accent animate-pulse" /> */}
             </div>
-            <p className="text-sm theme-text-secondary mt-1 font-medium opacity-80">{getPageDescription()}</p>
+            <p className="text-xs md:text-sm theme-text-secondary mt-1 font-medium opacity-80">{getPageDescription()}</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center ml-2 space-x-2 md:space-x-4">
           <button
             onClick={toggleTheme}
             className="p-3 rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDark ? (
-              <Sun className="w-5 h-5 theme-text-primary group-hover:rotate-180 transition-transform duration-500" />
+              <Sun className="w-4 h-4 md:w-5 md:h-5 theme-text-primary group-hover:rotate-180 transition-transform duration-500" />
             ) : (
-              <Moon className="w-5 h-5 theme-text-primary group-hover:rotate-12 transition-transform duration-300" />
+              <Moon className="w-4 h-4 md:w-5 md:h-5 theme-text-primary group-hover:rotate-12 transition-transform duration-300" />
             )}
           </button>
 
@@ -125,7 +125,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
               className="flex items-center space-x-3 px-6 py-3 rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
               title="View Profile"
             >
-              <User className="w-5 h-5 theme-text-primary group-hover:scale-110 transition-transform duration-300" />
+              <User className="w-4 h-4 md:w-5 md:h-5 theme-text-primary group-hover:scale-110 transition-transform duration-300" />
               <span className="text-sm font-semibold theme-text-primary hidden sm:block">
                 {user?.username || "Profile"}
               </span>

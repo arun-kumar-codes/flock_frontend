@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { signInWithPopup, GoogleAuthProvider, 
-  // FacebookAuthProvider,
+  FacebookAuthProvider,
   //  TwitterAuthProvider,
     signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import google from "@/assets/google.svg"
-// import facebook from "@/assets/facebook.svg"
+import facebook from "@/assets/facebook.svg"
 // import x from "@/assets/x.svg"
 import Image from "next/image"
 // import { LogOutIcon, Router } from "lucide-react"
@@ -31,7 +31,7 @@ const SocialLogin = () => {
       setUser(loggedInUser)
       // Optional: get Firebase token for backend auth
       const fireBaseIdtoken = await loggedInUser.getIdToken()
-
+      console.log("Firebase ID Token:", fireBaseIdtoken);
      const response= await logInWithSocial({
         idToken: fireBaseIdtoken});
 
@@ -43,7 +43,15 @@ const SocialLogin = () => {
 
           localStorage.setItem("access_token", access_token);
           localStorage.setItem("refresh_token", refresh_token);
-        router.push("dashboard/profile")
+
+          const userData = response.data;
+          console.log("User Data:", userData);
+
+          if(userData.is_new_user){
+          router.push("dashboard/profile");
+           }else{
+            router.push("/dashboard");
+           }
         }else{
           // Handle login error
           console.error("Login failed:", response.data);
@@ -85,7 +93,7 @@ const SocialLogin = () => {
             <span className="font-medium">{isLoading === "google" ? "Connecting..." : "Continue with Google"}</span>
           </button>
 
-          {/* <button
+          <button
             onClick={() => loginWithProvider(new FacebookAuthProvider(), "facebook")}
             disabled={isLoading !== null}
             className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-blue-600 text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -96,7 +104,7 @@ const SocialLogin = () => {
               <Image src={facebook || "/placeholder.svg"} alt="Facebook" className="w-5 h-5" />
             )}
             <span className="font-medium">{isLoading === "facebook" ? "Connecting..." : "Continue with Facebook"}</span>
-          </button> */}
+          </button>
 {/* 
           <button
             onClick={() => loginWithProvider(new TwitterAuthProvider(), "twitter")}

@@ -676,10 +676,10 @@ export default function BlogsPage() {
 
         {/* View Modal */}
         {showViewModal && blogToView && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center sm:p-4 z-[60]">
             <div
               ref={viewModalRef}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden transform transition-all duration-200"
+              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col transform transition-all duration-200"
             >
               <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-8 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -700,17 +700,17 @@ export default function BlogsPage() {
                 {/* Blog Header */}
                 <div className="mb-8">
                   {blogToView.image && (
-                    <div className="mb-6">
+                    <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden">
                       <Image
                         src={blogToView.image || "/placeholder.svg"}
                         alt={blogToView.title}
                         width={800}
                         height={400}
-                        className="w-full h-80 object-cover rounded-2xl shadow-lg"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   )}
-                  <h1 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">{blogToView.title}</h1>
+                  <h1 className="text-4xl font-bold text-gray-900 mt-4 md:mt-0 mb-6 leading-tight">{blogToView.title}</h1>
 
                   <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-6">
                     <div className="flex items-center space-x-3">

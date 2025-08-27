@@ -82,21 +82,7 @@ export default function AdminDashboard() {
         setVideos(videosResponse.videos)
       }
 
-      // Fetch pending blogs
-      const pendingBlogsResponse = await getBlogByStatus("pending_approval")
-      if (pendingBlogsResponse?.data?.blogs) {
-        setPendingBlogs(pendingBlogsResponse.data.blogs)
-      } else if (pendingBlogsResponse?.blogs) {
-        setPendingBlogs(pendingBlogsResponse.blogs)
-      }
 
-      // Fetch pending videos
-      const pendingVideosResponse = await getVideoByStatus("pending_approval")
-      if (pendingVideosResponse?.data?.videos) {
-        setPendingVideos(pendingVideosResponse.data.videos)
-      } else if (pendingVideosResponse?.videos) {
-        setPendingVideos(pendingVideosResponse.videos)
-      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
     }
@@ -139,15 +125,7 @@ export default function AdminDashboard() {
       color: "red",
       href: "/admin/videos",
       subtitle: `${totalViews} views, ${totalVideoLikes} likes`,
-    },
-    {
-      title: "Pending Approval",
-      value: totalPendingBlogs + totalPendingVideos,
-      icon: ClockIcon,
-      color: "yellow",
-      href: "/admin/pending",
-      subtitle: `${totalPendingBlogs} blogs, ${totalPendingVideos} videos`,
-    },
+    }
   ]
 
   const getColorClasses = (color: string) => {
@@ -174,7 +152,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         {stats.map((stat) => (
           <Link key={stat.title} href={stat.href}>
             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer">

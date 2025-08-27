@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation"
 import { EyeIcon, FlameIcon as FireIcon, HeartIcon } from "lucide-react"
 import { useSelector } from "react-redux"
 import Loader from "@/components/Loader"
-import TrendingVideosTab from "@/components/viewer/TrendingVideos"
+import TrendingContent from "@/components/viewer/TrendingContent"
 import MostViewedTab from "@/components/viewer/MostViewed"
 import MostLikedTab from "@/components/viewer/MostLiked"
-import VideoPage from "./videos/page"
+import DashboardPage from "@/components/viewer/dashboard-page"
 
 export default function ViewerDashboard() {
   const router = useRouter()
@@ -69,13 +69,13 @@ export default function ViewerDashboard() {
   const renderContent = () => {
     switch (activeFilter) {
       case "trending":
-        return <TrendingVideosTab />
+        return <TrendingContent />
       case "most-viewed":
         return <MostViewedTab />
       case "most-liked":
         return <MostLikedTab />
       default:
-        return <VideoPage />
+        return <DashboardPage />
     }
   }
 
@@ -91,7 +91,7 @@ export default function ViewerDashboard() {
                 activeFilter === null ? "theme-button-primary shadow-md" : "theme-button-secondary theme-border"
               }`}
             >
-              All Videos
+              All
             </button>
 
             {/* Filter buttons */}

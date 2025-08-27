@@ -33,10 +33,9 @@ interface VideoModalProps {
   video: any
   onClose: () => void
   onToggleLike: (videoId: number) => void
-  onToggleFavorite: (videoId: number) => void
   onRefreshVideos: () => void
 }
-export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onRefreshVideos }: VideoModalProps) {
+export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: VideoModalProps) {
   const user = useSelector((state: any) => state.user)
   const [newComment, setNewComment] = useState("")
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
@@ -51,7 +50,7 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
   const commentMenuRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isFollowing, setFollowing] = useState(video.is_following) // State to track
-
+  const [likeAnimation, setLikeAnimation] = useState(false);
   const router=useRouter();
   const watchTimeRef = useRef(0) // Use ref to ensure we have the latest value in cleanup
   // Update ref whenever totalWatchTime changes
@@ -174,14 +173,14 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
 
   const handleRoute=()=>{
 
-      //console.log(user);
+    //console.log(user);
 
         if(!user||!user.isLogin){
-            router.push("/login");
-            return true;
-        }
+      router.push("/login");
+      return true;
+    }
 
-        return false;
+    return false;
 
   }
 
@@ -190,7 +189,7 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
     e.preventDefault()
 
     if(handleRoute()){
-        return;
+      return;
     }
     if (!newComment.trim()) return
     try {
@@ -238,20 +237,23 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
     //console.log("Click on like");
 
      if(handleRoute()){
-       return;
-    }
+      return
+    } 
+
+    setLikeAnimation(true)
+    setTimeout(()=> setLikeAnimation(false), 500)
 
     //console.log(user);
     try {
-       onToggleLike(video.id)
+      onToggleLike(video.id)
     } catch (error) {
       console.error("Error toggling like:", error)
     }
   }
   const handleClick = async () => {
     if(handleRoute()){
-       return;
-   }
+      return;
+    }
     setIsLoading(true)
     try {
       if (isFollowing) {
@@ -296,9 +298,9 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                 className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium
         ${
           isFollowing
-            ? "theme-button-secondary theme-text-secondary hover:theme-text-primary theme-border"
-            : "theme-button-primary text-white hover:opacity-90"
-        }
+                    ? "theme-button-secondary theme-text-secondary hover:theme-text-primary theme-border"
+                    : "theme-button-primary text-white hover:opacity-90"
+                  }
         disabled:opacity-60 disabled:cursor-not-allowed
       `}
               >
@@ -345,8 +347,8 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                   />
                 </div>
               </div>
-            </div>
-          </div>
+                </div>
+              </div>
           {/* Video Description */}
           <div className="p-6 theme-border-b">
             <div className="prose prose-slate max-w-none">
@@ -360,11 +362,11 @@ export function VideoModal({ video, onClose, onToggleLike, onToggleFavorite, onR
                 onClick={handleLike}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   video.is_liked
-                    ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
-                    : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
-                }`}
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                  : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
+                  }`}
               >
-                <ThumbsUpIcon className={`w-5 h-5 ${video.is_liked ? "fill-current" : ""}`} />
+                <ThumbsUpIcon className={`w-5 h-5 ${video.is_liked ? "fill-current" : ""} ${likeAnimation ? "animate-pop-purple" : ""}`} />
                 <span>{video.likes} Likes</span>
               </button>
             </div>

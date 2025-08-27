@@ -27,21 +27,21 @@ const navigationItems = [
     href: "/dashboard/videos",
     icon: Video,
   },
- {
-  name:"Followers",
-  href: "/dashboard/followers",
-  icon: Building2Icon,
- },
-   {
-  name:"Analytics",
-  href: "/dashboard/analytics",
-  icon: FileChartColumnIncreasing,
- },
- {
-  name:"Payout",
-  href:"/dashboard/payout",
-  icon:BadgeDollarSign 
- }
+  {
+    name: "Followers",
+    href: "/dashboard/followers",
+    icon: Building2Icon,
+  },
+  {
+    name: "Analytics",
+    href: "/dashboard/analytics",
+    icon: FileChartColumnIncreasing,
+  },
+  {
+    name: "Payout",
+    href: "/dashboard/payout",
+    icon: BadgeDollarSign
+  }
 ]
 
 export default function DashboardLayout({
@@ -79,6 +79,18 @@ export default function DashboardLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  const handleMouseEnter = () => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setIsExpanded(true)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setIsExpanded(false)
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("access_token")
     localStorage.removeItem("refresh_token")
@@ -88,21 +100,20 @@ export default function DashboardLayout({
     setShowLogoutConfirm(false)
   }
 
-  
-  
+
+
   const currentPageName = navigationItems.find((item) => item.href === pathname)?.name || "Dashboard";
 
-  if (user.loading || user.role.toLowerCase() !== "creator") return <Loader2/>
+  if (user.loading || user.role.toLowerCase() !== "creator") return <Loader2 />
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`bg-white shadow-lg transition-all duration-300 ease-in-out ${
-          isExpanded ? "w-64" : "w-16"
-        } flex flex-col border-r border-gray-200 overflow-hidden`}
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
+        className={`bg-white shadow-lg transition-all duration-300 ease-in-out ${isExpanded ? "w-64" : "w-16"
+          } flex flex-col border-r border-gray-200 overflow-hidden`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Logo/Brand */}
         <div className="flex items-center h-16 border-b border-gray-200 px-3 min-w-0">
@@ -123,9 +134,8 @@ export default function DashboardLayout({
               <div key={item.name} className="relative">
                 <Link
                   href={item.href}
-                  className={`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 group min-w-0 ${
-                    isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
+                  className={`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 group min-w-0 ${isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    }`}
                 >
                   <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
                     <Icon
@@ -148,11 +158,11 @@ export default function DashboardLayout({
 
 
         {/* User Profile */}
-        <div className="p-3 border-t border-gray-200 relative group "  onClick={()=>router.push("/dashboard/profiles")}>
+        <div className="p-3 border-t border-gray-200 relative group " onClick={() => router.push("/dashboard/profiles")}>
           <div className="flex items-center min-w-0 cursor-pointer">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
-                src={user.profileImage||profileImg}
+                src={user.profileImage || profileImg}
                 alt="User Avatar"
                 width={32}
                 height={32}
@@ -215,7 +225,7 @@ export default function DashboardLayout({
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden"  >
                         <Image
-                          src={user.profileImage||profileImg}
+                          src={user.profileImage || profileImg}
                           alt="User Avatar"
                           width={40}
                           height={40}
@@ -223,8 +233,8 @@ export default function DashboardLayout({
                         />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{user?.username || user?.name }</p>
-                        <p className="text-sm text-gray-600">{user?.email }</p>
+                        <p className="font-medium text-gray-900">{user?.username || user?.name}</p>
+                        <p className="text-sm text-gray-600">{user?.email}</p>
                       </div>
                     </div>
                   </div>
@@ -263,8 +273,8 @@ export default function DashboardLayout({
               </div>
 
               {/* Right Section - Actions */}
-              <div className="flex items-center space-x-4">     
-                         
+              <div className="flex items-center space-x-4">
+
 
                 {/* Creator Badge */}
                 <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">

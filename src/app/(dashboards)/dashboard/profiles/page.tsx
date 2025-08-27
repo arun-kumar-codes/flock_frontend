@@ -107,18 +107,18 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 md:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-          <p className="text-lg text-gray-600">Manage your account information and preferences</p>
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 py-4 md:py-0 md:mb-2">Profile Settings</h1>
+          <p className="text-sm md:text-lg text-gray-600">Manage your account information and preferences</p>
         </div>
 
         {/* Main Profile Card */}
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
           {/* Hero Section */}
-          <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
+          <div className="relative h-40 md:h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
           </div>
 
@@ -134,7 +134,7 @@ export default function ProfilePage() {
                     onClick={handleAvatarClick}
                     title="Change profile picture"
                   >
-                    <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
+                    <div className="h-28 w-28 md:h-40 md:w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
                       <img
                         src={profileImage || "/placeholder.svg?height=160&width=160&query=profile"}
                         alt={username}
@@ -163,8 +163,8 @@ export default function ProfilePage() {
                 {/* User Info Cards */}
                 <div className="w-full space-y-4">
                   <div className="text-center lg:text-left">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{initialUser.username}</h2>
-                    <p className="text-gray-600 text-lg mb-4">Welcome back!</p>
+                    <h2 className="text-xl md:text-3xl font-bold text-gray-900 md:mb-2">{initialUser.username}</h2>
+                    <p className="text-gray-600 text-sm md:text-lg mb-4">Welcome back!</p>
                   </div>
 
                   {/* Info Cards */}
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
                       <div className="flex items-center space-x-3">
                         <div className="bg-blue-500 rounded-lg p-2">
-                          <Mail className="h-5 w-5 text-white" />
+                          <Mail className="md:h-5 md:w-5 h-4 w-4 text-white" />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-600">Email</p>
@@ -184,7 +184,7 @@ export default function ProfilePage() {
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
                       <div className="flex items-center space-x-3">
                         <div className="bg-purple-500 rounded-lg p-2">
-                          <Shield className="h-5 w-5 text-white" />
+                          <Shield className="md:h-5 md:w-5 h-4 w-4 text-white" />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-600">Role</p>
@@ -198,15 +198,15 @@ export default function ProfilePage() {
 
               {/* Right Side - Edit Form */}
               <div className="lg:w-2/3">
-                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 shadow-lg border border-gray-100">
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-4 md:p-8 shadow-lg border border-gray-100">
                   <div className="mb-8">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-2">
-                        <User className="h-6 w-6 text-white" />
+                        <User className="h-4 w-4 md:h-6 md:w-6 text-white" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900">Edit Profile</h3>
+                      <h3 className="text-lg md:text-2xl font-bold text-gray-900">Edit Profile</h3>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-sm md:text-base">
                       Update your profile information. Your email address cannot be changed for security reasons.
                     </p>
                   </div>
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Enter your username"
                             required
-                            className="w-full h-14 rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
+                            className="w-full h-10 md:h-14 rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm md:text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
                           />
                         </div>
                       </div>
@@ -240,15 +240,15 @@ export default function ProfilePage() {
                             type="email"
                             value={initialUser.email}
                             disabled
-                            className="w-full h-14 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-base text-gray-500 cursor-not-allowed"
+                            className="w-full h-10 md:h-14 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-sm md:text-base text-gray-500 cursor-not-allowed"
                           />
                           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                             <div className="bg-gray-400 rounded-full p-1">
-                              <Mail className="h-4 w-4 text-white" />
+                              <Mail className="h-3 w-3 md:h-4 md:w-4 text-white" />
                             </div>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-500 mt-2">Email cannot be changed for security reasons</p>
+                        <p className="text-xs md:text-sm text-gray-500 mt-2">Email cannot be changed for security reasons</p>
                       </div>
                     </div>
 
@@ -258,14 +258,14 @@ export default function ProfilePage() {
                         type="button"
                         onClick={handleCancel}
                         disabled={!hasChanges()}
-                        className="flex-1 sm:flex-none px-8 py-4 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-200"
+                        className="flex-1 sm:flex-none px-8 md:py-4 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-200"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isSaving || !hasChanges()}
-                        className="flex-1 sm:flex-none px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100"
+                        className="flex-1 sm:flex-none px-8 md:py-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100"
                       >
                         {isSaving ? (
                           <div className="flex items-center justify-center space-x-2">

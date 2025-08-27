@@ -320,7 +320,6 @@ export default function TrendingBlogsTab() {
           blog={selectedBlog}
           onClose={closeBlogModal}
           onToggleLike={handleToggleLike}
-          onToggleFavorite={handleToggleFavorite}
           onRefreshBlogs={handleRefreshBlogs}
         />
       )}

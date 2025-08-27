@@ -229,6 +229,18 @@ export async function deleteComment( commentId: any) {
   }
 }
 
+
+export async function  getDashboardContent(creatorId?:string|undefined) {
+  try {
+    const response = await axiosInstance.get(`/content/dashboard${creatorId?`?creator_id=${creatorId}`:""}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error deleting comment:", error);
+    return error.response;
+  }
+}
+
+
 export async function createVideo(data: any) {
   try {
     const response = await axiosInstance.post('/video/create', data, {
@@ -392,6 +404,16 @@ export async function getAllTrendingVideo() {
     return response;
   } catch (error:any) {
     console.error("Error fetching all videos:", error);
+    return error.response;
+  }
+}
+
+export async function getAllTrendingContent() {
+  try {
+    const response = await axiosInstance.get("/content/trending");
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching video by creator:", error);
     return error.response;
   }
 }

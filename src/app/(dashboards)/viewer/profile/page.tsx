@@ -115,12 +115,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen theme-bg-primary transition-colors duration-300 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen theme-bg-primary transition-colors duration-300 md:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold theme-text-primary mb-2">Profile Settings</h1>
-          <p className="text-lg theme-text-secondary">Manage your account information and preferences</p>
+        <div className="mb-6 md:mb-8 text-center">
+          <h1 className="text-2xl md:text-4xl font-bold theme-text-primary mb-2">Profile Settings</h1>
+          <p className="text-sm md:text-lg theme-text-secondary">Manage your account information and preferences</p>
         </div>
 
         {/* Main Profile Card */}
@@ -131,7 +131,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Content */}
-          <div className="relative px-6 md:px-8 lg:px-12 pb-12 -mt-24">
+          <div className="relative md:px-8 lg:px-12 pb-12 -mt-24">
             <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-12 space-y-8 lg:space-y-0">
               {/* Left Side - Profile Display */}
               <div className="flex flex-col items-center lg:items-start space-y-6 lg:w-1/3">
@@ -142,7 +142,7 @@ export default function ProfilePage() {
                     onClick={handleAvatarClick}
                     title="Change profile picture"
                   >
-                    <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
+                    <div className="w-28 h-28 md:h-40 md:w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
                       <img
                         src={profileImage || "/placeholder.svg?height=160&width=160&query=profile"}
                         alt={username}
@@ -171,8 +171,8 @@ export default function ProfilePage() {
                 {/* User Info Cards */}
                 <div className="w-full space-y-4">
                   <div className="text-center lg:text-left">
-                    <h2 className="text-3xl font-bold theme-text-primary mb-2">{user.username}</h2>
-                    <p className="theme-text-secondary text-lg mb-4">Welcome back!</p>
+                    <h2 className="text-xl md:text-3xl font-bold theme-text-primary mb-2">{user.username}</h2>
+                    <p className="theme-text-secondary text-base md:text-lg mb-2 md:mb-4">Welcome back!</p>
                   </div>
 
                   {/* Info Cards */}
@@ -180,11 +180,11 @@ export default function ProfilePage() {
                     <div className="theme-bg-secondary rounded-xl p-4 theme-border">
                       <div className="flex items-center space-x-3">
                         <div className="bg-blue-500 rounded-lg p-2">
-                          <Mail className="h-5 w-5 text-white" />
+                          <Mail className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                         <div>
                           <p className="text-sm font-medium theme-text-muted">Email</p>
-                          <p className="theme-text-primary font-semibold">{user.email}</p>
+                          <p className="theme-text-primary font-semibold text-sm md:text-base">{user.email}</p>
                         </div>
                       </div>
                     </div>
@@ -192,11 +192,11 @@ export default function ProfilePage() {
                     <div className="theme-bg-secondary rounded-xl p-4 theme-border">
                       <div className="flex items-center space-x-3">
                         <div className="bg-purple-500 rounded-lg p-2">
-                          <Shield className="h-5 w-5 text-white" />
+                          <Shield className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                         <div>
                           <p className="text-sm font-medium theme-text-muted">Role</p>
-                          <p className="theme-text-primary font-semibold capitalize">{user.role}</p>
+                          <p className="theme-text-primary font-semibold capitalize text-sm md:text-base">{user.role}</p>
                         </div>
                       </div>
                     </div>
@@ -206,15 +206,15 @@ export default function ProfilePage() {
 
               {/* Right Side - Edit Form */}
               <div className="lg:w-2/3">
-                <div className="theme-bg-secondary rounded-2xl p-8 shadow-lg theme-border">
+                <div className="theme-bg-secondary rounded-2xl p-4 md:p-8 shadow-lg theme-border">
                   <div className="mb-8">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-2">
-                        <User className="h-6 w-6 text-white" />
+                        <User className="w-5 h-5 md:h-6 md:w-6 text-white" />
                       </div>
-                      <h3 className="text-2xl font-bold theme-text-primary">Edit Profile</h3>
+                      <h3 className="text-lg md:text-2xl font-bold theme-text-primary">Edit Profile</h3>
                     </div>
-                    <p className="theme-text-secondary">
+                    <p className="theme-text-secondary text-sm md:text-base">
                       Update your profile information. Your email address cannot be changed for security reasons.
                     </p>
                   </div>
@@ -233,7 +233,7 @@ export default function ProfilePage() {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Enter your username"
                             required
-                            className="w-full h-14 rounded-xl theme-input px-4 py-3 text-base theme-text-primary placeholder:theme-text-muted transition-all duration-200"
+                            className="w-full h-10 md:h-14 rounded-xl theme-input px-4 py-3 text-sm md:text-base theme-text-primary placeholder:theme-text-muted transition-all duration-200"
                           />
                         </div>
                       </div>
@@ -248,15 +248,15 @@ export default function ProfilePage() {
                             type="email"
                             value={user.email}
                             disabled
-                            className="w-full h-14 rounded-xl theme-input px-4 py-3 text-base theme-text-muted cursor-not-allowed opacity-60"
+                            className="w-full h-10 md:h-14 rounded-xl theme-input px-4 py-3 text-sm md:text-base theme-text-muted cursor-not-allowed opacity-60"
                           />
                           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                             <div className="bg-gray-400 rounded-full p-1">
-                              <Mail className="h-4 w-4 text-white" />
+                              <Mail className="h-3 w-3 md:h-4 md:w-4 text-white" />
                             </div>
                           </div>
                         </div>
-                        <p className="text-sm theme-text-muted mt-2">Email cannot be changed for security reasons</p>
+                        <p className="text-xs md:text-sm theme-text-muted mt-2">Email cannot be changed for security reasons</p>
                       </div>
                     </div>
 
@@ -266,14 +266,14 @@ export default function ProfilePage() {
                         type="button"
                         onClick={handleCancel}
                         disabled={!hasChanges()}
-                        className="flex-1 sm:flex-none px-8 py-4 rounded-xl theme-button-secondary font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 sm:flex-none px-8 py-2 md:py-4 rounded-xl theme-button-secondary font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isSaving || !hasChanges()}
-                        className="flex-1 sm:flex-none px-8 py-4 rounded-xl theme-button-primary text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100"
+                        className="flex-1 sm:flex-none px-8 py-2 md:py-4 rounded-xl theme-button-primary text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100"
                       >
                         {isSaving ? (
                           <div className="flex items-center justify-center space-x-2">

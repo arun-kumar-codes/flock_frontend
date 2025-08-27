@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
       'imagedelivery.net',
     ],
   },
+    reactStrictMode: false,
 };
 
 export default nextConfig;

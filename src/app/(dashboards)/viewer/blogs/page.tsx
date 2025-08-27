@@ -93,6 +93,7 @@ export default function BlogPageRedesigned() {
   const [showBlogModal, setShowBlogModal] = useState(false)
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
+  const [likeAnimation, setLikeAnimation] = useState<{[key:number]: boolean}>({})
   const contentMenuRef = useRef<HTMLDivElement>(null)
 
   const isDark=user.theme==="dark";
@@ -255,18 +256,44 @@ export default function BlogPageRedesigned() {
     return `${readTime} min read`
   }
 
-  const toggleFavorite = (blogId: number) => {
-    setBlogs((prev) => prev.map((blog) => (blog.id === blogId ? { ...blog, isFavorite: !blog.isFavorite } : blog)))
-  }
-
   const toggleLike = async (blogId: number) => {
-    try {
-      await toggleBlogLike(blogId)
-      fetchUpdatedBlogs()
-    } catch (error) {
-      console.error("Error toggling blog like:", error)
-    }
+  // 1. Optimistic update
+  setBlogs((prev) =>
+    prev.map((blog) =>
+      blog.id === blogId
+        ? {
+            ...blog,
+            is_liked: !blog.is_liked,
+            likes: blog.is_liked ? blog.likes - 1 : blog.likes + 1,
+          }
+        : blog
+    )
+  );
+
+  // 2. Trigger animation
+  setLikeAnimation((prev) => ({ ...prev, [blogId]: true }));
+  setTimeout(() => {
+    setLikeAnimation((prev) => ({ ...prev, [blogId]: false }));
+  }, 500);
+
+  try {
+    await toggleBlogLike(blogId);
+  } catch (error) {
+    console.error("Error toggling blog like:", error);
+    // Revert optimistic update on error
+    setBlogs((prev) =>
+      prev.map((blog) =>
+        blog.id === blogId
+          ? {
+              ...blog,
+              is_liked: !blog.is_liked,
+              likes: blog.is_liked ? blog.likes - 1 : blog.likes + 1,
+            }
+          : blog
+      )
+    );
   }
+};
 
 
 
@@ -312,28 +339,28 @@ export default function BlogPageRedesigned() {
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-      <div className="  px-4 sm:px-6 lg:px-8 py-0">
+      <div className="lg:px-8 py-0">
         {/* Header */}
-        {/* <div className="mb-8 flex gap-5">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <BookOpenIcon className="w-6 h-6 text-white" />
+        {/* <div className="mb-8 flex gap-5 items-center justify-center mt-2">
+              <div className="md:w-12 md:h-12 w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <BookOpenIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
-          <h1 className="text-3xl font-bold theme-text-primary mb-2">Recent blog posts</h1>
+          <h1 className="text-xl md:text-3xl font-bold theme-text-primary mb-2">Recent blog posts</h1>
         </div> */}
 
    
 
         {/* Search and Filter */}
-        <div className=" mb-8 p-2">
+        <div className="mb-8 p-2">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 theme-text-muted" />
+              <SearchIcon className="absolute left-1.5 md:left-4 top-1/2 transform -translate-y-1/2 w-3 h-3 md:w-5 md:h-5 theme-text-muted" />
               <input
                 type="text"
                 placeholder="Search articles by title, author, or content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 theme-input rounded-xl theme-text-primary placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full pl-6 md:pl-12 pr-4 py-3 theme-input rounded-xl theme-text-primary placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-xs md:text-base"
               />
             </div>
             <div className="flex flex-col md:flex-row gap-3">
@@ -342,7 +369,7 @@ export default function BlogPageRedesigned() {
                 <select
                   value={selectedFollowing}
                   onChange={(e) => setSelectedFollowing(e.target.value)}
-                  className="pl-10 pr-8 py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
                   disabled={isLoadingFollowing}
                 >
                   <option value="all">All Creators</option>
@@ -360,7 +387,7 @@ export default function BlogPageRedesigned() {
                   fetchFollowingData()
                 }}
                 disabled={isLoading}
-                className="flex items-center space-x-2 px-6 py-3 theme-button-primary rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-6 py-2 md:py-3 theme-button-primary rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
               >
                 <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                 <span>{isLoading ? "Loading..." : "Refresh"}</span>
@@ -450,7 +477,7 @@ export default function BlogPageRedesigned() {
                               : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
                           }`}
                         >
-                          <ThumbsUpIcon className={`w-4 h-4 ${currentBlogs[0].is_liked ? "fill-current" : ""}`} />
+                          <ThumbsUpIcon className={`w-4 h-4 ${currentBlogs[0].is_liked ? "fill-current" : ""} ${likeAnimation[currentBlogs[0].id] ? "animate-pop" : ""}`} />
                           <span>{currentBlogs[0].likes}</span>
                         </button>
                       </div>
@@ -506,7 +533,7 @@ export default function BlogPageRedesigned() {
                             : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
                         }`}
                       >
-                        <ThumbsUpIcon className={`w-3 h-3 ${blog.is_liked ? "fill-current" : ""}`} />
+                        <ThumbsUpIcon className={`w-3 h-3 ${blog.is_liked ? "fill-current" : ""} ${likeAnimation[blog.id] ? "animate-pop" : ""}`} />
                         <span>{blog.likes}</span>
                       </button>
                     </div>
@@ -574,7 +601,6 @@ export default function BlogPageRedesigned() {
             blog={selectedBlog}
             onClose={() => setShowBlogModal(false)}
             onToggleLike={toggleLike}
-            onToggleFavorite={toggleFavorite}
             onRefreshBlogs={fetchUpdatedBlogs}
             // isDark={isDark}
           />

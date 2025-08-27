@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { HomeIcon, BookOpenIcon, VideoIcon, UserIcon, LogOutIcon, TrendingUpIcon } from "lucide-react"
 import Image from "next/image"
@@ -43,17 +43,31 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
   const router = useRouter()
   const user = useSelector((state: any) => state.user)
   const [isExpanded, setIsExpanded] = useState(false)
+  // const [isMobile, setIsMobile] = useState(false)
 
   const dispatch = useDispatch()
 
+  // useEffect(()=> {
+  //   const handleResize = ()=>{
+  //     setIsMobile(window.innerWidth < 768)
+  //   }
+  //   handleResize()
+  //   window.addEventListener("resize", handleResize)
+  //   return ()=> window.removeEventListener("resize", handleResize)
+  // }, [])
+
   const handleMouseEnter = () => {
-    setIsExpanded(true)
-    onExpandChange?.(true)
+    if(window.matchMedia("(min-width: 768px)").matches){
+      setIsExpanded(true)
+      onExpandChange?.(true)
+    }
   }
 
   const handleMouseLeave = () => {
-    setIsExpanded(false)
-    onExpandChange?.(false)
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setIsExpanded(false)
+      onExpandChange?.(false)
+    }
   }
 
   const handleLogout = () => {

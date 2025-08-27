@@ -71,6 +71,7 @@ interface Comment {
 }
 
 interface VideoType {
+  reason_for_rejection: string | null
   video_id: any
   creator: any
   id: number
@@ -458,7 +459,7 @@ export default function VideoDashboard() {
       setActionLoading(videoId, "delete", false)
       setShowActionMenu(null)
       setDeleteConfirmation({ isOpen: false, videoId: null, videoTitle: "" })
-      fetchUserVideos();
+      fetchUserVideos()
     }
   }
 
@@ -606,9 +607,9 @@ export default function VideoDashboard() {
             prev.videos?.map((video) =>
               video.id === editVideoForm.id
                 ? {
-                  ...video,
-                  ...updatedVideo,
-                }
+                    ...video,
+                    ...updatedVideo,
+                  }
                 : video,
             ) || [],
         }))
@@ -865,12 +866,28 @@ export default function VideoDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto p-1 md:px-6 lg:px-8 md:py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Video Management</h2>
-          <p className="text-slate-600 text-sm md:text-base">Manage your videos and track your performance</p>
-        </div>
+        <div className="mb-6 sm:mb-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
+            <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <h1 className="text-xl md:text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-800 via-red-500 to-purple-900 bg-clip-text text-transparent mb-2 sm:mb-3">
+                    Video Management
+                  </h1>
+                  <p className="text-slate-600 text-sm md:text-base lg:text-lg">
+                    Manage Yuor Videos and track your performance.
+                  </p>
+                </div>
+                <div className="flex justify-center sm:justify-end">
+                  <div className="w-10 h-10 md:w-12 md:h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <VideoIcon className="w-5 h-5 md:w-6 md:h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
         {/* Success/Error Messages */}
         {(fetchError || updateError) && (
@@ -961,8 +978,9 @@ export default function VideoDashboard() {
                   setActiveTab("active")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                  }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                }`}
               >
                 <div className="flex items-center justify-center space-x-1 lg:space-x-2">
                   <VideoIcon className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -978,8 +996,9 @@ export default function VideoDashboard() {
                   setActiveTab("archived")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                  }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                }`}
               >
                 <div className="flex items-center justify-center space-x-1 lg:space-x-2">
                   <ArchiveIcon className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -995,8 +1014,9 @@ export default function VideoDashboard() {
                   setActiveTab("rejected")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "rejected" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                  }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "rejected" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                }`}
               >
                 <div className="flex items-center justify-center space-x-1 lg:space-x-2">
                   <XIcon className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -1041,7 +1061,7 @@ export default function VideoDashboard() {
                 {filteredContent.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 lg:p-4 border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:p-4 border-b md:border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
                   >
                     <div className="flex flex-col md:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4">
                       {/* Video Thumbnail */}
@@ -1076,129 +1096,130 @@ export default function VideoDashboard() {
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                           <div className="flex items-center justify-between">
-                          <h4 className="font-semibold text-slate-800 text-sm lg:text-base truncate">{item.title}</h4>
-                          <div className="sm:hidden relative action-menu-container flex-shrink-0 self-start sm:self-center">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setShowActionMenu(showActionMenu === item.id ? null : item.id)
-                              }}
-                              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                              disabled={Object.values(loadingActions).some((loading) => loading)}
-                            >
-                              <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
-                            </button>
-                            {showActionMenu === item.id && (
-                              <div className="absolute right-0 top-full mt-1 w-48 lg:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
-                                {/* View button - always show except for rejected */}
+                            <h4 className="font-semibold text-slate-800 text-sm lg:text-base truncate">{item.title}</h4>
+                            <div className="sm:hidden relative action-menu-container flex-shrink-0 self-start sm:self-center">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setShowActionMenu(showActionMenu === item.id ? null : item.id)
+                                }}
+                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                disabled={Object.values(loadingActions).some((loading) => loading)}
+                              >
+                                <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
+                              </button>
+                              {showActionMenu === item.id && (
+                                <div className="absolute right-0 top-full mt-1 w-48 lg:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                                  {/* View button - always show except for rejected */}
 
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleViewVideo(item)
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
-                                >
-                                  <EyeIcon className="w-4 h-4" />
-                                  <span>View</span>
-                                </button>
-
-
-                                {/* Edit button - show for non-archived videos */}
-                                {!isArchived(item) && item.status === "draft" && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
-                                      handleEditVideo(item)
+                                      handleViewVideo(item)
                                     }}
                                     className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
                                   >
-                                    <EditIcon className="w-4 h-4" />
-                                    <span>Edit</span>
+                                    <EyeIcon className="w-4 h-4" />
+                                    <span>View</span>
                                   </button>
-                                )}
 
-                                {!isArchived(item) && item.status === "draft" && (
+                                  {/* Edit button - show for non-archived videos */}
+                                  {!isArchived(item) && item.status === "draft" && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleEditVideo(item)
+                                      }}
+                                      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                                    >
+                                      <EditIcon className="w-4 h-4" />
+                                      <span>Edit</span>
+                                    </button>
+                                  )}
+
+                                  {!isArchived(item) && item.status === "draft" && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleSendForPublish(item.id)
+                                      }}
+                                      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
+                                      disabled={isActionLoading(item.id, "approval")}
+                                    >
+                                      {isActionLoading(item.id, "approval") ? (
+                                        <LoaderIcon className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <SendIcon className="w-4 h-4" />
+                                      )}
+                                      <span>{isActionLoading(item.id, "approval") ? "Publishing..." : "Publish"}</span>
+                                    </button>
+                                  )}
+                                  {!isArchived(item) && item.status === "approved" && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        updateVideoStatus(item.id, "published")
+                                      }}
+                                      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 text-emerald-600 transition-colors"
+                                      disabled={isActionLoading(item.id, "status")}
+                                    >
+                                      {isActionLoading(item.id, "status") ? (
+                                        <LoaderIcon className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <SendIcon className="w-4 h-4" />
+                                      )}
+                                      <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
+                                    </button>
+                                  )}
+                                  {!isArchived(item) && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleArchiveVideo(item.id)
+                                      }}
+                                      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-orange-50 text-orange-600 transition-colors"
+                                      disabled={isActionLoading(item.id, "archive")}
+                                    >
+                                      {isActionLoading(item.id, "archive") ? (
+                                        <LoaderIcon className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <ArchiveIcon className="w-4 h-4" />
+                                      )}
+                                      <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
+                                    </button>
+                                  )}
+                                  {isArchived(item) && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleUnarchiveVideo(item.id)
+                                      }}
+                                      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-green-50 text-green-600 transition-colors"
+                                      disabled={isActionLoading(item.id, "unarchive")}
+                                    >
+                                      {isActionLoading(item.id, "unarchive") ? (
+                                        <LoaderIcon className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <RefreshCwIcon className="w-4 h-4" />
+                                      )}
+                                      <span>
+                                        {isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}
+                                      </span>
+                                    </button>
+                                  )}
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
-                                      handleSendForPublish(item.id)
+                                      openDeleteConfirmation(item.id, item.title)
                                     }}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
-                                    disabled={isActionLoading(item.id, "approval")}
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors"
                                   >
-                                    {isActionLoading(item.id, "approval") ? (
-                                      <LoaderIcon className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <SendIcon className="w-4 h-4" />
-                                    )}
-                                    <span>{isActionLoading(item.id, "approval") ? "Publishing..." : "Publish"}</span>
+                                    <TrashIcon className="w-4 h-4" />
+                                    <span>Delete</span>
                                   </button>
-                                )}
-                                {!isArchived(item) && item.status === "approved" && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      updateVideoStatus(item.id, "published")
-                                    }}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 text-emerald-600 transition-colors"
-                                    disabled={isActionLoading(item.id, "status")}
-                                  >
-                                    {isActionLoading(item.id, "status") ? (
-                                      <LoaderIcon className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <SendIcon className="w-4 h-4" />
-                                    )}
-                                    <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
-                                  </button>
-                                )}
-                                {!isArchived(item) && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleArchiveVideo(item.id)
-                                    }}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-orange-50 text-orange-600 transition-colors"
-                                    disabled={isActionLoading(item.id, "archive")}
-                                  >
-                                    {isActionLoading(item.id, "archive") ? (
-                                      <LoaderIcon className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <ArchiveIcon className="w-4 h-4" />
-                                    )}
-                                    <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
-                                  </button>
-                                )}
-                                {isArchived(item) && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleUnarchiveVideo(item.id)
-                                    }}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-green-50 text-green-600 transition-colors"
-                                    disabled={isActionLoading(item.id, "unarchive")}
-                                  >
-                                    {isActionLoading(item.id, "unarchive") ? (
-                                      <LoaderIcon className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <RefreshCwIcon className="w-4 h-4" />
-                                    )}
-                                    <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
-                                  </button>
-                                )}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    openDeleteConfirmation(item.id, item.title)
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors"
-                                >
-                                  <TrashIcon className="w-4 h-4" />
-                                  <span>Delete</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
@@ -1210,6 +1231,8 @@ export default function VideoDashboard() {
                             <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
                           </span>
                         </div>
+
+
                         <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs text-slate-500">
                           <span className="flex items-center space-x-1">
                             <CalendarIcon className="w-3 h-3" />
@@ -1228,6 +1251,18 @@ export default function VideoDashboard() {
                             <span>💬 {item.comments_count}</span>
                           </span>
                         </div>
+
+                          {item.status === "rejected" && item.reason_for_rejection && (
+                            <div className="my-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                              <div className="flex items-start space-x-2">
+                                <XIcon className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm font-medium text-red-800">Rejection Reason:</p>
+                                  <p className="text-sm text-red-700">{item.reason_for_rejection}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                       </div>
                     </div>
                     <div className="hidden sm:block relative action-menu-container flex-shrink-0 self-start sm:self-center">
@@ -1255,7 +1290,6 @@ export default function VideoDashboard() {
                             <EyeIcon className="w-4 h-4" />
                             <span>View</span>
                           </button>
-
 
                           {/* Edit button - show for non-archived videos */}
                           {!isArchived(item) && item.status === "draft" && (
@@ -1519,8 +1553,9 @@ export default function VideoDashboard() {
                     {/* Video Upload Area */}
                     {!videoPreview && (
                       <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isVideoDragOver ? "border-purple-500 bg-purple-50" : "border-slate-300 hover:border-slate-400"
-                          } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
+                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                          isVideoDragOver ? "border-purple-500 bg-purple-50" : "border-slate-300 hover:border-slate-400"
+                        } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
                         onDragOver={!isCreating ? handleVideoDragOver : undefined}
                         onDragLeave={!isCreating ? handleVideoDragLeave : undefined}
                         onDrop={!isCreating ? handleVideoDrop : undefined}
@@ -1618,9 +1653,9 @@ export default function VideoDashboard() {
                     className="w-4 h-4 cursor-pointer"
                     name="is_draft"
                     checked={videoForm.is_draft}
-                    onChange={(e) => handleFormChange("is_draft", e.target.checked ? false : true)}
+                    onChange={(e) => handleFormChange("is_draft", e.target.checked ? true : false)}
                   />
-                  Publish content now (uncheck to save as draft)
+                 Save as Draft
                 </div>
 
                 {/* Form Actions */}
@@ -1841,15 +1876,15 @@ export default function VideoDashboard() {
             <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-8 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex-1 pr-4">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{viewVideo.title}</h2>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-2">{viewVideo.title}</h2>
+                  <div className="flex flex-col md:flex-row items-start space-x-4 text-xs md:text-sm text-gray-600">
                     <span>by {viewVideo.creator?.username || viewVideo.author?.username}</span>
                     <span className="flex items-center space-x-1">
-                      <CalendarIcon className="w-4 h-4" />
-                      <span>{formatDate(viewVideo.created_at)}</span>
+                      <CalendarIcon className="w-3 h-3 md:w-4 md:h-4" />
+                      <span className="text-xs md:text-sm">{formatDate(viewVideo.created_at)}</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      <EyeIcon className="w-4 h-4" />
+                      <EyeIcon className="w-3 h-3 md:w-4 md:h-4" />
                       <span>{viewVideo.views || 0} views</span>
                     </span>
                     <span
@@ -1874,7 +1909,7 @@ export default function VideoDashboard() {
                 </button>
               </div>
             </div>
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className="p-4 md:p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
               {/* Video Player */}
               <div className="mb-8">
                 <div className="relative bg-black rounded-2xl overflow-hidden">
@@ -1905,8 +1940,8 @@ export default function VideoDashboard() {
 
               {/* Video Description */}
               <div className="mb-8">
-                <h4 className="text-xl font-semibold text-gray-900 mb-4">Description</h4>
-                <div className="prose prose-lg prose-slate max-w-none bg-gray-50 p-6 rounded-2xl">
+                <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Description</h4>
+                <div className="prose prose-lg prose-slate max-w-none bg-gray-50 md:p-6 rounded-2xl">
                   <TipTapContentDisplay content={viewVideo.description} />
                 </div>
               </div>
@@ -1939,16 +1974,16 @@ export default function VideoDashboard() {
                 <div className="bg-gray-50 rounded-2xl p-6">
                   <h4 className="font-semibold text-gray-900 mb-4">Creator Information</h4>
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-red-500 to-purple-600 rounded-2xl flex items-center justify-center">
                       <span className="text-white font-bold">
                         {(viewVideo.creator?.username || viewVideo.author?.username || "U").charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">
+                      <p className="font-bold text-gray-900 text-xs md:text-sm">
                         {viewVideo.creator?.username || viewVideo.author?.username}
                       </p>
-                      <p className="text-gray-600">{viewVideo.creator?.email || viewVideo.author?.email}</p>
+                      <p className="text-gray-600 text-xs md:text-sm">{viewVideo.creator?.email || viewVideo.author?.email}</p>
                       <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium mt-2">
                         {viewVideo.creator?.role || viewVideo.author?.role}
                       </span>
@@ -1963,4 +1998,3 @@ export default function VideoDashboard() {
     </div>
   )
 }
-

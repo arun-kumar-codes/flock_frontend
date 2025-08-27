@@ -136,13 +136,12 @@ export default function VideoPage() {
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null)
   const [showVideoModal, setShowVideoModal] = useState(false)
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
+  const [likeAnimation, setLikeAnimation] = useState<{[key: number]: boolean}>({})
 
   const [currentPage, setCurrentPage] = useState(0)
   const videosPerPage = 8
 
- useEffect(()=>{
-    //console.log(followings);
- },[followings]);
+
 
   const fetchFollowingData = async () => {
     setFollowingError("")
@@ -224,18 +223,14 @@ export default function VideoPage() {
     }
   }
 
-  useEffect(() => {
-  
-    fetchFollowingData()
-    
+  useEffect(() => { 
     fetchVideos()
-  }, [])
+  }, [selectedFollowing])
 
   useEffect(() => {
-    if (followings.length > 0 || selectedFollowing === "all") {
-      fetchVideos()
-    }
-  }, [selectedFollowing])
+  fetchFollowingData()
+  console.log("Fetching following data on mount")
+  }, []);
 
   const toggleFavorite = (videoId: number) => {
     setVideos((prev) =>
@@ -301,10 +296,47 @@ export default function VideoPage() {
     setShowContentMenu(null)
   }
 
-  const handleLikeToggle = (e: any, videoId: number) => {
-    e.stopPropagation()
-    toggleLike(videoId)
+  const handleLikeToggle = async (e: any, videoId: number) => {
+  e.stopPropagation();
+
+  // 1. Optimistic update
+  setVideos((prev) =>
+    prev.map((video) =>
+      video.id === videoId
+        ? {
+            ...video,
+            is_liked: !video.is_liked,
+            likes: video.is_liked ? video.likes - 1 : video.likes + 1,
+          }
+        : video
+    )
+  );
+
+  // 2. Trigger animation
+  setLikeAnimation((prev) => ({ ...prev, [videoId]: true }));
+  setTimeout(() => {
+    setLikeAnimation((prev) => ({ ...prev, [videoId]: false }));
+  }, 500);
+
+  try {
+    await toggleVideoLike(videoId);
+  } catch (error) {
+    console.error("Error toggling video like:", error);
+
+    setVideos((prev) =>
+      prev.map((video) =>
+        video.id === videoId
+          ? {
+              ...video,
+              is_liked: !video.is_liked,
+              likes: video.is_liked ? video.likes - 1 : video.likes + 1,
+            }
+          : video
+      )
+    );
   }
+};
+
 
   if (isLoading && isLoadingFollowing) {
     return <Loader />
@@ -312,98 +344,26 @@ export default function VideoPage() {
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
+      <div className="lg:px-8 py-8">
         {/* Search and Filter */}
-        <div className="mb-8 theme-border">
+        <div className="mb-4 md:mb-8 theme-border">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 theme-text-muted" />
+              <SearchIcon className="absolute left-1.5 md:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 theme-text-muted" />
               <input
                 type="text"
                 placeholder="Search videos by title, author, or content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 theme-input rounded-xl theme-text-primary placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full pl-6 md:pl-12 pr-4 py-3 theme-input rounded-xl theme-text-primary placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-xs md:text-base"
               />
             </div>
-            {/* <div className="flex gap-3">
-              <div className="relative">
-                <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 theme-text-muted" />
-                <select
-                  value={selectedFollowing}
-                  onChange={(e) => setSelectedFollowing(e.target.value)}
-                  className="pl-10 pr-8 py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  disabled={isLoadingFollowing}
-                >
-                  <option value="all">All Creators</option>
-                  {followings.map((following) => (
-                    <option key={following.id} value={following.username}>
-                      {following.username}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                onClick={() => {
-                  fetchVideos()
-                  fetchFollowingData()
-                }}
-                disabled={isLoading}
-                className="flex items-center space-x-2 px-6 py-3 theme-button-primary rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-                <span>{isLoading ? "Loading..." : "Refresh"}</span>
-              </button>
-            </div> */}
-
+       
 
             <div className="flex flex-wrap gap-4 items-center">
-  {/* Select with Filter Icon */}
-  {/* <div className="relative">
-    <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-    <select
-      value={selectedFollowing}
-      onChange={(e) => setSelectedFollowing(e.target.value)}
-      disabled={isLoadingFollowing}
-      className="pl-10 pr-8 py-3 rounded-lg min-w-[200px] bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-300 dark:border-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm text-gray-800 dark:text-gray-100"
-    >
-      <option value="all">All Creators</option>
-      {followings.map((following) => (
-        <option key={following.id} value={following.username}>
-          {following.username}
-        </option>
-      ))}
-    </select>
-  </div> */}
 
   <div className="relative">
-  <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-{/* <select
-  value={selectedFollowing}
-  onChange={(e) => setSelectedFollowing(e.target.value)}
-  disabled={isLoadingFollowing}
-  className="appearance-none pl-10 pr-8 py-3 rounded-lg min-w-[200px] 
-             bg-gray-50 dark:bg-gray-800 
-             border border-gray-300 dark:border-gray-700 
-             shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 
-             text-sm text-gray-900 dark:text-gray-200"
->
-  <option value="all">
-{  user.isLogin?
-"All Following":"All Creator"}
-  </option>
-
-
-
-  {followings.length!==0?followings.map((following) => (
-    <option key={following.id} value={following.username}>
-      {following.username}
-    </option>
-  )):
-  <option value="">No Followings</option>
-}
-</select> */}
+  <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-500 dark:text-gray-400" />
 
 <select
   value={selectedFollowing}
@@ -413,7 +373,7 @@ export default function VideoPage() {
              bg-gray-50 dark:bg-gray-800 
              border border-gray-300 dark:border-gray-700 
              shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 
-             text-sm text-gray-900 dark:text-gray-200"
+             text-xs md:text-sm text-gray-900 dark:text-gray-200"
 >
   <option value="all">
     {user.isLogin ? "All Following" : "All Creator"}
@@ -436,28 +396,22 @@ export default function VideoPage() {
 </div>
 
 
-  
 
-
-
-  {/* Refresh Button */}
   <button
     onClick={() => {
       fetchVideos();
       fetchFollowingData();
     }}
     disabled={isLoading}
-    className="flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    className="flex items-center gap-2 px-6 py-2 md:py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs md:text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+    <RefreshCwIcon className={`w-3 h-3 md:w-4 md:h-4 ${isLoading ? "animate-spin" : ""}`} />
     <span>{isLoading ? "Loading..." : "Refresh"}</span>
   </button>
 </div>
 
           </div>
         </div>
-
-        {/* Video Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {currentVideos.length > 0 ? (
             currentVideos.map((video) => {
@@ -531,7 +485,7 @@ export default function VideoPage() {
                           <p className="text-sm theme-text-secondary mt-2 truncate">
                             {video.creator?.username || "Unknown Creator"}
                           </p>
-
+6
                           <div className="flex items-center justify-between mt-auto">
                             <div className="flex items-center text-xs theme-text-muted">
                               <span>{formatViews(video.views || 0)} views</span>
@@ -545,7 +499,7 @@ export default function VideoPage() {
                                 video.is_liked ? "bg-blue-500/10 text-blue-500" : "theme-text-muted hover:text-blue-500"
                               }`}
                             >
-                              <ThumbsUpIcon className={`w-3 h-3 ${video.is_liked ? "fill-current" : ""}`} />
+                              <ThumbsUpIcon className={`w-3 h-3 ${video.is_liked ? "fill-current" : ""} ${likeAnimation[video.id] ? "animate-pop": ""}`} />
                               <span>{video.likes}</span>
                             </button>
                           </div>
@@ -614,7 +568,6 @@ export default function VideoPage() {
             video={selectedVideo}
             onClose={() => setShowVideoModal(false)}
             onToggleLike={toggleLike}
-            onToggleFavorite={toggleFavorite}
             onRefreshVideos={fetchVideos}
           />
         )}

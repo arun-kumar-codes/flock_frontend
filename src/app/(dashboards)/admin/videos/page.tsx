@@ -259,6 +259,7 @@ export default function AdminVideosPage() {
   }
 
   const handleVideoDoubleClick = (video: VideoType) => {
+    
     setVideoToView(video)
     setShowVideoModal(true)
     setShowActionMenu(null)

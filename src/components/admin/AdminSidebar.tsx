@@ -26,7 +26,7 @@ const navigationItems = [
   { name: "Videos", href: "/admin/videos", icon: VideoIcon },
   // { name: "Pending", href: "/admin/pending", icon: ClockIcon },
   // { name: "Analytics", href: "/admin/analytics", icon: BarChart3Icon },
-  {name:"CPM",href:"/admin/cpm",icon:UserRoundCheck}
+  { name: "RPM", href: "/admin/rpm", icon: UserRoundCheck }
 ]
 
 export default function AdminSidebar() {
@@ -34,20 +34,32 @@ export default function AdminSidebar() {
   const [isExpanded, setIsExpanded] = useState(false)
   const user = useSelector((state: any) => state.user)
   const dispatch = useDispatch()
-  const router=useRouter();
+  const router = useRouter();
+
+
+  const handleMouseEnter = () => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setIsExpanded(true)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setIsExpanded(false)
+    }
+  }
 
   const handleLogout = () => {
-   dispatch(logOut())
-   router.push("/login");
+    dispatch(logOut())
+    router.push("/login");
   }
 
   return (
     <div
-      className={`bg-white shadow-lg transition-all duration-300 ease-in-out ${
-        isExpanded ? "w-64" : "w-16"
-      } flex flex-col border-r border-gray-200 overflow-hidden`}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
+      className={`bg-white shadow-lg transition-all duration-300 ease-in-out ${isExpanded ? "w-64" : "w-16"
+        } flex flex-col border-r border-gray-200 overflow-hidden`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Logo/Brand */}
       <div className="flex items-center h-16 border-b border-gray-200 px-3 min-w-0">
@@ -68,9 +80,8 @@ export default function AdminSidebar() {
             <div key={item.name} className="relative">
               <Link
                 href={item.href}
-                className={`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 group min-w-0 ${
-                  isActive ? "bg-purple-100 text-purple-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
+                className={`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 group min-w-0 ${isActive ? "bg-purple-100 text-purple-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
               >
                 <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
                   <Icon
@@ -100,11 +111,11 @@ export default function AdminSidebar() {
 
       {/* User Profile Footer */}
       <div className="p-3 border-t border-gray-200 relative group">
-        <div className="flex items-center justify-between min-w-0">
+        <div className="flex flex-col md:flex-row items-center justify-between min-w-0 gap-4 md:gap-0">
           <div className="flex items-center min-w-0 flex-1">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
-                src={img}                alt="Admin Avatar"
+                src={img} alt="Admin Avatar"
                 className="w-full h-full rounded-full object-cover"
               />
             </div>
@@ -119,12 +130,11 @@ export default function AdminSidebar() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`flex items-center justify-center transition-colors duration-200 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-md ${
-              isExpanded ? "w-8 h-8 ml-2" : "w-8 h-8"
-            }`}
+            className={`flex items-center justify-center transition-colors duration-200 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-md ${isExpanded ? "w-8 h-8 ml-2" : "w-8 h-8"
+              }`}
             title="Logout"
           >
-            <LogOutIcon className="w-4 h-4" />
+            <LogOutIcon className="w-5 h-5 md:w-4 md:h-4" />
           </button>
         </div>
 

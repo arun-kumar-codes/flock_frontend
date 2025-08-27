@@ -26,11 +26,10 @@ interface BlogModalProps {
   blog: any
   onClose: () => void
   onToggleLike: (blogId: number) => void
-  onToggleFavorite: (blogId: number) => void
   onRefreshBlogs: () => void
 }
 
-export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRefreshBlogs }: BlogModalProps) {
+export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogModalProps) {
   const user = useSelector((state: any) => state.user)
   const [newComment, setNewComment] = useState("")
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
@@ -40,6 +39,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
   const commentMenuRef = useRef<HTMLDivElement>(null)
   const [isFollowing, setFollowing] = useState(blog.is_following_author)
   const [isLoading, setIsLoading] = useState(false)
+  const [likeAnimation, setLikeAnimation] = useState<{[key: number]: boolean}>({})
   const router=useRouter();
 
   useEffect(() => {
@@ -156,12 +156,23 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
   }
 
   const handleLike = async () => {
-    if(!handleRoute()){
-            return;
-      }
-    onToggleLike(blog.id)
-    onRefreshBlogs()
+  if(!handleRoute()){
+    return;
   }
+
+  // Trigger animation
+  setLikeAnimation((prev) => ({ ...prev, [blog.id]: true }));
+  setTimeout(() => {
+    setLikeAnimation((prev) => ({ ...prev, [blog.id]: false }));
+  }, 500);
+
+  try {
+    await onToggleLike(blog.id);
+    onRefreshBlogs();
+  } catch (error) {
+    console.error("Error toggling like:", error);
+  }
+};
 
   useEffect(() => {
     if (!blog.is_viewed&&user.isLogin) {
@@ -276,7 +287,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onToggleFavorite, onRef
                     : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
                 }`}
               >
-                <ThumbsUp className={`w-5 h-5 ${blog.is_liked ? "fill-current" : ""}`} />
+                <ThumbsUp className={`w-5 h-5 ${blog.is_liked ? "fill-current" : ""} ${likeAnimation[blog.id] ? "animate-pop-purple" : ""}`} />
                 <span>{blog.likes} Likes</span>
               </button>
             </div>

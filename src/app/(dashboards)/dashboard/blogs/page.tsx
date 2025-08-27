@@ -55,6 +55,7 @@ interface Author {
 }
 
 interface Blog {
+  reason_for_rejection: string | null
   id: number
   title: string
   content: string
@@ -865,7 +866,7 @@ export default function BlogsPage() {
   }
 
   // Get active (non-archived) blogs
-  const activeBlogs = userData.content?.filter((item) => !isArchived(item)) || []
+  const activeBlogs = userData.content?.filter((item) => !isArchived(item)&&item.status!=='rejected') || []
 
   // Get archived blogs
   const archivedBlogs = userData.content?.filter((item) => isArchived(item)) || []
@@ -916,7 +917,7 @@ export default function BlogsPage() {
                   </p>
                 </div>
                 <div className="flex justify-center sm:justify-end">
-                  <div className="w-10 h-10 md:w-12 md:h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 md:w-12 md:h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
                     <FileTextIcon className="w-5 h-5 md:w-6 md:h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
                   </div>
                 </div>
@@ -1025,10 +1026,11 @@ export default function BlogsPage() {
                       setActiveTab("active")
                       setFilterStatus("all")
                     }}
-                    className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg transition-all duration-300 ${activeTab === "active"
-                      ? "bg-white text-slate-900 shadow-lg scale-105"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
-                      }`}
+                    className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg transition-all duration-300 ${
+                      activeTab === "active"
+                        ? "bg-white text-slate-900 shadow-lg scale-105"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                    }`}
                   >
                     <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                       <FileTextIcon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1044,10 +1046,11 @@ export default function BlogsPage() {
                       setActiveTab("archived")
                       setFilterStatus("all")
                     }}
-                    className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg transition-all duration-300 ${activeTab === "archived"
-                      ? "bg-white text-slate-900 shadow-lg scale-105"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
-                      }`}
+                    className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg transition-all duration-300 ${
+                      activeTab === "archived"
+                        ? "bg-white text-slate-900 shadow-lg scale-105"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                    }`}
                   >
                     <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                       <ArchiveIcon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1063,10 +1066,11 @@ export default function BlogsPage() {
                       setActiveTab("rejected")
                       setFilterStatus("all")
                     }}
-                    className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg transition-all duration-300 ${activeTab === "rejected"
-                      ? "bg-white text-slate-900 shadow-lg scale-105"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
-                      }`}
+                    className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg transition-all duration-300 ${
+                      activeTab === "rejected"
+                        ? "bg-white text-slate-900 shadow-lg scale-105"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                    }`}
                   >
                     <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                       <XCircleIcon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1098,7 +1102,7 @@ export default function BlogsPage() {
                   {filteredContent.map((item) => (
                     <div
                       key={item.id}
-                      className="group flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-6 border border-slate-200/50 rounded-lg sm:rounded-xl hover:border-indigo-300 hover:shadow-lg transition-all duration-300 bg-white/50 backdrop-blur-sm hover:bg-white/80 gap-4 sm:gap-0"
+                      className="group flex flex-col sm:flex-row sm:items-center sm:justify-between sm:p-6 border-b md:border border-slate-200/50 rounded-lg sm:rounded-xl hover:border-indigo-300 hover:shadow-lg transition-all duration-300 bg-white/50 backdrop-blur-sm hover:bg-white/80 gap-4 sm:gap-0"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-4 flex-1">
                         {item.image && (
@@ -1197,7 +1201,9 @@ export default function BlogsPage() {
                                         ) : (
                                           <SendIcon className="w-4 h-4" />
                                         )}
-                                        <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Published"}</span>
+                                        <span>
+                                          {isActionLoading(item.id, "status") ? "Publishing..." : "Published"}
+                                        </span>
                                       </button>
                                     )}
                                     {/* Archive button - only for non-archived blogs */}
@@ -1233,7 +1239,9 @@ export default function BlogsPage() {
                                         ) : (
                                           <RefreshCwIcon className="w-4 h-4" />
                                         )}
-                                        <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
+                                        <span>
+                                          {isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}
+                                        </span>
                                       </button>
                                     )}
                                     <button
@@ -1260,6 +1268,7 @@ export default function BlogsPage() {
                               <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
                             </span>
                           </div>
+
                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500">
                             <span className="flex items-center space-x-1 sm:space-x-2 bg-slate-100 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg">
                               <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1285,6 +1294,25 @@ export default function BlogsPage() {
                               <span className="hidden sm:inline">comments</span>
                             </span>
                           </div>
+                          {item.status === "rejected" && item.reason_for_rejection && (
+                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                              <div className="flex items-start space-x-2">
+                                <div className="flex-shrink-0">
+                                  <svg className="w-4 h-4 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-medium text-red-800">Rejection Reason</h4>
+                                  <p className="mt-1 text-sm text-red-700">{item.reason_for_rejection}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div className="hidden sm:block relative action-menu-container self-end sm:self-center">
                           <button
@@ -1512,7 +1540,7 @@ export default function BlogsPage() {
                           fileInputRef.current.value = ""
                         }
                       }}
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors z-50"
                     >
                       <XIcon className="w-5 h-5 text-slate-500" />
                     </button>
@@ -1581,8 +1609,9 @@ export default function BlogsPage() {
                         {/* Upload Area */}
                         {!imagePreview && (
                           <div
-                            className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${isDragOver ? "border-indigo-500 bg-indigo-50" : "border-slate-300 hover:border-slate-400"
-                              }`}
+                            className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${
+                              isDragOver ? "border-indigo-500 bg-indigo-50" : "border-slate-300 hover:border-slate-400"
+                            }`}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
@@ -1641,9 +1670,9 @@ export default function BlogsPage() {
                         type="checkbox"
                         className="w-4 h-4  cursor-pointer "
                         name="is_draft"
-                        onChange={(e) => handleFormChange("is_draft", e.target.checked ? false : true)}
+                        onChange={(e) => handleFormChange("is_draft", e.target.checked ? true :false)}
                       ></input>
-                      Publish content now (uncheck to save as draft)
+                   Save as Draft
                     </div>
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
@@ -1721,7 +1750,7 @@ export default function BlogsPage() {
                           editFileInputRef.current.value = ""
                         }
                       }}
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors z-50"
                     >
                       <XIcon className="w-5 h-5 text-slate-500" />
                     </button>
@@ -1790,10 +1819,11 @@ export default function BlogsPage() {
                         {/* Upload Area */}
                         {(!editImagePreview || removeExistingImage) && (
                           <div
-                            className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${isEditDragOver
-                              ? "border-indigo-500 bg-indigo-50"
-                              : "border-slate-300 hover:border-slate-400"
-                              }`}
+                            className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${
+                              isEditDragOver
+                                ? "border-indigo-500 bg-indigo-50"
+                                : "border-slate-300 hover:border-slate-400"
+                            }`}
                             onDragOver={handleEditDragOver}
                             onDragLeave={handleEditDragLeave}
                             onDrop={handleEditDrop}
@@ -1901,7 +1931,7 @@ export default function BlogsPage() {
 
           {/* View Blog Modal */}
           {showViewModal && viewBlog && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center sm:p-4 z-[60]">
               <div
                 ref={viewModalRef}
                 className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col transform transition-all duration-200"
