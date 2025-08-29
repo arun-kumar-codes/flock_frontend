@@ -163,7 +163,7 @@ export default function VideoDashboard() {
     status: "draft",
     category: "General",
     video: null,
-    is_draft: true,
+    is_draft: false,
   })
 
   // Edit video form state
@@ -1055,24 +1055,24 @@ export default function VideoDashboard() {
             </div>
           </div>
 
-          <div className="p-4 lg:p-6">
+          <div className="p-3 lg:p-6">
             {filteredContent.length > 0 ? (
               <div className="space-y-3 lg:space-y-4">
                 {filteredContent.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:p-4 border-b md:border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:p-4 border md:border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
                   >
-                    <div className="flex flex-col md:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4">
+                    <div className="flex flex-col sm:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4">
                       {/* Video Thumbnail */}
                       {item.thumbnail && (
                         <div className="flex-shrink-0 relative">
-                          <div className="relative w-full h-40 sm:h-32 sm:w-48 rounded-lg sm:rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
+                          <div className="relative w-full h-40 sm:h-32 sm:w-48 rounded-t-lg sm:rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
                             <Image
                               src={getThumbnailUrl(item.thumbnail) || "/placeholder.svg?height=60&width=80"}
                               alt={item.title}
                               fill
-                              className="rounded-lg object-cover w-16 h-12 sm:w-20 sm:h-15 lg:w-20 lg:h-15"
+                              className="md:rounded-lg object-cover w-16 h-12 sm:w-20 sm:h-15 lg:w-20 lg:h-15"
                             />
                           </div>
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -1088,15 +1088,15 @@ export default function VideoDashboard() {
                         </div>
                       )}
                       <div
-                        className="flex-1 cursor-pointer min-w-0"
+                        className="flex-1 cursor-pointer p-2 min-w-0"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleViewVideo(item)
                         }}
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                        <div className="flex flex-col sm:flex-row flex-wrap sm:items-center gap-2 sm:gap-3 mb-2">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-slate-800 text-sm lg:text-base truncate">{item.title}</h4>
+                            <h4 className="font-semibold text-slate-800 text-sm lg:text-base line-clamp-2">{item.title}</h4>
                             <div className="sm:hidden relative action-menu-container flex-shrink-0 self-start sm:self-center">
                               <button
                                 onClick={(e) => {
@@ -1647,16 +1647,27 @@ export default function VideoDashboard() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center space-x-2 gap-2">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 cursor-pointer"
-                    name="is_draft"
-                    checked={videoForm.is_draft}
-                    onChange={(e) => handleFormChange("is_draft", e.target.checked ? true : false)}
-                  />
-                 Save as Draft
-                </div>
+              <div className="mt-4">
+  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+    <input
+      type="checkbox"
+      name="is_draft"
+      className="
+        w-5 h-5 
+        accent-indigo-600 
+        cursor-pointer 
+        rounded 
+        appearance-none
+        border border-slate-300 
+        checked:bg-indigo-600 
+        checked:border-indigo-600 
+        relative
+      "
+      onChange={(e) => handleFormChange("is_draft", e.target.checked)}
+    />
+    Save as Draft
+  </label>
+</div>
 
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-6 border-t border-slate-200">
@@ -1664,7 +1675,7 @@ export default function VideoDashboard() {
                     type="button"
                     onClick={() => {
                       setShowCreateModal(false)
-                      setVideoForm({ title: "", description: "", video: null, is_draft: true })
+                      setVideoForm({ title: "", description: "", video: null, is_draft: false })
                       setVideoPreview(null)
                       setVideoError("")
                       setCreateError("")

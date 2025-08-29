@@ -13,7 +13,8 @@ import {
   ArrowRightIcon,
 } from "lucide-react"
 import Image from "next/image"
-import { getBlog, toggleBlogLike, getCreatorBlog, getFollowings } from "@/api/content"
+import { getBlog, toggleBlogLike, getCreatorBlog, getFollowings,  } from "@/api/content"
+import { getAllCreators } from "@/api/user"
 import { useSelector } from "react-redux"
 import Loader from "@/components/Loader"
 import { BlogModal } from "@/components/viewer/blog-modal"
@@ -114,9 +115,9 @@ export default function BlogPageRedesigned() {
       return
     }
 
-    if (user.isLogin) {
+
       fetchFollowingData()
-    }
+    
     fetchBlogs()
   }, [user, router])
 
@@ -135,6 +136,14 @@ export default function BlogPageRedesigned() {
   const fetchFollowingData = async () => {
     setIsLoadingFollowing(true)
     try {
+
+      if(user.isLogin===false){
+        const response = await getAllCreators()
+        setFollowings(response.data.creators);
+        setFollowingCount(response.data.creators.length || 0)
+        setIsLoadingFollowing(false)
+        return;
+      }
       const response = await getFollowings()
       if (response?.data?.following) {
         setFollowings(response.data.following)
@@ -340,14 +349,6 @@ export default function BlogPageRedesigned() {
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
       <div className="lg:px-8 py-0">
-        {/* Header */}
-        {/* <div className="mb-8 flex gap-5 items-center justify-center mt-2">
-              <div className="md:w-12 md:h-12 w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <BookOpenIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-            </div>
-          <h1 className="text-xl md:text-3xl font-bold theme-text-primary mb-2">Recent blog posts</h1>
-        </div> */}
-
    
 
         {/* Search and Filter */}
@@ -372,7 +373,9 @@ export default function BlogPageRedesigned() {
                   className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
                   disabled={isLoadingFollowing}
                 >
-                  <option value="all">All Creators</option>
+                  <option value="all">
+    {user.isLogin ? "All Following" : "All Creator"}
+  </option>
                   {followings.map((following) => (
                     <option key={following.id} value={following.username}>
                       {following.username}
@@ -406,7 +409,7 @@ export default function BlogPageRedesigned() {
                 onClick={() => handleBlogClick(currentBlogs[0])}
               >
                 <div className="theme-bg-card rounded-2xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300">
-                  {currentBlogs[0].image && (
+                  {currentBlogs[0].image ? (
                     <div className="aspect-[16/10] relative overflow-hidden">
                       <Image
                         src={currentBlogs[0].image || "/placeholder.svg"}
@@ -415,7 +418,9 @@ export default function BlogPageRedesigned() {
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                  )}
+                  ):(  <div className="w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 flex items-center justify-center">
+                            <BookOpenIcon className="w-12 h-12 text-purple-500" />
+                          </div>)}
 
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="flex items-center justify-between mb-4">
@@ -424,33 +429,6 @@ export default function BlogPageRedesigned() {
                         <span>•</span>
                         <span>{formatDate(currentBlogs[0].created_at)}</span>
                       </div>
-                      {/* <div className="relative" ref={contentMenuRef}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setShowContentMenu(
-                              showContentMenu === currentBlogs[0].id.toString() ? null : currentBlogs[0].id.toString(),
-                            )
-                          }}
-                          className="p-2 rounded-lg theme-button-secondary hover:opacity-80 transition-colors"
-                        >
-                          <MoreVerticalIcon className="w-5 h-5 theme-text-muted" />
-                        </button>
-                        {showContentMenu === currentBlogs[0].id.toString() && (
-                          <div className="absolute right-0 top-full mt-2 w-48 theme-bg-card theme-border rounded-xl shadow-lg py-2 z-10">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleContentAction("favorite", currentBlogs[0].id)
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-2 text-left text-sm theme-text-secondary hover:theme-text-primary hover:theme-bg-hover transition-colors"
-                            >
-                              <HeartIcon className="w-4 h-4" />
-                              <span>{currentBlogs[0].isFavorite ? "Remove Favorite" : "Add Favorite"}</span>
-                            </button>
-                          </div>
-                        )}
-                      </div> */}
                     </div>
 
                     <h2 className="text-2xl font-bold mb-4 theme-text-primary group-hover:text-purple-500 transition-colors line-clamp-3">
@@ -489,18 +467,23 @@ export default function BlogPageRedesigned() {
 
             {currentBlogs.slice(1, 5).map((blog, index) => (
               <div key={blog.id} className="lg:col-span-1 group cursor-pointer" onClick={() => handleBlogClick(blog)}>
-                <div className="theme-bg-card rounded-2xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300">
-                  {blog.image && (
-                    <div className="aspect-[16/9] relative overflow-hidden">
-                      <Image
-                        src={blog.image || "/placeholder.svg"}
-                        alt={blog.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
+                <div className="theme-bg-card rounded-2xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300 ">
 
+                  <div className="aspect-[16/9] relative overflow-hidden">
+                      {blog.image ? (
+                                            <Image
+                                              src={blog.image || "/placeholder.svg"}
+                                              alt={blog.title}
+                                              fill
+                                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                          ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 flex items-center justify-center">
+                                              <BookOpenIcon className="w-8 h-8 text-purple-500" />
+                                            </div>
+                                          )}
+                  </div>
+                  
                   <div className="p-4 flex-1 flex flex-col">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2 text-xs theme-text-muted">

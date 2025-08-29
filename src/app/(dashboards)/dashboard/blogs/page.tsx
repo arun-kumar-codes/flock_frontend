@@ -1,6 +1,6 @@
 "use client"
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import {
   archiveBlog,
@@ -10,7 +10,9 @@ import {
   updateBlog,
   sendForPublish,
   deleteBlogByCreator,
+  uploadImages,
 } from "@/api/content"
+import {  getAllCreators} from "@/api/user"
 import {
   PlusIcon,
   SearchIcon,
@@ -28,7 +30,6 @@ import {
   SendIcon,
   ArchiveIcon,
   LoaderIcon,
-  ClockIcon,
   RefreshCwIcon,
   XCircleIcon,
   TrashIcon,
@@ -38,6 +39,7 @@ import { useSelector } from "react-redux"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
 import Loader2 from "@/components/Loader2"
+import { setegid } from "process"
 
 interface UserData {
   email: string
@@ -126,8 +128,70 @@ const StatsCardSkeleton = () => (
   </div>
 )
 
+export const extractBlobUrls = (htmlContent: string): string[] => {
+  const blobUrls: string[] = []
+  const imgRegex = /<img[^>]+src="(blob:[^"]+)"[^>]*>/g
+  let match
+
+  while ((match = imgRegex.exec(htmlContent)) !== null) {
+    blobUrls.push(match[1])
+  }
+
+  return blobUrls
+}
+
+export const replaceBlobUrls = (htmlContent: string, urlMapping: Record<string, string>): string => {
+  let updatedContent = htmlContent
+
+  Object.entries(urlMapping).forEach(([blobUrl, finalUrl]) => {
+    updatedContent = updatedContent.replace(new RegExp(blobUrl, "g"), finalUrl)
+  })
+
+  return updatedContent
+}
+
+export const uploadBlobImages = async (blobUrls: string[]): Promise<Record<string, string>> => {
+  const urlMapping: Record<string, string> = {}
+
+  if (blobUrls.length === 0) return urlMapping
+
+  try {
+    const formData = new FormData()
+
+    // Add all blob images to the form data
+    for (let i = 0; i < blobUrls.length; i++) {
+      const blobUrl = blobUrls[i]
+      const response = await fetch(blobUrl)
+      const blob = await response.blob()
+      formData.append("images", blob, `image-${Date.now()}-${i}.png`)
+    }
+
+    const uploadResponse = await uploadImages(formData)
+    console.log("Upload response:", uploadResponse)
+
+    const uploadedImages = uploadResponse.data.images
+
+    // Map blob URLs to uploaded URLs based on order
+    const uploadedUrls = Object.values(uploadedImages)
+    blobUrls.forEach((blobUrl, index) => {
+      if (uploadedUrls[index] && typeof uploadedUrls[index] === "string") {
+        urlMapping[blobUrl] = uploadedUrls[index] as string
+        URL.revokeObjectURL(blobUrl)
+      }
+    })
+  } catch (error) {
+    console.error(`Failed to upload images:`, error)
+    throw error
+  }
+
+  return urlMapping
+}
+
 export default function BlogsPage() {
   const router = useRouter()
+
+  const user = useSelector((state: any) => state.user)
+
   const [userData, setUserData] = useState<UserData>({
     email: "",
     username: "",
@@ -163,6 +227,8 @@ export default function BlogsPage() {
 
   // Loading states for different actions
   const [loadingActions, setLoadingActions] = useState<{ [key: string]: boolean }>({})
+  const [isPublishing, setIsPublishing] = useState<{ [key: number]: boolean }>({})
+  const [publishError, setPublishError] = useState("")
 
   // Image upload states
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -179,7 +245,7 @@ export default function BlogsPage() {
     status: "draft",
     category: "General",
     image: null,
-    is_draft: true,
+    is_draft: false,
   })
 
   // Edit blog form state
@@ -210,7 +276,7 @@ export default function BlogsPage() {
   const editFileInputRef = useRef<HTMLInputElement>(null)
   const viewModalRef = useRef<HTMLDivElement>(null)
 
-  const user = useSelector((state: any) => state.user)
+  // const user = useSelector((state: any) => state.user)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -382,7 +448,7 @@ export default function BlogsPage() {
   }
 
   // Fetch user's blogs
-  const fetchUserBlogs = async () => {
+  const fetchUserBlogs = useCallback(async () => {
     try {
       setFetchError("")
       const response = await getMyBlog()
@@ -409,7 +475,7 @@ export default function BlogsPage() {
       console.error("Error fetching user blogs:", error)
       setFetchError("Failed to fetch your blogs")
     }
-  }
+  }, [user?.id, user])
 
   // Helper function to generate excerpt
   const generateExcerpt = (content: string, maxLength = 100): string => {
@@ -427,31 +493,83 @@ export default function BlogsPage() {
       }))
       fetchUserBlogs()
     }
-  }, [user])
+  }, [user, fetchUserBlogs])
 
   // Send blog for approval
   const handlesendForPublish = async (blogId: number) => {
     try {
+      setIsPublishing((prev) => ({ ...prev, [blogId]: true }))
       setActionLoading(blogId, "approval", true)
       setUpdateError("")
+      setPublishError("")
+
+      // Find the blog to get its content
+      const blog = userData.content?.find((b) => b.id === blogId)
+      if (!blog) {
+        throw new Error("Blog not found")
+      }
+
+      // Extract blob URLs from content
+      const blobUrls = extractBlobUrls(blog.content)
+      let updatedContent = blog.content
+      let embeddedImages: string[] = []
+
+      // If there are blob URLs, upload them and replace
+      if (blobUrls.length > 0) {
+        console.log(`[v0] Found ${blobUrls.length} blob images to upload`)
+
+        try {
+          // Upload all blob images
+          const urlMapping = await uploadBlobImages(blobUrls)
+
+          // Replace blob URLs with final URLs in content
+          updatedContent = replaceBlobUrls(blog.content, urlMapping)
+
+          embeddedImages = Object.values(urlMapping)
+
+          console.log("[v0] Successfully uploaded and replaced all blob images")
+
+          const updateData = new FormData()
+          updateData.append("content", updatedContent)
+          if (embeddedImages.length > 0) {
+            updateData.append("embedded_images", JSON.stringify(embeddedImages))
+          }
+
+          await updateBlog(blogId, updateData)
+        } catch (uploadError) {
+          console.error("[v0] Image upload failed during publish:", uploadError)
+          setPublishError("Failed to upload images. Please try again.")
+          setUpdateError("Failed to upload images. Please try again.")
+          return
+        }
+      }
+
+      // Now send for publish
       const response = await sendForPublish(blogId)
       if (response?.status === 200) {
         setUserData((prev) => ({
           ...prev,
-          content: prev.content?.map((blog) => (blog.id === blogId ? { ...blog, status: "published" } : blog)) || [],
+          content:
+            prev.content?.map((blog) =>
+              blog.id === blogId ? { ...blog, status: "published", content: updatedContent } : blog,
+            ) || [],
         }))
-        setUpdateSuccess("Blog sent for approval successfully!")
+        setUpdateSuccess("Blog published successfully with all images uploaded!")
         setTimeout(() => setUpdateSuccess(""), 3000)
       } else {
         throw new Error("Failed to send blog for approval")
       }
     } catch (error: any) {
-      console.error("Error sending blog for approval:", error)
-      setUpdateError(error?.response?.data?.message || "Failed to send blog for approval")
-      setTimeout(() => setUpdateError(""), 3000)
+      console.error("Error publishing blog:", error)
+      setPublishError(error?.response?.data?.message || "Failed to publish blog")
+      setUpdateError(error?.response?.data?.message || "Failed to publish blog")
+      setTimeout(() => {
+        setPublishError("")
+        setUpdateError("")
+      }, 3000)
     } finally {
+      setIsPublishing((prev) => ({ ...prev, [blogId]: false }))
       setActionLoading(blogId, "approval", false)
-      setShowActionMenu(null)
     }
   }
 
@@ -628,21 +746,47 @@ export default function BlogsPage() {
       setUpdateError("Title must be at least 3 characters long")
       return
     }
-
     if (!editBlogForm.content.trim()) {
       setUpdateError("Content is required")
       return
     }
-
     if (editBlogForm.content.trim().length < 10) {
       setUpdateError("Content must be at least 10 characters long")
       return
     }
-
-    setIsUpdating(true)
+    setIsUpdating(true)    
 
     try {
-      // Create FormData only with changed values
+
+      const blobUrls = extractBlobUrls(editBlogForm.content)
+      let updatedContent = editBlogForm.content
+      let embeddedImages: string[] = []
+
+      // If there are blob URLs, upload them first
+      if (blobUrls.length > 0) {
+
+        try {
+          // Upload all blob images
+          const urlMapping = await uploadBlobImages(blobUrls)
+
+          console.log("urlMapping:", urlMapping)
+
+          // Replace blob URLs with final URLs in content
+          updatedContent = replaceBlobUrls(editBlogForm.content, urlMapping)
+          
+          embeddedImages = Object.values(urlMapping)
+
+          console.log("[v0] Successfully uploaded and replaced all blob images")
+        } catch (uploadError) {
+          console.error("[v0] Image upload failed:", uploadError)
+          setCreateError("Failed to upload images. Please try again.")
+          setIsCreating(false)
+          return
+        }
+      }
+
+      
+
       const formData = new FormData()
       let hasChanges = false
 
@@ -652,8 +796,8 @@ export default function BlogsPage() {
         hasChanges = true
       }
 
-      if (editBlogForm.content.trim() !== originalEditData.content) {
-        formData.append("content", editBlogForm.content.trim())
+      if (updatedContent !== originalEditData.content) {
+        formData.append("content", updatedContent)
         hasChanges = true
       }
 
@@ -688,8 +832,10 @@ export default function BlogsPage() {
         const updatedBlog = {
           ...editBlogForm,
           title: editBlogForm.title.trim(),
-          content: editBlogForm.content.trim(),
-          description: generateExcerpt(editBlogForm.content.trim()),
+          content: typeof editBlogForm.content === "string" ? editBlogForm.content.trim() : "",
+          description: generateExcerpt(
+            typeof editBlogForm.content === "string" ? editBlogForm.content.trim() : "",
+          ),
           image: response.data?.image || (removeExistingImage ? null : editBlogForm.existingImageUrl),
         }
 
@@ -759,16 +905,45 @@ export default function BlogsPage() {
     setIsCreating(true)
 
     try {
+      const blobUrls = extractBlobUrls(blogForm.content)
+      let updatedContent = blogForm.content
+      let embeddedImages: string[] = []
+
+      // If there are blob URLs, upload them first
+      if (blobUrls.length > 0) {
+
+        try {
+          // Upload all blob images
+          const urlMapping = await uploadBlobImages(blobUrls)
+
+          // Replace blob URLs with final URLs in content
+          updatedContent = replaceBlobUrls(blogForm.content, urlMapping)
+
+          embeddedImages = Object.values(urlMapping)
+
+          console.log("[v0] Successfully uploaded and replaced all blob images")
+        } catch (uploadError) {
+          console.error("[v0] Image upload failed:", uploadError)
+          setCreateError("Failed to upload images. Please try again.")
+          setIsCreating(false)
+          return
+        }
+      }
+
       const formData = new FormData()
       formData.append("title", blogForm.title.trim())
-      formData.append("content", blogForm.content.trim())
+      formData.append("content", updatedContent) // Use updated content with final URLs
       formData.append("is_draft", blogForm.is_draft ? "true" : "false")
+
+      if (embeddedImages.length > 0) {
+        formData.append("embedded_images", JSON.stringify(embeddedImages))
+      }
+
       if (blogForm.image) {
         formData.append("image", blogForm.image)
       }
 
       const response = await createBlog(formData)
-      //console.log("Create blog response:", response)
 
       if (response?.status === 200 || response?.status === 201 || response?.data) {
         setCreateSuccess("Blog created successfully!")
@@ -866,7 +1041,7 @@ export default function BlogsPage() {
   }
 
   // Get active (non-archived) blogs
-  const activeBlogs = userData.content?.filter((item) => !isArchived(item)&&item.status!=='rejected') || []
+  const activeBlogs = userData.content?.filter((item) => !isArchived(item) && item.status !== "rejected") || []
 
   // Get archived blogs
   const archivedBlogs = userData.content?.filter((item) => isArchived(item)) || []
@@ -926,12 +1101,12 @@ export default function BlogsPage() {
           </div>
 
           {/* Success/Error Messages */}
-          {(fetchError || updateError) && (
+          {(fetchError || updateError || publishError) && (
             <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex items-center space-x-2">
                   <AlertCircleIcon className="w-5 h-5 text-red-600 flex-shrink-0" />
-                  <p className="text-red-800 text-sm sm:text-base">{fetchError || updateError}</p>
+                  <p className="text-red-800 text-sm sm:text-base">{fetchError || updateError || publishError}</p>
                 </div>
                 {fetchError && (
                   <button
@@ -1096,66 +1271,64 @@ export default function BlogsPage() {
               </div>
             </div>
 
-            <div className="p-4 sm:p-6 lg:p-8">
+            <div className="p-3 sm:p-6 lg:p-8">
               {filteredContent.length > 0 ? (
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-6 sm:space-y-4">
                   {filteredContent.map((item) => (
                     <div
                       key={item.id}
-                      className="group flex flex-col sm:flex-row sm:items-center sm:justify-between sm:p-6 border-b md:border border-slate-200/50 rounded-lg sm:rounded-xl hover:border-indigo-300 hover:shadow-lg transition-all duration-300 bg-white/50 backdrop-blur-sm hover:bg-white/80 gap-4 sm:gap-0"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:p-4 border md:border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-start space-y-3 sm:space-y-0 sm:space-x-4 flex-1">
+                      <div className="flex flex-col md:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4">
+                        {/* Blog Thumbnail */}
                         {item.image && (
-                          <div className="flex-shrink-0 self-center sm:self-start w-full sm:w-auto">
-                            <div className="relative w-full h-40 sm:h-32 sm:w-48 rounded-lg sm:rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
+                          <div className="flex-shrink-0 relative">
+                            <div className="relative w-full h-40 sm:h-32 sm:w-48 rounded-t-lg sm:rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
                               <Image
-                                src={item.image || "/placeholder.svg"}
+                                src={item.image || "/placeholder.svg?height=60&width=80"}
                                 alt={item.title}
                                 fill
-                                className="object-cover"
+                                className="md:rounded-lg object-cover w-16 h-12 sm:w-20 sm:h-15 lg:w-20 lg:h-15"
                               />
                             </div>
                           </div>
                         )}
                         <div
-                          className="flex-1 cursor-pointer"
+                          className="flex-1 cursor-pointer p-2 min-w-0"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleViewBlog(item)
                           }}
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                             <div className="flex items-center justify-between">
-                              <h4 className="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors text-base sm:text-lg leading-tight">
+                              <h4 className="font-semibold text-slate-800 text-sm lg:text-base truncate">
                                 {item.title}
                               </h4>
-                              <div className="sm:hidden relative action-menu-container self-end sm:self-center">
+                              <div className="sm:hidden relative action-menu-container flex-shrink-0 self-start sm:self-center">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     setShowActionMenu(showActionMenu === item.id ? null : item.id)
                                   }}
-                                  className="p-2 sm:p-3 hover:bg-slate-100 rounded-lg sm:rounded-xl transition-all duration-200 hover:scale-110"
+                                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                                   disabled={Object.values(loadingActions).some((loading) => loading)}
                                 >
-                                  <MoreVerticalIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-hover:text-slate-700" />
+                                  <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
                                 </button>
                                 {showActionMenu === item.id && (
-                                  <div className="absolute right-0 top-full mt-2 sm:fixed sm:right-4 sm:top-1/2 sm:transform sm:-translate-y-1/2 sm:mt-0 w-48 sm:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[9999]">
-                                    {/* View button - always show except for rejected */}
-                                    {item.status !== "rejected" && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleViewBlog(item)
-                                        }}
-                                        className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
-                                      >
-                                        <EyeIcon className="w-4 h-4" />
-                                        <span>View</span>
-                                      </button>
-                                    )}
-                                    {/* Edit button - show for non-archived blogs */}
+                                  <div className="absolute right-0 top-full mt-1 w-48 lg:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleViewBlog(item)
+                                      }}
+                                      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                                    >
+                                      <EyeIcon className="w-4 h-4" />
+                                      <span>View</span>
+                                    </button>
+
                                     {!isArchived(item) && item.status === "draft" && (
                                       <button
                                         onClick={(e) => {
@@ -1168,7 +1341,7 @@ export default function BlogsPage() {
                                         <span>Edit</span>
                                       </button>
                                     )}
-                                    {/* Send for Approval button - only for draft blogs that are not archived */}
+
                                     {!isArchived(item) && item.status === "draft" && (
                                       <button
                                         onClick={(e) => {
@@ -1181,12 +1354,13 @@ export default function BlogsPage() {
                                         {isActionLoading(item.id, "approval") ? (
                                           <LoaderIcon className="w-4 h-4 animate-spin" />
                                         ) : (
-                                          <ClockIcon className="w-4 h-4" />
+                                          <SendIcon className="w-4 h-4" />
                                         )}
-                                        <span>{isActionLoading(item.id, "approval") ? "Sending..." : "Published"}</span>
+                                        <span>
+                                          {isActionLoading(item.id, "approval") ? "Publishing..." : "Publish"}
+                                        </span>
                                       </button>
                                     )}
-                                    {/* Publish button - only for approved blogs that are not archived */}
                                     {!isArchived(item) && item.status === "approved" && (
                                       <button
                                         onClick={(e) => {
@@ -1201,19 +1375,16 @@ export default function BlogsPage() {
                                         ) : (
                                           <SendIcon className="w-4 h-4" />
                                         )}
-                                        <span>
-                                          {isActionLoading(item.id, "status") ? "Publishing..." : "Published"}
-                                        </span>
+                                        <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
                                       </button>
                                     )}
-                                    {/* Archive button - only for non-archived blogs */}
-                                    {!isArchived(item) && item.status !== "rejected" && (
+                                    {!isArchived(item) && (
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation()
                                           handleArchiveBlog(item.id)
                                         }}
-                                        className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-amber-50 text-amber-600 transition-colors"
+                                        className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-orange-50 text-orange-600 transition-colors"
                                         disabled={isActionLoading(item.id, "archive")}
                                       >
                                         {isActionLoading(item.id, "archive") ? (
@@ -1224,7 +1395,6 @@ export default function BlogsPage() {
                                         <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
                                       </button>
                                     )}
-                                    {/* Unarchive button - only for archived blogs */}
                                     {isArchived(item) && (
                                       <button
                                         onClick={(e) => {
@@ -1259,7 +1429,7 @@ export default function BlogsPage() {
                               </div>
                             </div>
                             <span
-                              className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+                              className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
                                 item.status || "draft",
                                 isArchived(item),
                               )}`}
@@ -1269,192 +1439,170 @@ export default function BlogsPage() {
                             </span>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500">
-                            <span className="flex items-center space-x-1 sm:space-x-2 bg-slate-100 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg">
-                              <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span className="hidden sm:inline">{new Date(item.created_at).toLocaleDateString()}</span>
-                              <span className="sm:hidden">
-                                {new Date(item.created_at).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                })}
+                          <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs text-slate-500">
+                            <span className="flex items-center space-x-1">
+                              <CalendarIcon className="w-3 h-3" />
+                              <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                            </span>
+                            {item.views !== undefined && item.views !== null && (
+                              <span className="flex items-center space-x-1">
+                                <EyeIcon className="w-3 h-3" />
+                                <span>{item.views} views</span>
                               </span>
-                            </span>
-                            <span className="flex items-center space-x-1 sm:space-x-2 bg-blue-100 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg text-blue-700">
-                              <EyeIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span>{item.views}</span>
-                              <span className="hidden sm:inline">views</span>
-                            </span>
-                            <span className="flex items-center space-x-1 sm:space-x-2 bg-green-100 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg text-green-700">
+                            )}
+                            <span className="flex items-center space-x-1">
                               <span>👍 {item.likes}</span>
-                              <span className="hidden sm:inline">likes</span>
                             </span>
-                            <span className="flex items-center space-x-1 sm:space-x-2 bg-purple-100 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg text-purple-700">
+                            <span className="flex items-center space-x-1">
                               <span>💬 {item.comments_count}</span>
-                              <span className="hidden sm:inline">comments</span>
                             </span>
                           </div>
+
                           {item.status === "rejected" && item.reason_for_rejection && (
-                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="my-2 p-2 bg-red-50 border border-red-200 rounded-lg">
                               <div className="flex items-start space-x-2">
-                                <div className="flex-shrink-0">
-                                  <svg className="w-4 h-4 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                      clipRule="evenodd"
-                                    />
-                                  </svg>
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="text-sm font-medium text-red-800">Rejection Reason</h4>
-                                  <p className="mt-1 text-sm text-red-700">{item.reason_for_rejection}</p>
+                                <XIcon className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm font-medium text-red-800">Rejection Reason:</p>
+                                  <p className="text-sm text-red-700">{item.reason_for_rejection}</p>
                                 </div>
                               </div>
                             </div>
                           )}
                         </div>
-                        <div className="hidden sm:block relative action-menu-container self-end sm:self-center">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setShowActionMenu(showActionMenu === item.id ? null : item.id)
-                            }}
-                            className="p-2 sm:p-3 hover:bg-slate-100 rounded-lg sm:rounded-xl transition-all duration-200 hover:scale-110"
-                            disabled={Object.values(loadingActions).some((loading) => loading)}
-                          >
-                            <MoreVerticalIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-hover:text-slate-700" />
-                          </button>
-                          {showActionMenu === item.id && (
-                            <div className="absolute right-0 top-full mt-2 sm:fixed sm:right-4 sm:top-1/2 sm:transform sm:-translate-y-1/2 sm:mt-0 w-48 sm:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[9999]">
-                              {/* View button - always show except for rejected */}
-                              {item.status !== "rejected" && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleViewBlog(item)
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
-                                >
-                                  <EyeIcon className="w-4 h-4" />
-                                  <span>View</span>
-                                </button>
-                              )}
-                              {/* Edit button - show for non-archived blogs */}
-                              {!isArchived(item) && item.status === "draft" && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleEditBlog(item)
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
-                                >
-                                  <EditIcon className="w-4 h-4" />
-                                  <span>Edit</span>
-                                </button>
-                              )}
-                              {/* Send for Approval button - only for draft blogs that are not archived */}
-                              {!isArchived(item) && item.status === "draft" && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handlesendForPublish(item.id)
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
-                                  disabled={isActionLoading(item.id, "approval")}
-                                >
-                                  {isActionLoading(item.id, "approval") ? (
-                                    <LoaderIcon className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <ClockIcon className="w-4 h-4" />
-                                  )}
-                                  <span>{isActionLoading(item.id, "approval") ? "Sending..." : "Published"}</span>
-                                </button>
-                              )}
-                              {/* Publish button - only for approved blogs that are not archived */}
-                              {!isArchived(item) && item.status === "approved" && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    updateBlogStatus(item.id, "published")
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 text-emerald-600 transition-colors"
-                                  disabled={isActionLoading(item.id, "status")}
-                                >
-                                  {isActionLoading(item.id, "status") ? (
-                                    <LoaderIcon className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <SendIcon className="w-4 h-4" />
-                                  )}
-                                  <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Published"}</span>
-                                </button>
-                              )}
-                              {/* Archive button - only for non-archived blogs */}
-                              {!isArchived(item) && item.status !== "rejected" && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleArchiveBlog(item.id)
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-amber-50 text-amber-600 transition-colors"
-                                  disabled={isActionLoading(item.id, "archive")}
-                                >
-                                  {isActionLoading(item.id, "archive") ? (
-                                    <LoaderIcon className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <ArchiveIcon className="w-4 h-4" />
-                                  )}
-                                  <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
-                                </button>
-                              )}
-                              {/* Unarchive button - only for archived blogs */}
-                              {isArchived(item) && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleUnarchiveBlog(item.id)
-                                  }}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-green-50 text-green-600 transition-colors"
-                                  disabled={isActionLoading(item.id, "unarchive")}
-                                >
-                                  {isActionLoading(item.id, "unarchive") ? (
-                                    <LoaderIcon className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <RefreshCwIcon className="w-4 h-4" />
-                                  )}
-                                  <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
-                                </button>
-                              )}
+                      </div>
+                      <div className="hidden sm:block relative action-menu-container flex-shrink-0 self-start sm:self-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowActionMenu(showActionMenu === item.id ? null : item.id)
+                          }}
+                          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                          disabled={Object.values(loadingActions).some((loading) => loading)}
+                        >
+                          <MoreVerticalIcon className="w-4 h-4 text-slate-500" />
+                        </button>
+                        {showActionMenu === item.id && (
+                          <div className="absolute right-0 top-full mt-1 w-48 lg:w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleViewBlog(item)
+                              }}
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                            >
+                              <EyeIcon className="w-4 h-4" />
+                              <span>View</span>
+                            </button>
+
+                            {!isArchived(item) && item.status === "draft" && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  openDeleteConfirmation(item.id, item.title)
+                                  handleEditBlog(item)
                                 }}
-                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors"
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
                               >
-                                <TrashIcon className="w-4 h-4" />
-                                <span>Delete</span>
+                                <EditIcon className="w-4 h-4" />
+                                <span>Edit</span>
                               </button>
-                            </div>
-                          )}
-                        </div>
+                            )}
+
+                            {!isArchived(item) && item.status === "draft" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handlesendForPublish(item.id)
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-600 transition-colors"
+                                disabled={isActionLoading(item.id, "approval")}
+                              >
+                                {isActionLoading(item.id, "approval") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <SendIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "approval") ? "Publishing..." : "Publish"}</span>
+                              </button>
+                            )}
+                            {!isArchived(item) && item.status === "approved" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  updateBlogStatus(item.id, "published")
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-emerald-50 text-emerald-600 transition-colors"
+                                disabled={isActionLoading(item.id, "status")}
+                              >
+                                {isActionLoading(item.id, "status") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <SendIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "status") ? "Publishing..." : "Publish"}</span>
+                              </button>
+                            )}
+                            {!isArchived(item) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleArchiveBlog(item.id)
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-orange-50 text-orange-600 transition-colors"
+                                disabled={isActionLoading(item.id, "archive")}
+                              >
+                                {isActionLoading(item.id, "archive") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <ArchiveIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "archive") ? "Archiving..." : "Archive"}</span>
+                              </button>
+                            )}
+                            {isArchived(item) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleUnarchiveBlog(item.id)
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-green-50 text-green-600 transition-colors"
+                                disabled={isActionLoading(item.id, "unarchive")}
+                              >
+                                {isActionLoading(item.id, "unarchive") ? (
+                                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <RefreshCwIcon className="w-4 h-4" />
+                                )}
+                                <span>{isActionLoading(item.id, "unarchive") ? "Unarchiving..." : "Unarchive"}</span>
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openDeleteConfirmation(item.id, item.title)
+                              }}
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 sm:py-16">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-slate-100 to-slate-200 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     {activeTab === "active" ? (
-                      <FileTextIcon className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" />
+                      <FileTextIcon className="w-8 h-8 text-slate-400" />
                     ) : (
-                      <ArchiveIcon className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" />
+                      <ArchiveIcon className="w-8 h-8 text-slate-400" />
                     )}
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2 sm:mb-3">
-                    No {activeTab} blogs found
-                  </h3>
-                  <p className="text-slate-600 mb-4 sm:mb-6 text-base sm:text-lg px-4">
+                  <h3 className="text-lg font-medium text-slate-800 mb-2">No {activeTab} blogs found</h3>
+                  <p className="text-slate-600 mb-4">
                     {searchTerm || (activeTab === "active" && filterStatus !== "all")
                       ? "Try adjusting your search or filter criteria"
                       : activeTab === "active"
@@ -1463,10 +1611,10 @@ export default function BlogsPage() {
                   </p>
                   {!searchTerm && activeTab === "active" && filterStatus === "all" && (
                     <button
-                      className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg sm:rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-sm sm:text-base"
+                      className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                       onClick={() => setShowCreateModal(true)}
                     >
-                      <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      <PlusIcon className="w-4 h-4 mr-2" />
                       Create Your First Blog
                     </button>
                   )}
@@ -1531,7 +1679,14 @@ export default function BlogsPage() {
                     <button
                       onClick={() => {
                         setShowCreateModal(false)
-                        setBlogForm({ title: "", content: "", image: null })
+                        setBlogForm({
+                          title: "",
+                          content: "",
+                          status: "draft",
+                          category: "General",
+                          image: null,
+                          is_draft: false,
+                        })
                         setImagePreview(null)
                         setImageError("")
                         setCreateError("")
@@ -1665,15 +1820,39 @@ export default function BlogsPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center space-x-2 gap-2">
+<div className="mt-4">
+  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+    <input
+      type="checkbox"
+      name="is_draft"
+      className="
+        w-5 h-5 
+        accent-indigo-600 
+        cursor-pointer 
+        rounded 
+        appearance-none
+        border border-slate-300 
+        checked:bg-indigo-600 
+        checked:border-indigo-600 
+        relative
+      "
+      onChange={(e) => handleFormChange("is_draft", e.target.checked)}
+    />
+    Save as Draft
+  </label>
+</div>
+
+
+
+                    {/* <div className="mt-4 flex items-center space-x-2 gap-2">
                       <input
                         type="checkbox"
                         className="w-4 h-4  cursor-pointer "
                         name="is_draft"
-                        onChange={(e) => handleFormChange("is_draft", e.target.checked ? true :false)}
+                        onChange={(e) => handleFormChange("is_draft", e.target.checked ? true : false)}
                       ></input>
-                   Save as Draft
-                    </div>
+                      Save as Draft
+                    </div> */}
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
                       <button

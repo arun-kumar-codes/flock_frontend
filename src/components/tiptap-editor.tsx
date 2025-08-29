@@ -1,11 +1,11 @@
 "use client"
-
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
 import Link from "@tiptap/extension-link"
 import TextAlign from "@tiptap/extension-text-align"
 import Underline from "@tiptap/extension-underline"
+import TiptapImage from "@tiptap/extension-image"
 import {
   Bold,
   Italic,
@@ -25,8 +25,11 @@ import {
   AlignRight,
   LinkIcon,
   Type,
+  ImageIcon,
 } from "lucide-react"
-import { useCallback, useEffect } from "react"
+import { useRef } from "react"
+import { uploadImages } from "@/api/content"
+import { Attribute, mergeAttributes } from "@tiptap/core"
 
 interface TipTapEditorProps {
   content: string
@@ -35,230 +38,165 @@ interface TipTapEditorProps {
   className?: string
 }
 
+export const extractBlobUrls = (htmlContent: string): string[] => {
+  const blobUrls: string[] = []
+  const imgRegex = /<img[^>]+src="(blob:[^"]+)"[^>]*>/g
+  let match
+
+  while ((match = imgRegex.exec(htmlContent)) !== null) {
+    blobUrls.push(match[1])
+  }
+
+  return blobUrls
+}
+
+export const replaceBlobUrls = (htmlContent: string, urlMapping: Record<string, string>): string => {
+  let updatedContent = htmlContent
+
+  Object.entries(urlMapping).forEach(([blobUrl, finalUrl]) => {
+    updatedContent = updatedContent.replace(new RegExp(blobUrl, "g"), finalUrl)
+  })
+
+  return updatedContent
+}
+
+export const uploadBlobImages = async (blobUrls: string[]): Promise<Record<string, string>> => {
+  const urlMapping: Record<string, string> = {}
+
+  for (const blobUrl of blobUrls) {
+    try {
+      const response = await fetch(blobUrl)
+      const blob = await response.blob()
+
+      const formData = new FormData()
+      formData.append("file", blob, `image-${Date.now()}.png`)
+
+      const uploadResponse = await uploadImages(formData)
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`)
+      }
+
+      const data = await uploadResponse.json()
+      urlMapping[blobUrl] = data.url
+
+      URL.revokeObjectURL(blobUrl)
+    } catch (error) {
+      console.error(`Failed to upload image ${blobUrl}:`, error)
+      throw error
+    }
+  }
+
+  return urlMapping
+}
+
+// EnhancedImage extension that supports align and safe containment styles
+const EnhancedImage = TiptapImage.extend({
+  name: "image",
+
+  addAttributes(this: { parent?: () => Record<string, Attribute> }) {
+
+    return {
+
+      ...(this.parent?.() || {}),
+      // Alignment attribute: 'left' | 'center' | 'right' | null
+      align: {
+        default: null,
+        parseHTML: (element: HTMLElement) => {
+          const dataAlign = element.getAttribute("data-align")
+          if (dataAlign === "left" || dataAlign === "center" || dataAlign === "right") {
+            return dataAlign
+          }
+          const f = (element.style.float || "").toLowerCase()
+          if (f === "left") return "left"
+          if (f === "right") return "right"
+          const centered =
+            element.style.display === "block" &&
+            element.style.marginLeft === "auto" &&
+            element.style.marginRight === "auto"
+          if (centered) return "center"
+          return null
+        },
+        renderHTML: (attributes: any) => {
+          return attributes.align ? { "data-align": attributes.align } : {}
+        },
+      },
+    }
+  },
+  renderHTML({ HTMLAttributes }: any) {
+    const attrs: Record<string, any> = { ...HTMLAttributes }
+
+    let style = attrs.style ? String(attrs.style) + ";" : ""
+    // Always safe containment - ensure images never exceed container
+    style += "max-width:100%;height:auto;object-fit:contain;box-sizing:border-box;"
+
+    const align = attrs["data-align"]
+    if (align === "left") {
+      style += "float:left;margin:0 1.5rem 1rem 0;display:inline;max-width:35%;"
+    } else if (align === "right") {
+      style += "float:right;margin:0 0 1rem 1.5rem;display:inline;max-width:35%;"
+    } else if (align === "center") {
+      // Center block with auto margins
+      style += "display:block;margin-left:auto;margin-right:auto;clear:both;"
+    }
+
+    attrs.style = style
+    attrs.class = [attrs.class, "tiptap-image"].filter(Boolean).join(" ")
+
+    return ["img", mergeAttributes(this.options.HTMLAttributes, attrs)]
+  },
+})
+
 export default function TipTapEditor({
   content,
   onChange,
   placeholder = "Start writing...",
   className = "",
 }: TipTapEditorProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        bulletList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
-        orderedList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
-        listItem: {
-        },
+        bulletList: { keepMarks: true },
+        orderedList: { keepMarks: true },
         heading: {
           levels: [1, 2, 3],
+          HTMLAttributes: {
+            class: "tiptap-heading",
+          },
         },
       }),
-      Placeholder.configure({
-        placeholder,
-        emptyEditorClass: "is-editor-empty",
-      }),
-      Link.configure({
-        openOnClick: false,
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-        alignments: ["left", "center", "right"],
-      }),
+      Placeholder.configure({ placeholder }),
+      Link.configure({ openOnClick: false }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Underline,
+      EnhancedImage, // use EnhancedImage for improved image support
     ],
+    immediatelyRender: false,
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
     editorProps: {
       attributes: {
-        class:
-          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-4 max-w-none",
+        class: "tiptap-editor-content mx-auto focus:outline-none min-h-[200px] p-4 max-w-none",
       },
     },
-    immediatelyRender: false,
   })
 
-  useEffect(() => {
-    if (!editor || editor.isDestroyed) return
-    const currentHTML = editor.getHTML()
-    if (content !== currentHTML) {
-      editor.commands.setContent(content, { emitUpdate: false })
-    }
-  }, [content, editor])
-
-  const setLink = useCallback(() => {
-    const previousUrl = editor?.getAttributes("link").href
-    const url = window.prompt("Enter URL:", previousUrl)
-
-    if (url === null) return
-    if (!editor || editor.isDestroyed) return
-
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run()
-      return
-    }
-
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
-  }, [editor])
+  const isImageActive = editor?.isActive("image")
+  const setImageAlign = (align: "left" | "center" | "right") => {
+    editor?.chain().focus().updateAttributes("image", { align }).run()
+  }
 
   if (!editor) return null
 
   return (
     <div
+      ref={containerRef}
       className={`border border-slate-300 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent ${className}`}
     >
-      {/* Add custom styles */}
-      <style jsx global>{`
-        .ProseMirror {
-          outline: none;
-        }
-        
-        .ProseMirror h1 {
-          font-size: 2rem !important;
-          font-weight: bold !important;
-          line-height: 2.5rem !important;
-          margin-top: 1.5rem !important;
-          margin-bottom: 0.75rem !important;
-        }
-        
-        .ProseMirror h2 {
-          font-size: 1.5rem !important;
-          font-weight: bold !important;
-          line-height: 2rem !important;
-          margin-top: 1.25rem !important;
-          margin-bottom: 0.5rem !important;
-        }
-        
-        .ProseMirror h3 {
-          font-size: 1.25rem !important;
-          font-weight: bold !important;
-          line-height: 1.75rem !important;
-          margin-top: 1rem !important;
-          margin-bottom: 0.5rem !important;
-        }
-        
-        .ProseMirror p {
-          margin-bottom: 0.75rem !important;
-          line-height: 1.6 !important;
-        }
-        
-        .ProseMirror ul {
-          list-style-type: disc !important;
-          padding-left: 1.5rem !important;
-          margin-bottom: 0.75rem !important;
-        }
-        
-        .ProseMirror ol {
-          list-style-type: decimal !important;
-          padding-left: 1.5rem !important;
-          margin-bottom: 0.75rem !important;
-        }
-        
-        .ProseMirror li {
-          margin-bottom: 0.25rem !important;
-          line-height: 1.6 !important;
-        }
-        
-        .ProseMirror blockquote {
-          border-left: 4px solid #e5e7eb !important;
-          padding-left: 1rem !important;
-          margin: 1rem 0 !important;
-          font-style: italic !important;
-          color: #6b7280 !important;
-        }
-        
-        .ProseMirror code {
-          background-color: #f3f4f6 !important;
-          padding: 0.125rem 0.25rem !important;
-          border-radius: 0.25rem !important;
-          font-family: 'Courier New', monospace !important;
-          font-size: 0.875rem !important;
-        }
-        
-        .ProseMirror pre {
-          background-color: #1f2937 !important;
-          color: #f9fafb !important;
-          padding: 1rem !important;
-          border-radius: 0.5rem !important;
-          font-family: 'Courier New', monospace !important;
-          margin: 1rem 0 !important;
-          overflow-x: auto !important;
-        }
-        
-        .ProseMirror a {
-          color: #3b82f6 !important;
-          text-decoration: underline !important;
-        }
-        
-        .ProseMirror a:hover {
-          color: #1d4ed8 !important;
-        }
-        
-        .ProseMirror strong {
-          font-weight: bold !important;
-        }
-        
-        .ProseMirror em {
-          font-style: italic !important;
-        }
-        
-        .ProseMirror u {
-          text-decoration: underline !important;
-        }
-        
-        .ProseMirror s {
-          text-decoration: line-through !important;
-        }
-        
-        /* Text alignment */
-        .ProseMirror [style*="text-align: left"] {
-          text-align: left !important;
-        }
-        
-        .ProseMirror [style*="text-align: center"] {
-          text-align: center !important;
-        }
-        
-        .ProseMirror [style*="text-align: right"] {
-          text-align: right !important;
-        }
-        
-        /* Placeholder */
-        .ProseMirror p.is-editor-empty:first-child::before {
-          content: attr(data-placeholder);
-          float: left;
-          color: #9ca3af;
-          pointer-events: none;
-          height: 0;
-        }
-        
-        /* Remove default prose styles that might conflict */
-        .ProseMirror.prose ul {
-          list-style-type: disc !important;
-        }
-        
-        .ProseMirror.prose ol {
-          list-style-type: decimal !important;
-        }
-        
-        .ProseMirror.prose li {
-          margin-top: 0 !important;
-          margin-bottom: 0.25rem !important;
-        }
-        
-        .ProseMirror.prose h1,
-        .ProseMirror.prose h2,
-        .ProseMirror.prose h3 {
-          margin-top: 1rem !important;
-        }
-      `}</style>
-
       {/* Toolbar */}
       <div className="border-b border-slate-200 p-2 flex flex-wrap gap-1">
         {/* Text Formatting */}
@@ -430,7 +368,7 @@ export default function TipTapEditor({
         {/* Links */}
         <div className="flex items-center gap-1 pr-2 border-r border-slate-200">
           <button
-            onClick={setLink}
+            onClick={() => editor.chain().focus().toggleLink().run()}
             className={`p-2 rounded hover:bg-slate-100 transition-colors ${
               editor.isActive("link") ? "bg-slate-200 text-indigo-600" : "text-slate-600"
             }`}
@@ -462,24 +400,225 @@ export default function TipTapEditor({
             <Redo className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Image Upload */}
+        <div className="flex items-center gap-1 pl-2">
+          <button
+            type="button"
+            onClick={() => document.getElementById("imageInput")?.click()}
+            className="p-2 rounded hover:bg-slate-100 text-slate-600"
+            title="Insert Image"
+          >
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          <input
+            id="imageInput"
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (!file || !editor) return
+
+              // Allow only PNG, JPG, JPEG, GIF, WebP
+              const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"]
+              if (!allowedTypes.includes(file.type)) {
+                alert("Only PNG, JPG, JPEG, GIF, and WebP files are allowed.")
+                e.target.value = ""
+                return
+              }
+
+              // Temporary preview with blob URL
+              const tempUrl = URL.createObjectURL(file)
+              editor.chain().focus().setImage({ src: tempUrl }).updateAttributes("image", { align: "center" }).run()
+              e.target.value = ""
+            }}
+          />
+        </div>
+
+        {/* Simplified image alignment controls */}
+        {isImageActive && (
+          <div className="flex items-center gap-1 pl-2 border-l border-slate-200">
+            <span className="text-xs text-slate-500 mr-1">Align Image</span>
+            <button
+              onClick={() => setImageAlign("left")}
+              className={`p-2 rounded transition-colors ${
+                editor.getAttributes("image")?.align === "left"
+                  ? "bg-indigo-100 text-indigo-700 border border-indigo-300"
+                  : "text-slate-600 hover:bg-slate-100 border border-transparent"
+              }`}
+              type="button"
+              title="Align image left (text wraps around right)"
+            >
+              <AlignLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setImageAlign("center")}
+              className={`p-2 rounded transition-colors ${
+                editor.getAttributes("image")?.align === "center"
+                  ? "bg-indigo-100 text-indigo-700 border border-indigo-300"
+                  : "text-slate-600 hover:bg-slate-100 border border-transparent"
+              }`}
+              type="button"
+              title="Center image (block display)"
+            >
+              <AlignCenter className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setImageAlign("right")}
+              className={`p-2 rounded transition-colors ${
+                editor.getAttributes("image")?.align === "right"
+                  ? "bg-indigo-100 text-indigo-700 border border-indigo-300"
+                  : "text-slate-600 hover:bg-slate-100 border border-transparent"
+              }`}
+              type="button"
+              title="Align image right (text wraps around left)"
+            >
+              <AlignRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Editor Content */}
-      <div className="min-h-[200px]">
+      <div className="min-h-[200px] overflow-hidden">
         <EditorContent editor={editor} />
+        <div className="clear-both" />
       </div>
 
-      {/* Debug info - remove this in production */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="text-xs text-gray-500 p-2 border-t">
-          Active: {editor.isActive("heading", { level: 1 }) ? "H1 " : ""}
-          {editor.isActive("heading", { level: 2 }) ? "H2 " : ""}
-          {editor.isActive("heading", { level: 3 }) ? "H3 " : ""}
-          {editor.isActive("bulletList") ? "UL " : ""}
-          {editor.isActive("orderedList") ? "OL " : ""}
-          {editor.isActive("bold") ? "Bold " : ""}
-        </div>
-      )}
+      <style jsx global>{`
+        /* Updated editor container to handle floated content properly */
+        .tiptap-editor-content {
+          overflow: hidden;
+          font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+          font-size: 1rem;
+          line-height: 1.75;
+          color: #374151;
+        }
+        
+        .tiptap-editor-content::after {
+          content: "";
+          display: table;
+          clear: both;
+        }
+        
+        /* More specific selectors targeting the editor content directly */
+        .tiptap-editor-content h1,
+        .tiptap-editor-content .tiptap-heading[data-level="1"] {
+          font-size: 2.25rem !important;
+          font-weight: 800 !important;
+          line-height: 1.2 !important;
+          margin: 1.5rem 0 1rem 0 !important;
+          color: #1f2937 !important;
+          display: block !important;
+        }
+        
+        .tiptap-editor-content h2,
+        .tiptap-editor-content .tiptap-heading[data-level="2"] {
+          font-size: 1.875rem !important;
+          font-weight: 700 !important;
+          line-height: 1.3 !important;
+          margin: 1.25rem 0 0.75rem 0 !important;
+          color: #1f2937 !important;
+          display: block !important;
+        }
+        
+        .tiptap-editor-content h3,
+        .tiptap-editor-content .tiptap-heading[data-level="3"] {
+          font-size: 1.5rem !important;
+          font-weight: 600 !important;
+          line-height: 1.4 !important;
+          margin: 1rem 0 0.5rem 0 !important;
+          color: #1f2937 !important;
+          display: block !important;
+        }
+        
+        /* Added basic paragraph and text styling */
+        .tiptap-editor-content p {
+          margin: 0.75rem 0;
+        }
+        
+        .tiptap-editor-content ul,
+        .tiptap-editor-content ol {
+          margin: 0.75rem 0;
+          padding-left: 1.5rem;
+        }
+        
+        .tiptap-editor-content blockquote {
+          border-left: 4px solid #e5e7eb;
+          padding-left: 1rem;
+          margin: 1rem 0;
+          font-style: italic;
+          color: #6b7280;
+        }
+        
+        .tiptap-editor-content code {
+          background-color: #f3f4f6;
+          padding: 0.125rem 0.25rem;
+          border-radius: 0.25rem;
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+          font-size: 0.875em;
+        }
+        
+        .tiptap-editor-content img {
+          max-width: 100%;
+          height: auto;
+          object-fit: contain;
+          transition: all 0.2s ease;
+          border-radius: 4px;
+          box-sizing: border-box;
+        }
+        
+        /* Enhanced image selection and hover states */
+        .tiptap-editor-content img:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tiptap-editor-content img.ProseMirror-selectednode {
+          outline: 2px solid #6366f1;
+          outline-offset: 2px;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+        
+        /* Updated spacing and reduced max-width for better text alignment */
+        .tiptap-editor-content img[data-align="left"] {
+          float: left;
+          margin: 0 1.5rem 1rem 0;
+          max-width: 35%;
+        }
+        
+        .tiptap-editor-content img[data-align="right"] {
+          float: right;
+          margin: 0 0 1rem 1.5rem;
+          max-width: 35%;
+        }
+        
+        .tiptap-editor-content img[data-align="center"] {
+          display: block;
+          margin: 1rem auto;
+          clear: both;
+        }
+        
+        /* Added responsive behavior for better mobile experience */
+        @media (max-width: 768px) {
+          .tiptap-editor-content img[data-align="left"],
+          .tiptap-editor-content img[data-align="right"] {
+            max-width: 45%;
+            margin: 0.5rem;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .tiptap-editor-content img[data-align="left"],
+          .tiptap-editor-content img[data-align="right"] {
+            float: none;
+            display: block;
+            margin: 1rem auto;
+            max-width: 100%;
+          }
+        }
+      `}</style>
     </div>
   )
 }
+

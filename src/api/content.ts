@@ -56,6 +56,7 @@ export async function getTrendingBlog() {
   }
 }
 
+
 export async function getBlogByStatus(status: any) {
   try {
     const response = await axiosInstance.get(`/blog/get-all?status=${status}`);
@@ -89,6 +90,20 @@ export async function deleteBlog(blogId:any) {
 export async function updateBlog(blogId: any, data: any) {
   try {
     const response = await axiosInstance.patch(`/blog/${blogId}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    return response;
+  } catch (error:any) {
+    console.error("Error updating blog:", error);
+    return error.response;
+  }
+}
+
+export async function uploadImages( data: any) {
+  try {
+    const response = await axiosInstance.post('blog/image-embedding', data, {
       headers: {
         "Content-Type": "multipart/form-data"
       }

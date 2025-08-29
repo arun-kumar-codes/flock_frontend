@@ -433,11 +433,11 @@ export default function BlogsPage() {
                 <p className="text-gray-600">Please wait while we fetch your content</p>
               </div>
             ) : filteredBlogs.length > 0 ? (
-              <div className="grid gap-4 md:gap-8">
+              <div className="gap-4 md:gap-8">
                 {filteredBlogs.map((blog) => (
                   <div
                     key={blog.id}
-                    className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-2 md:p-6 shadow-lg border border-gray-200/50 hover:shadow-2xl hover:border-purple-200 transition-all duration-300 hover:-translate-y-1"
+                    className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 m-2 md:m-4 shadow-lg border border-gray-200/50 hover:shadow-2xl hover:border-purple-200 transition-all duration-300 hover:-translate-y-1"
                     onClick={(e) => {
                       e.stopPropagation()
                       handleViewClick(blog)
@@ -457,19 +457,16 @@ export default function BlogsPage() {
                       )}
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="md:flex-1">
-                            <h3 className="text-lg py-2 md:text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-700 transition-colors">
+                      <div className="flex-1 ">
+                        <div className="w-full flex items-center justify-between mb-4 ">
+                          <div className="">
+                            <h3 className="text-lg py-2 line-clamp-2  md:text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-700 transition-colors">
                               {blog.title}
                             </h3>
-                            <p className="text-gray-600 leading-relaxed mb-4 line-clamp-2 text-sm md:text-base">
-                              {generateExcerpt(blog.content, 180)}
-                            </p>
                           </div>
 
                           {/* Action Menu */}
-                          <div className="relative ml-4">
+                          <div className="relative mr-10">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -514,6 +511,10 @@ export default function BlogsPage() {
                             )}
                           </div>
                         </div>
+
+                         <p className="text-gray-600 leading-relaxed mb-4 line-clamp-2 text-sm md:text-base">
+                            {generateExcerpt(blog.content, 100)}
+                          </p>
 
                         {/* Meta Info */}
                         <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-4">

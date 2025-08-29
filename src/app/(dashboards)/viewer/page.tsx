@@ -83,16 +83,8 @@ export default function ViewerDashboard() {
     <div className="min-h-screen theme-bg-primary">
       <div className="mx-auto lg:px-8 py-4 lg:py-8">
         <div className="mb-4 md:mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-center">
-            {/* All Videos button (default) */}
-            <button
-              onClick={() => setActiveFilter(null)}
-              className={`px-4 py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 text-white ${
-                activeFilter === null ? "theme-button-primary shadow-md" : "theme-button-secondary theme-border"
-              }`}
-            >
-              All
-            </button>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center md:ml-10">
+         
 
             {/* Filter buttons */}
             {filterButtons.map((filter) => {
@@ -102,7 +94,7 @@ export default function ViewerDashboard() {
                 <button
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
-                  className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 ${
+                  className={`flex items-center justify-center space-x-6 px-4 py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 ${
                     isActive
                       ? `${filter.bgColor} ${filter.color} shadow-md border border-current`
                       : `theme-button-secondary theme-border`

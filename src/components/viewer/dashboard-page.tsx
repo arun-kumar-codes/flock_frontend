@@ -17,6 +17,7 @@ import { VideoModal } from "@/components/viewer/video-modal"
 import { BlogModal } from "@/components/viewer/blog-modal"
 import { getDashboardContent, getFollowings, toggleBlogLike, toggleVideoLike } from "@/api/content"
 import { useSelector } from "react-redux"
+import { getAllCreators } from "@/api/user"
 
 interface Creator {
   email: string
@@ -160,7 +161,7 @@ const calculateReadTime = (content: string): string => {
 export default function DashboardPage() {
   const router = useRouter()
   const user = useSelector((state: any) => state.user)
-  const isDark = user.theme === "dark"
+
 
   const [content, setContent] = useState<ContentItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -172,6 +173,8 @@ export default function DashboardPage() {
   const [followingCount, setFollowingCount] = useState<number>(0)
   const [isLoadingFollowing, setIsLoadingFollowing] = useState(true)
   const [followingError, setFollowingError] = useState("")
+
+  const [contentTypeFilter, setContentTypeFilter] = useState<"all" | "videos" | "blogs">("all")
 
   // UI states
   const [searchTerm, setSearchTerm] = useState("")
@@ -187,9 +190,15 @@ export default function DashboardPage() {
   const fetchFollowingData = async () => {
     setFollowingError("")
     try {
-      const response = await getFollowings()
-      setFollowings(response.data.following)
-      setFollowingCount(response.data.following_count)
+      let response 
+      if(user.isLogin===false){
+        response = await getAllCreators()
+        setFollowings(response.data.creators);
+      }else{
+        response = await getFollowings()
+        setFollowings(response.data.following)
+        setFollowingCount(response.data.following_count)
+      }
     } catch (error) {
       console.error("Error fetching following data:", error)
       setFollowingError("Failed to fetch following data. Please try again.")
@@ -218,32 +227,30 @@ export default function DashboardPage() {
 
       // Process videos
       if (response?.data?.videos) {
-        const videosWithUIFields = response.data.videos
-          .map((video: any) => ({
-            ...video,
-            type: "video" as const,
-            isFavorite: false,
-            views: video.views || 0,
-            author: video.creator,
-            comments: video.comments || [],
-            comments_count: video.comments_count || video.comments?.length || 0,
-          }))
+        const videosWithUIFields = response.data.videos.map((video: any) => ({
+          ...video,
+          type: "video" as const,
+          isFavorite: false,
+          views: video.views || 0,
+          author: video.creator,
+          comments: video.comments || [],
+          comments_count: video.comments_count || video.comments?.length || 0,
+        }))
         mixedContent.push(...videosWithUIFields)
       }
 
       // Process blogs
       if (response?.data?.blogs) {
-        const blogsWithUIFields = response.data.blogs
-          .map((blog: any) => ({
-            ...blog,
-            type: "blog" as const,
-            excerpt: generateExcerpt(blog.content, blog.image),
-            readTime: calculateReadTime(blog.content),
-            isFavorite: false,
-            publishedAt: blog.created_at,
-            comments: blog.comments || [],
-            comments_count: blog.comments_count || blog.comments?.length || 0,
-          }))
+        const blogsWithUIFields = response.data.blogs.map((blog: any) => ({
+          ...blog,
+          type: "blog" as const,
+          excerpt: generateExcerpt(blog.content, blog.image),
+          readTime: calculateReadTime(blog.content),
+          isFavorite: false,
+          publishedAt: blog.created_at,
+          comments: blog.comments || [],
+          comments_count: blog.comments_count || blog.comments?.length || 0,
+        }))
         mixedContent.push(...blogsWithUIFields)
       }
 
@@ -281,7 +288,7 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchContent()
     console.log("Fetching content on mount")
-  }, [selectedFollowing])
+  }, [selectedFollowing, contentTypeFilter])
 
   useEffect(() => {
     fetchFollowingData()
@@ -295,7 +302,6 @@ export default function DashboardPage() {
       ),
     )
   }
-
 
   const handleToggleVideoLike = async (videoId: number) => {
     try {
@@ -322,6 +328,13 @@ export default function DashboardPage() {
   const filteredContent = content.filter((item) => {
     const searchText = searchTerm.toLowerCase()
 
+    const matchesContentType =
+      contentTypeFilter === "all" ||
+      (contentTypeFilter === "videos" && item.type === "video") ||
+      (contentTypeFilter === "blogs" && item.type === "blog")
+
+    if (!matchesContentType) return false
+
     if (item.type === "video") {
       const plainDescription = stripHtmlAndDecode(item.description)
       return (
@@ -337,6 +350,7 @@ export default function DashboardPage() {
       )
     }
   })
+
   const totalPages = Math.ceil(filteredContent.length / itemsPerPage)
   const currentContent = filteredContent.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
 
@@ -385,16 +399,18 @@ export default function DashboardPage() {
     e.stopPropagation()
 
     // Optimistic update
-    setContent(prev => prev.map(item =>
-      item.type === "video" && item.id === videoId
-        ? { ...item, is_liked: !item.is_liked, likes: item.is_liked ? item.likes - 1 : item.likes + 1 }
-        : item
-    ))
+    setContent((prev) =>
+      prev.map((item) =>
+        item.type === "video" && item.id === videoId
+          ? { ...item, is_liked: !item.is_liked, likes: item.is_liked ? item.likes - 1 : item.likes + 1 }
+          : item,
+      ),
+    )
 
     // Trigger animation
-    setLikeAnimation(prev => ({ ...prev, [`video-${videoId}`]: true }))
+    setLikeAnimation((prev) => ({ ...prev, [`video-${videoId}`]: true }))
     setTimeout(() => {
-      setLikeAnimation(prev => ({ ...prev, [`video-${videoId}`]: false }))
+      setLikeAnimation((prev) => ({ ...prev, [`video-${videoId}`]: false }))
     }, 500)
 
     handleToggleVideoLike(videoId)
@@ -404,16 +420,18 @@ export default function DashboardPage() {
     e.stopPropagation()
 
     // Optimistic update
-    setContent(prev => prev.map(item =>
-      item.type === "blog" && item.id === blogId
-        ? { ...item, is_liked: !item.is_liked, likes: item.is_liked ? item.likes - 1 : item.likes + 1 }
-        : item
-    ))
+    setContent((prev) =>
+      prev.map((item) =>
+        item.type === "blog" && item.id === blogId
+          ? { ...item, is_liked: !item.is_liked, likes: item.is_liked ? item.likes - 1 : item.likes + 1 }
+          : item,
+      ),
+    )
 
     // Trigger animation
-    setLikeAnimation(prev => ({ ...prev, [`blog-${blogId}`]: true }))
+    setLikeAnimation((prev) => ({ ...prev, [`blog-${blogId}`]: true }))
     setTimeout(() => {
-      setLikeAnimation(prev => ({ ...prev, [`blog-${blogId}`]: false }))
+      setLikeAnimation((prev) => ({ ...prev, [`blog-${blogId}`]: false }))
     }, 500)
 
     handleToggleBlogLike(blogId)
@@ -444,14 +462,23 @@ export default function DashboardPage() {
               <div className="relative">
                 <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-500 dark:text-gray-400" />
                 <select
+                  value={contentTypeFilter}
+                  onChange={(e) => setContentTypeFilter(e.target.value as "all" | "videos" | "blogs")}
+                 className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
+                >
+                  <option value="all">All Content</option>
+                  <option value="videos">Videos Only</option>
+                  <option value="blogs">Blogs Only</option>
+                </select>
+              </div>
+
+              <div className="relative">
+                <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-500 dark:text-gray-400" />
+                <select
                   value={selectedFollowing}
                   onChange={(e) => setSelectedFollowing(e.target.value)}
                   disabled={isLoadingFollowing}
-                  className="appearance-none pl-10 pr-8 py-3 rounded-lg min-w-[200px] 
-                             bg-gray-50 dark:bg-gray-800 
-                             border border-gray-300 dark:border-gray-700 
-                             shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 
-                             text-xs md:text-sm text-gray-900 dark:text-gray-200"
+                  className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
                 >
                   <option value="all">{user.isLogin ? "All Following" : "All Creator"}</option>
                   {followings.length > 0 ? (
@@ -606,13 +633,17 @@ export default function DashboardPage() {
                             handleBlogLikeToggle(e, currentContent[0].id)
                           }
                         }}
-                        className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${currentContent[0].is_liked
+                        className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${
+                          currentContent[0].is_liked
                             ? "bg-blue-500/10 text-blue-500"
                             : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
-                          }`}
+                        }`}
                       >
-                        <ThumbsUpIcon className={`w-4 h-4 ${currentContent[0].is_liked ? "fill-current" : ""} ${likeAnimation[`${currentContent[0].type}-${currentContent[0].id}`] ? "animate-pop" : ""
-                          }`} />
+                        <ThumbsUpIcon
+                          className={`w-4 h-4 ${currentContent[0].is_liked ? "fill-current" : ""} ${
+                            likeAnimation[`${currentContent[0].type}-${currentContent[0].id}`] ? "animate-pop" : ""
+                          }`}
+                        />
                         <span>{currentContent[0].likes}</span>
                       </button>
                     </div>
@@ -736,14 +767,17 @@ export default function DashboardPage() {
                             handleBlogLikeToggle(e, item.id)
                           }
                         }}
-                        className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors text-xs font-medium ${item.is_liked
+                        className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors text-xs font-medium ${
+                          item.is_liked
                             ? "bg-blue-500/10 text-blue-500"
                             : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
-                          }`}
+                        }`}
                       >
-                        <ThumbsUpIcon className={`w-3 h-3 ${item.is_liked ? "fill-current" : ""} ${
-  likeAnimation[`${item.type}-${item.id}`] ? "animate-pop" : ""
-}`} />
+                        <ThumbsUpIcon
+                          className={`w-3 h-3 ${item.is_liked ? "fill-current" : ""} ${
+                            likeAnimation[`${item.type}-${item.id}`] ? "animate-pop" : ""
+                          }`}
+                        />
                         <span>{item.likes}</span>
                       </button>
                     </div>
@@ -762,19 +796,20 @@ export default function DashboardPage() {
             </div>
             <h3 className="text-2xl font-semibold mb-3 theme-text-primary">No content found</h3>
             <p className="mb-8 max-w-md mx-auto theme-text-secondary">
-              {searchTerm
-                ? "Try adjusting your search terms to find what you're looking for."
+              {searchTerm || contentTypeFilter !== "all"
+                ? "Try adjusting your search terms or filters to find what you're looking for."
                 : "No videos or articles are available at the moment. Check back later for new content."}
             </p>
-            {searchTerm && (
+            {(searchTerm || contentTypeFilter !== "all") && (
               <button
                 onClick={() => {
                   setSearchTerm("")
                   setSelectedFollowing("all")
+                  setContentTypeFilter("all")
                 }}
                 className="px-6 py-3 theme-button-primary rounded-xl transition-colors"
               >
-                Clear Search
+                Clear All Filters
               </button>
             )}
           </div>

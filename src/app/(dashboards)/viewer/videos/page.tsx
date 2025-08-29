@@ -369,11 +369,7 @@ export default function VideoPage() {
   value={selectedFollowing}
   onChange={(e) => setSelectedFollowing(e.target.value)}
   disabled={isLoadingFollowing}
-  className="appearance-none pl-10 pr-8 py-3 rounded-lg min-w-[200px] 
-             bg-gray-50 dark:bg-gray-800 
-             border border-gray-300 dark:border-gray-700 
-             shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 
-             text-xs md:text-sm text-gray-900 dark:text-gray-200"
+ className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
 >
   <option value="all">
     {user.isLogin ? "All Following" : "All Creator"}
@@ -485,7 +481,6 @@ export default function VideoPage() {
                           <p className="text-sm theme-text-secondary mt-2 truncate">
                             {video.creator?.username || "Unknown Creator"}
                           </p>
-6
                           <div className="flex items-center justify-between mt-auto">
                             <div className="flex items-center text-xs theme-text-muted">
                               <span>{formatViews(video.views || 0)} views</span>
