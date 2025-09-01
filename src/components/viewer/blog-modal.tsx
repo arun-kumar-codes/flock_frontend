@@ -32,6 +32,8 @@ interface BlogModalProps {
 export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogModalProps) {
   const user = useSelector((state: any) => state.user)
   const [newComment, setNewComment] = useState("")
+  const[isLiked,setIsLiked]=useState(blog.is_liked);
+  const[likeCount,setLikeCount]=useState(blog.likes);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editCommentText, setEditCommentText] = useState("")
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null)
@@ -160,6 +162,9 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
     return;
   }
 
+  setIsLiked((prev:boolean)=>!prev);
+  setLikeCount((prev:number)=>isLiked?prev-1:prev+1);
+
   // Trigger animation
   setLikeAnimation((prev) => ({ ...prev, [blog.id]: true }));
   setTimeout(() => {
@@ -282,13 +287,13 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
               <button
                 onClick={handleLike}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  blog.is_liked
+                 isLiked
                     ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
                     : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
                 }`}
               >
-                <ThumbsUp className={`w-5 h-5 ${blog.is_liked ? "fill-current" : ""} ${likeAnimation[blog.id] ? "animate-pop-purple" : ""}`} />
-                <span>{blog.likes} Likes</span>
+                <ThumbsUp className={`w-5 h-5 ${isLiked ? "fill-current" : ""} ${likeAnimation[blog.id] ? "animate-pop-purple" : ""}`} />
+                <span>{likeCount} Likes</span>
               </button>
             </div>
           </div>
@@ -301,11 +306,11 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
             <form onSubmit={handleCommentSubmit} className="mb-6">
               <div className="flex space-x-3">
                 <Image
-                  src="/profile.png"
+                  src={user?.profileImage}
                   alt="Your avatar"
                   width={40}
                   height={40}
-                  className="rounded-full flex-shrink-0 w-10 h-10"
+                  className="rounded-full flex-shrink-0 w-10 h-10 object-cover"
                   onError={(e) => {
                     e.currentTarget.src = "/diverse-user-avatars.png"
                   }}
@@ -335,7 +340,6 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
             {/* Comments List */}
             <div className="space-y-4">
               {blog.comments
-                .sort((a: any, b: any) => new Date(b.commented_at).getTime() - new Date(a.commented_at).getTime())
                 .map((comment: any) => (
                   <div key={comment.id} className="flex space-x-3 items-center">
                     <Image

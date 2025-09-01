@@ -346,10 +346,6 @@ export default function CreatorDashboard() {
                       <span className="text-sm font-medium text-yellow-600">{stats?.blogs.draft || 0}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-600">Pending Approval</span>
-                      <span className="text-sm font-medium text-blue-600">{stats?.blogs.pending_approval || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
                       <span className="text-sm text-slate-600">Rejected</span>
                       <span className="text-sm font-medium text-red-600">{stats?.blogs.rejected || 0}</span>
                     </div>
@@ -370,10 +366,6 @@ export default function CreatorDashboard() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-slate-600">Drafts</span>
                       <span className="text-sm font-medium text-yellow-600">{stats?.videos.draft || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-600">Pending Approval</span>
-                      <span className="text-sm font-medium text-blue-600">{stats?.videos.pending_approval || 0}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-slate-600">Rejected</span>

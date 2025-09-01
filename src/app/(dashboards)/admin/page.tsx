@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { getAllUser } from "@/api/user"
 import { getBlogByStatus } from "@/api/content"
 import { getVideoByStatus } from "@/api/content"
-import { UsersIcon, FileTextIcon, VideoIcon, EyeIcon, ClockIcon } from "lucide-react"
+import { UsersIcon, FileTextIcon, VideoIcon, ListVideo  } from "lucide-react"
 import Link from "next/link"
 import Loader2 from "@/components/Loader2"
 
@@ -41,8 +41,6 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [videos, setVideos] = useState<Video[]>([])
-  const [pendingBlogs, setPendingBlogs] = useState<Blog[]>([])
-  const [pendingVideos, setPendingVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
 
 
@@ -98,8 +96,7 @@ export default function AdminDashboard() {
   const totalBlogComments = blogs.reduce((sum, blog) => sum + blog.comments_count, 0)
   const totalVideoComments = videos.reduce((sum, video) => sum + video.comments_count, 0)
   const totalViews = videos.reduce((sum, video) => sum + (video.views || 0), 0)
-  const totalPendingBlogs = pendingBlogs.length
-  const totalPendingVideos = pendingVideos.length
+
 
   const stats = [
     {
@@ -191,15 +188,15 @@ export default function AdminDashboard() {
             </Link>
 
             <Link
-              href="/admin/pending"
+              href="/admin/videos"
               className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
             >
-              <div className="w-12 md:w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <ClockIcon className="w-4 h-4 text-yellow-600" />
+              <div className="w-12 md:w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                <ListVideo  className="w-4 h-4 text-red-600"  />
               </div>
               <div>
-                <p className="font-medium text-slate-800">Review Pending Content</p>
-                <p className="text-xs md:text-sm text-slate-500">Approve or reject pending submissions</p>
+                <p className="font-medium text-slate-800">Manage Content</p>
+                <p className="text-xs md:text-sm text-slate-500">Review the content </p>
               </div>
             </Link>
 
@@ -220,10 +217,7 @@ export default function AdminDashboard() {
                 {totalBlogLikes + totalVideoLikes + totalBlogComments + totalVideoComments}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-600 text-sm md:text-base">Pending Reviews</span>
-              <span className="font-semibold text-slate-800 text-sm md:text-base">{totalPendingBlogs + totalPendingVideos}</span>
-            </div>
+
             <div className="flex items-center justify-between">
               <span className="text-slate-600 text-sm md:text-base">Active Users</span>
               <span className="font-semibold text-slate-800 text-sm md:text-base">{totalUsers}</span>

@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from "react"
 import type React from "react"
 import { useRouter } from "next/navigation"
-import { useDispatch } from "react-redux"
 
 import {
   PlusIcon,
@@ -40,6 +39,7 @@ import {
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
 import Video from "@/components/Video"
+import Scheduler from "@/components/Scheduler"
 
 interface UserData {
   email: string
@@ -119,7 +119,6 @@ interface EditVideoData {
 
 export default function VideoDashboard() {
   const router = useRouter()
-  const dispatch = useDispatch()
   const [userData, setUserData] = useState<UserData>({
     email: "",
     username: "",
@@ -127,14 +126,12 @@ export default function VideoDashboard() {
     imageUrl: "",
     videos: [],
   })
-  const [showUserDetails, setShowUserDetails] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [activeTab, setActiveTab] = useState<"active" | "archived" | "rejected">("active")
   const [showActionMenu, setShowActionMenu] = useState<number | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [createError, setCreateError] = useState("")
@@ -144,6 +141,8 @@ export default function VideoDashboard() {
   const [fetchError, setFetchError] = useState("")
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewVideo, setViewVideo] = useState<VideoType | null>(null)
+  const [isScheduled,setIsScheduled] = useState(false);
+  const [scheduledAt,setScheduledAt] = useState<Date | null>(new Date(new Date().getTime() + 30 * 60 * 1000)); 
 
   // Loading states for different actions
   const [loadingActions, setLoadingActions] = useState<{ [key: string]: boolean }>({})
@@ -191,15 +190,7 @@ export default function VideoDashboard() {
   })
 
   // Comment states
-  const [comments, setComments] = useState<Comment[]>([])
-  const [newComment, setNewComment] = useState("")
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
-  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
-  const [editCommentText, setEditCommentText] = useState("")
-  const [commentError, setCommentError] = useState("")
-  const [commentSuccess, setCommentSuccess] = useState("")
 
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const createModalRef = useRef<HTMLDivElement>(null)
   const editModalRef = useRef<HTMLDivElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
@@ -241,9 +232,7 @@ export default function VideoDashboard() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowUserDetails(false)
-      }
+    
       if (!event.target || !(event.target as Element).closest(".action-menu-container")) {
         setShowActionMenu(null)
       }
@@ -365,20 +354,18 @@ export default function VideoDashboard() {
       //console.log("Fetch videos response:", response)
       if (response?.data?.videos) {
         const userVideos = response.data.videos
-          .filter((video: VideoType) => video.created_by === user?.id || video.author?.id === user?.id)
           .map((video: VideoType) => ({
             ...video,
             createdAt: video.created_at,
-            status: video.status || "draft",
+            status: video.status,
             views: video.views || 0,
-            category: video.author?.role === "Creator" ? "Programming" : "General",
           }))
         setUserData((prev) => ({
           ...prev,
           videos: userVideos,
         }))
       }
-      setIsLoading(false)
+
     } catch (error) {
       console.error("Error fetching user videos:", error)
       setFetchError("Failed to fetch your videos")
@@ -526,12 +513,6 @@ export default function VideoDashboard() {
     //console.log("View video clicked:", video)
     setShowActionMenu(null)
     setViewVideo(video)
-    setComments(video.comments || [])
-    setNewComment("")
-    setCommentError("")
-    setCommentSuccess("")
-    setEditingCommentId(null)
-    setEditCommentText("")
     setVideoLoadError({}) // Reset video load errors
     setShowViewModal(true)
   }
@@ -673,6 +654,19 @@ export default function VideoDashboard() {
       return
     }
 
+    if (
+  isScheduled &&
+  (
+    !scheduledAt || 
+    scheduledAt <= new Date(Date.now() + 30 * 60 * 1000) || 
+    scheduledAt > new Date(Date.now() + 7 * 24 *60* 60 * 1000)
+  )
+) {
+  console.log("Invalid scheduled date:", scheduledAt);
+  setCreateError("Please select a valid future date and time for scheduling.")
+  return
+}
+
     setIsCreating(true)
     try {
       const formData = new FormData()
@@ -680,6 +674,10 @@ export default function VideoDashboard() {
       formData.append("description", videoForm.description.trim())
       formData.append("is_draft", videoForm.is_draft ? "true" : "false")
       formData.append("video", videoForm.video)
+
+      if(scheduledAt && isScheduled) {
+        formData.append("scheduled_at", scheduledAt.toISOString())
+      }
 
       const response = await createVideo(formData)
       //console.log("Create video response:", response)
@@ -777,14 +775,12 @@ export default function VideoDashboard() {
     if (archived) {
       return "archived"
     }
-    if (status == "pending_approval") {
-      return "pending approval"
-    }
+
     return status || "draft"
   }
 
   // Get active (non-archived) videos
-  const activeVideos = userData.videos?.filter((item) => !item.archived && item.status === "published") || []
+  const activeVideos = userData.videos?.filter((item) => !item.archived && item.status === "published"||item.status==="draft") || []
 
   // Get archived videos
   const archivedVideos = userData.videos?.filter((item) => item.archived) || []
@@ -1646,6 +1642,36 @@ export default function VideoDashboard() {
                     </div>
                   </div>
                 </div>
+
+              <div className="mt-4">
+
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+    <input
+      type="checkbox"
+      name="is_scheduled"
+      checked={isScheduled}
+      onChange={(e) => {
+        setIsScheduled(e.target.checked);
+        if (!e.target.checked) {
+          setScheduledAt(null);
+        }
+      }}
+      className="
+        w-5 h-5 
+        accent-indigo-600 
+        cursor-pointer 
+        rounded 
+        appearance-none
+        border border-slate-300 
+        checked:bg-indigo-600 
+        checked:border-indigo-600 
+        relative
+      "
+    />
+    Schedule Publish
+  </label>
+              {isScheduled && <Scheduler value={scheduledAt} onChange={setScheduledAt}></Scheduler>}
+              </div>
 
               <div className="mt-4">
   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">

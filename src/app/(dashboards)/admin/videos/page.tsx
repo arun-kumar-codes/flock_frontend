@@ -547,7 +547,7 @@ export default function AdminVideosPage() {
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row space-x-2 mt-8 bg-gray-500/50 rounded-2xl p-1">
+            <div className="flex flex-col md:flex-row space-x-2 mt-8 bg-gray-200 rounded-2xl p-1">
               <button
                 onClick={() => setActiveTab("published")}
                 className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeTab === "published" ? "bg-white text-red-700 shadow-md" : "text-gray-600 hover:text-gray-900"

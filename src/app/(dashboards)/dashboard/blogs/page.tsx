@@ -12,7 +12,6 @@ import {
   deleteBlogByCreator,
   uploadImages,
 } from "@/api/content"
-import {  getAllCreators} from "@/api/user"
 import {
   PlusIcon,
   SearchIcon,
@@ -39,7 +38,7 @@ import { useSelector } from "react-redux"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
 import Loader2 from "@/components/Loader2"
-import { setegid } from "process"
+import Scheduler from "@/components/Scheduler"
 
 interface UserData {
   email: string
@@ -91,101 +90,7 @@ interface EditBlogData extends CreateBlogData {
   existingImageUrl?: string
 }
 
-const BlogCardSkeleton = () => (
-  <div className="animate-pulse">
-    <div className="flex items-center justify-between p-6 border border-slate-200 rounded-xl bg-white">
-      <div className="flex items-start space-x-4 flex-1">
-        <div className="flex-shrink-0 w-20 h-16 bg-slate-200 rounded-lg"></div>
-        <div className="flex-1 space-y-3">
-          <div className="flex items-center space-x-3">
-            <div className="h-5 bg-slate-200 rounded w-48"></div>
-            <div className="h-6 bg-slate-200 rounded-full w-20"></div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-3 bg-slate-200 rounded w-24"></div>
-            <div className="h-3 bg-slate-200 rounded w-20"></div>
-            <div className="h-3 bg-slate-200 rounded w-16"></div>
-            <div className="h-3 bg-slate-200 rounded w-18"></div>
-          </div>
-        </div>
-      </div>
-      <div className="w-8 h-8 bg-slate-200 rounded-lg"></div>
-    </div>
-  </div>
-)
 
-const StatsCardSkeleton = () => (
-  <div className="animate-pulse">
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <div className="h-4 bg-slate-200 rounded w-20"></div>
-          <div className="h-8 bg-slate-200 rounded w-12"></div>
-        </div>
-        <div className="w-12 h-12 bg-slate-200 rounded-lg"></div>
-      </div>
-    </div>
-  </div>
-)
-
-export const extractBlobUrls = (htmlContent: string): string[] => {
-  const blobUrls: string[] = []
-  const imgRegex = /<img[^>]+src="(blob:[^"]+)"[^>]*>/g
-  let match
-
-  while ((match = imgRegex.exec(htmlContent)) !== null) {
-    blobUrls.push(match[1])
-  }
-
-  return blobUrls
-}
-
-export const replaceBlobUrls = (htmlContent: string, urlMapping: Record<string, string>): string => {
-  let updatedContent = htmlContent
-
-  Object.entries(urlMapping).forEach(([blobUrl, finalUrl]) => {
-    updatedContent = updatedContent.replace(new RegExp(blobUrl, "g"), finalUrl)
-  })
-
-  return updatedContent
-}
-
-export const uploadBlobImages = async (blobUrls: string[]): Promise<Record<string, string>> => {
-  const urlMapping: Record<string, string> = {}
-
-  if (blobUrls.length === 0) return urlMapping
-
-  try {
-    const formData = new FormData()
-
-    // Add all blob images to the form data
-    for (let i = 0; i < blobUrls.length; i++) {
-      const blobUrl = blobUrls[i]
-      const response = await fetch(blobUrl)
-      const blob = await response.blob()
-      formData.append("images", blob, `image-${Date.now()}-${i}.png`)
-    }
-
-    const uploadResponse = await uploadImages(formData)
-    console.log("Upload response:", uploadResponse)
-
-    const uploadedImages = uploadResponse.data.images
-
-    // Map blob URLs to uploaded URLs based on order
-    const uploadedUrls = Object.values(uploadedImages)
-    blobUrls.forEach((blobUrl, index) => {
-      if (uploadedUrls[index] && typeof uploadedUrls[index] === "string") {
-        urlMapping[blobUrl] = uploadedUrls[index] as string
-        URL.revokeObjectURL(blobUrl)
-      }
-    })
-  } catch (error) {
-    console.error(`Failed to upload images:`, error)
-    throw error
-  }
-
-  return urlMapping
-}
 
 export default function BlogsPage() {
   const router = useRouter()
@@ -229,6 +134,10 @@ export default function BlogsPage() {
   const [loadingActions, setLoadingActions] = useState<{ [key: string]: boolean }>({})
   const [isPublishing, setIsPublishing] = useState<{ [key: number]: boolean }>({})
   const [publishError, setPublishError] = useState("")
+  // Inside your component state
+const [isScheduled, setIsScheduled] = useState(false);
+const [scheduledAt, setScheduledAt] = useState<Date | null>(new Date(new Date().getDate() + 30 * 60 * 1000)); 
+
 
   // Image upload states
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -316,6 +225,66 @@ export default function BlogsPage() {
   const isArchived = (blog: Blog): boolean => {
     return blog.archived === true
   }
+
+  const extractBlobUrls = (htmlContent: string): string[] => {
+  const blobUrls: string[] = []
+  const imgRegex = /<img[^>]+src="(blob:[^"]+)"[^>]*>/g
+  let match
+
+  while ((match = imgRegex.exec(htmlContent)) !== null) {
+    blobUrls.push(match[1])
+  }
+
+  return blobUrls
+}
+
+ const replaceBlobUrls = (htmlContent: string, urlMapping: Record<string, string>): string => {
+  let updatedContent = htmlContent
+
+  Object.entries(urlMapping).forEach(([blobUrl, finalUrl]) => {
+    updatedContent = updatedContent.replace(new RegExp(blobUrl, "g"), finalUrl)
+  })
+
+  return updatedContent
+}
+
+
+ const uploadBlobImages = async (blobUrls: string[]): Promise<Record<string, string>> => {
+  const urlMapping: Record<string, string> = {}
+
+  if (blobUrls.length === 0) return urlMapping
+
+  try {
+    const formData = new FormData()
+
+    // Add all blob images to the form data
+    for (let i = 0; i < blobUrls.length; i++) {
+      const blobUrl = blobUrls[i]
+      const response = await fetch(blobUrl)
+      const blob = await response.blob()
+      formData.append("images", blob, `image-${Date.now()}-${i}.png`)
+    }
+
+    const uploadResponse = await uploadImages(formData)
+    console.log("Upload response:", uploadResponse)
+
+    const uploadedImages = uploadResponse.data.images
+
+    // Map blob URLs to uploaded URLs based on order
+    const uploadedUrls = Object.values(uploadedImages)
+    blobUrls.forEach((blobUrl, index) => {
+      if (uploadedUrls[index] && typeof uploadedUrls[index] === "string") {
+        urlMapping[blobUrl] = uploadedUrls[index] as string
+        URL.revokeObjectURL(blobUrl)
+      }
+    })
+  } catch (error) {
+    console.error(`Failed to upload images:`, error)
+    throw error
+  }
+
+  return urlMapping
+}
 
   // Image validation function
   const validateImage = (file: File): string | null => {
@@ -901,6 +870,19 @@ export default function BlogsPage() {
       setCreateError("Content must be at least 10 characters long")
       return
     }
+if (
+  isScheduled &&
+  (
+    !scheduledAt || 
+    scheduledAt <= new Date(Date.now() + 30 * 60 * 1000) || 
+    scheduledAt > new Date(Date.now() + 7 * 24 *60* 60 * 1000)
+  )
+) {
+  console.log("Invalid scheduled date:", scheduledAt);
+  setCreateError("Please select a valid future date and time for scheduling.")
+  return
+}
+
 
     setIsCreating(true)
 
@@ -934,6 +916,12 @@ export default function BlogsPage() {
       formData.append("title", blogForm.title.trim())
       formData.append("content", updatedContent) // Use updated content with final URLs
       formData.append("is_draft", blogForm.is_draft ? "true" : "false")
+
+      if(isScheduled && scheduledAt) {
+        formData.append("scheduled_at", scheduledAt.toISOString())
+      }
+
+      
 
       if (embeddedImages.length > 0) {
         formData.append("embedded_images", JSON.stringify(embeddedImages))
@@ -1819,6 +1807,41 @@ export default function BlogsPage() {
                         </p>
                       </div>
                     </div>
+                    
+{/* Scheduler */}
+<div className="mt-4">
+  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+    <input
+      type="checkbox"
+      name="is_scheduled"
+      checked={isScheduled}
+      onChange={(e) => {
+        setIsScheduled(e.target.checked);
+        if (!e.target.checked) {
+          setScheduledAt(null);
+        }
+      }}
+      className="
+        w-5 h-5 
+        accent-indigo-600 
+        cursor-pointer 
+        rounded 
+        appearance-none
+        border border-slate-300 
+        checked:bg-indigo-600 
+        checked:border-indigo-600 
+        relative
+      "
+    />
+    Schedule Publish
+  </label>
+
+  {isScheduled && (
+   <Scheduler value={scheduledAt} onChange={setScheduledAt}></Scheduler>
+  )}
+</div>
+
+
 
 <div className="mt-4">
   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
@@ -1842,17 +1865,6 @@ export default function BlogsPage() {
   </label>
 </div>
 
-
-
-                    {/* <div className="mt-4 flex items-center space-x-2 gap-2">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4  cursor-pointer "
-                        name="is_draft"
-                        onChange={(e) => handleFormChange("is_draft", e.target.checked ? true : false)}
-                      ></input>
-                      Save as Draft
-                    </div> */}
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
                       <button

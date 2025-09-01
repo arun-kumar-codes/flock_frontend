@@ -29,6 +29,7 @@ import {
 import TipTapContentDisplay from "../tiptap-content-display"
 import { Stream } from "@cloudflare/stream-react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 interface VideoModalProps {
   video: any
   onClose: () => void
@@ -41,6 +42,8 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editCommentText, setEditCommentText] = useState("")
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null)
+  const [isLiked,setIsLiked]=useState(video.is_liked);
+  const [likeCount,setLikeCount]=useState(video.likes);
   // Watch time tracking state
   const [startTime, setStartTime] = useState<number | null>(null)
   const [totalWatchTime, setTotalWatchTime] = useState(0)
@@ -101,8 +104,6 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
       } catch (error) {
         console.error("Error sending watch time:", error)
       }
-    } else {
-      //console.log("Watch time is 0, not calling API")
     }
   }
   // Handle modal close
@@ -114,11 +115,6 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
       const sessionDuration = Math.floor((now - startTime) / 1000)
       finalWatchTime += sessionDuration
     }
-    //console.log("Modal closing, final watch time:", finalWatchTime, "seconds")
-    // Send watch time to API before closing
-    // if (finalWatchTime > 0&&user.isLogin) {
-    //   sendWatchTimeToAPI(finalWatchTime)
-    // }
     onClose()
   }
   // Handle click outside modal
@@ -242,6 +238,8 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
 
     setLikeAnimation(true)
     setTimeout(()=> setLikeAnimation(false), 500)
+    setIsLiked((prev:boolean)=>!prev);
+    setLikeCount((prev:number)=>isLiked?prev-1:prev+1);
 
     //console.log(user);
     try {
@@ -361,13 +359,13 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
               <button
                 onClick={handleLike}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  video.is_liked
+                 isLiked
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
                   : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
                   }`}
               >
-                <ThumbsUpIcon className={`w-5 h-5 ${video.is_liked ? "fill-current" : ""} ${likeAnimation ? "animate-pop-purple" : ""}`} />
-                <span>{video.likes} Likes</span>
+                <ThumbsUpIcon className={`w-5 h-5 ${isLiked ? "fill-current" : ""} ${likeAnimation ? "animate-pop-purple" : ""}`} />
+                <span>{likeCount} Likes</span>
               </button>
             </div>
           </div>
@@ -377,11 +375,16 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
             {/* Add Comment Form */}
             <form onSubmit={handleCommentSubmit} className="mb-6">
               <div className="flex space-x-3">
-                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-medium text-purple-600 dark:text-purple-300">
-                    {user?.username?.charAt(0).toUpperCase() || "U"}
-                  </span>
-                </div>
+             <Image
+                             src={user?.profileImage}
+                             alt="Your avatar"
+                             width={40}
+                             height={40}
+                             className="rounded-full flex-shrink-0 w-10 h-10 object-cover"
+                             onError={(e) => {
+                               e.currentTarget.src = "/diverse-user-avatars.png"
+                             }}
+                           />
                 <div className="flex-1">
                   <textarea
                     value={newComment}
@@ -407,13 +410,21 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
             <div className="space-y-4">
               {video.comments && video.comments.length > 0 ? (
                 video.comments
-                  .sort((a: any, b: any) => new Date(b.commented_at).getTime() - new Date(a.commented_at).getTime())
                   .map((comment: any) => (
-                    <div key={comment.id} className="flex space-x-3">
+                    <div key={comment.id} className="flex space-x-3 items-center">
                       <div className="w-10 h-10 theme-button-secondary rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-medium theme-text-secondary">
-                          {comment.commenter.username.charAt(0).toUpperCase()}
-                        </span>
+
+                           <Image
+                                              src={comment.commenter.profile_picture}
+                                              alt={comment.commenter.username}
+                                              width={40}
+                                              height={40}
+                                              className="rounded-full flex-shrink-0 w-10 h-10"
+                                              onError={(e) => {
+                                                e.currentTarget.src = "/diverse-user-avatars.png"
+                                              }}
+                                            />
+                    
                       </div>
                       <div className="flex-1">
                         <div className="theme-bg-secondary rounded-lg p-3">

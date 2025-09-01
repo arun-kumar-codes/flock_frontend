@@ -62,8 +62,6 @@ interface Blog {
   is_liked: boolean
 }
 
-const IMAGE_BASE_URL = "http://116.202.210.102:5055/"
-
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [isLoading, setIsLoading] = useState(false)
