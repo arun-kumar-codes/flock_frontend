@@ -32,6 +32,7 @@ import {
   RefreshCwIcon,
   XCircleIcon,
   TrashIcon,
+  ClockIcon,
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
@@ -56,6 +57,8 @@ interface Author {
 }
 
 interface Blog {
+  scheduled_at: string | number | Date
+  is_scheduled: any
   reason_for_rejection: string | null
   id: number
   title: string
@@ -1417,15 +1420,23 @@ if (
                                 )}
                               </div>
                             </div>
-                            <span
+
+                            {item.is_scheduled ?(
+                              <div className="text-xs text-blue-600 font-medium flex items-center space-x-1 bg-blue-100 border border-blue-200 px-2 py-1 rounded-full w-fit">
+                                <ClockIcon className="w-3 h-3" />
+                                <span>Scheduled for {new Date(item.scheduled_at+'z').toLocaleString()}</span>
+                              </div>
+                            ):( <span
                               className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
                                 item.status || "draft",
                                 isArchived(item),
                               )}`}
                             >
+
                               {getStatusIcon(item.status || "draft", isArchived(item))}
                               <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
-                            </span>
+                            </span>)}
+                           
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs text-slate-500">

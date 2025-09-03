@@ -71,6 +71,8 @@ interface Comment {
 }
 
 interface VideoType {
+  scheduled_at: string
+  is_scheduled: any
   reason_for_rejection: string | null
   video_id: any
   creator: any
@@ -1217,7 +1219,9 @@ export default function VideoDashboard() {
                               )}
                             </div>
                           </div>
-                          <span
+
+                          
+                          {/* <span
                             className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
                               item.status || "draft",
                               isArchived(item),
@@ -1225,7 +1229,23 @@ export default function VideoDashboard() {
                           >
                             {getStatusIcon(item.status || "draft", isArchived(item))}
                             <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
-                          </span>
+                          </span> */}
+
+                                     {item.is_scheduled ?(
+                                                        <div className="text-xs text-blue-600 font-medium flex items-center space-x-1 bg-blue-100 border border-blue-200 px-2 py-1 rounded-full w-fit">
+                                                          <ClockIcon className="w-3 h-3" />
+                                                          <span>Scheduled for {new Date(item.scheduled_at+'z').toLocaleString()}</span>
+                                                        </div>
+                                                      ):( <span
+                                                        className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+                                                          item.status || "draft",
+                                                          isArchived(item),
+                                                        )}`}
+                                                      >
+                          
+                                                        {getStatusIcon(item.status || "draft", isArchived(item))}
+                                                        <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
+                                                      </span>)}
                         </div>
 
 
