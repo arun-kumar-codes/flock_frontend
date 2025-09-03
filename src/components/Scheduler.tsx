@@ -150,26 +150,33 @@ function Calendar({
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
+  
+
   return (
-    <div className="bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl p-6 shadow-lg">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button
           onClick={goToPreviousMonth}
           className="p-2 hover:bg-slate-100 rounded-lg transition-colors duration-200"
+          type="button"
         >
           <ChevronLeft className="w-5 h-5 text-slate-600" />
         </button>
-        <h3 className="font-semibold text-lg text-slate-800">
+        <h3 className="font-semibold text-base sm:text-lg text-slate-800">
           {monthNames[currentMonth]} {currentYear}
         </h3>
-        <button onClick={goToNextMonth} className="p-2 hover:bg-slate-100 rounded-lg transition-colors duration-200">
+        <button
+          onClick={goToNextMonth}
+          className="p-2 hover:bg-slate-100 rounded-lg transition-colors duration-200"
+          type="button"
+        >
           <ChevronRight className="w-5 h-5 text-slate-600" />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 mb-4">
+      <div className="grid grid-cols-7 gap-2 mb-3 sm:mb-4">
         {dayNames.map((day) => (
-          <div key={day} className="text-sm font-semibold text-slate-500 text-center p-3">
+          <div key={day} className="text-xs sm:text-sm font-semibold text-slate-500 text-center p-2 sm:p-3">
             {day}
           </div>
         ))}
@@ -180,6 +187,7 @@ function Calendar({
           <div key={index} className="aspect-square">
             {day && (
               <button
+                type="button"
                 onClick={() => handleDateClick(day)}
                 disabled={!isDateInRange(day)}
                 className={`w-full h-full text-sm font-medium rounded-lg transition-all duration-200 ${
@@ -232,22 +240,23 @@ function ScrollableTimePicker({
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl p-6 shadow-lg">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
         <Clock className="w-5 h-5 text-slate-600" />
-        <h4 className="font-semibold text-slate-800">Select Time</h4>
+        <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Select Time</h4>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex gap-4 sm:gap-6">
         <div className="flex-1">
-          <label className="block text-sm font-semibold text-slate-600 mb-3">Hour</label>
-          <div className="h-40 overflow-y-auto border border-slate-200 rounded-lg bg-white shadow-inner">
+          <label className="block text-sm font-semibold text-slate-600 mb-2 sm:mb-3">Hour</label>
+          <div className="h-32 sm:h-40 overflow-y-auto border border-slate-200 rounded-lg bg-white shadow-inner">
             {hours.map((hour) => (
               <button
                 key={hour}
+                type="button"
                 onClick={() => handleTimeChange(hour, selectedMinute)}
                 disabled={!isTimeValid(hour, selectedMinute)}
-                className={`w-full px-4 py-3 text-sm font-medium text-left transition-all duration-200 ${
+                className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-sm font-medium text-left transition-all duration-200 ${
                   hour === selectedHour
                     ? "bg-blue-500 text-white shadow-md"
                     : isTimeValid(hour, selectedMinute)
@@ -262,14 +271,15 @@ function ScrollableTimePicker({
         </div>
 
         <div className="flex-1">
-          <label className="block text-sm font-semibold text-slate-600 mb-3">Minute</label>
-          <div className="h-40 overflow-y-auto border border-slate-200 rounded-lg bg-white shadow-inner">
+          <label className="block text-sm font-semibold text-slate-600 mb-2 sm:mb-3">Minute</label>
+          <div className="h-32 sm:h-40 overflow-y-auto border border-slate-200 rounded-lg bg-white shadow-inner">
             {minutes.map((minute) => (
               <button
+                type="button"
                 key={minute}
                 onClick={() => handleTimeChange(selectedHour, minute)}
                 disabled={!isTimeValid(selectedHour, minute)}
-                className={`w-full px-4 py-3 text-sm font-medium text-left transition-all duration-200 ${
+                className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-sm font-medium text-left transition-all duration-200 ${
                   minute === selectedMinute
                     ? "bg-blue-500 text-white shadow-md"
                     : isTimeValid(selectedHour, minute)
@@ -289,7 +299,36 @@ function ScrollableTimePicker({
 
 export default function Scheduler({ value, onChange, label = "Schedule" }: SchedulerProps) {
   // freeze "now" at mount so the window doesn't drift during interaction
-  const [now] = useState(() => new Date())
+  const [now,setNow] = useState(() => new Date())
+
+
+useEffect(() => {
+  const tick = () => setNow(new Date())
+
+  // align to next minute boundary, then run every 60s
+  const msToNextMinute = 60000 - (Date.now() % 60000)
+  const start = setTimeout(() => {
+    tick()
+    const id = setInterval(tick, 60000)
+    // cleanup will clear this interval
+    ;(window as any).__tickId = id
+  }, msToNextMinute)
+
+  return () => {
+    clearTimeout(start)
+    if ((window as any).__tickId) clearInterval((window as any).__tickId)
+  }
+}, [])
+
+const minDateTime = useMemo(
+  () => new Date(now.getTime() + 30 * 60 * 1000),
+  [now]
+)
+
+// Optional: auto-clamp if current value falls behind the moving window
+useEffect(() => {
+  if (value && value < minDateTime) onChange(minDateTime)
+}, [value, minDateTime, onChange])
 
   const minDate = useMemo(() => {
     const today = new Date()
@@ -297,7 +336,7 @@ export default function Scheduler({ value, onChange, label = "Schedule" }: Sched
     return today
   }, [])
   const maxDate = useMemo(() => addMinutes(now, 7 * 24 * 60), [now])
-  const minDateTime = useMemo(() => addMinutes(now, 30), [now])
+
 
   const [selectedDay, setSelectedDay] = useState<string>(() => toDateInputValue(minDateTime))
   const [note, setNote] = useState<string>("")
@@ -418,23 +457,23 @@ export default function Scheduler({ value, onChange, label = "Schedule" }: Sched
   }, [value, now])
 
   return (
-    <div className="w-full max-w-5xl rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 mt-3">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <CalendarIcon className="w-6 h-6 text-blue-600" />
-          <label className="text-xl font-bold text-slate-800">{label}</label>
+    <div className="w-full max-w-md sm:max-w-2xl lg:max-w-5xl rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6 lg:p-8 mt-3">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+          <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+          <label className="text-lg sm:text-xl font-bold text-slate-800">{label}</label>
         </div>
         <p className="text-sm text-slate-600">Pick a time at least 30 minutes from now, up to 7 days ahead.</p>
       </div>
 
       {/* Quick picks */}
-      <div className="mb-8 flex flex-wrap gap-3">
+      <div className="mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-3">
         {quickOptions.map((q) => (
           <button
             key={q.label}
             type="button"
             onClick={() => quickPick(q.get())}
-            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
+            className="rounded-full border border-slate-300 bg-white px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
           >
             {q.label}
           </button>
@@ -442,13 +481,13 @@ export default function Scheduler({ value, onChange, label = "Schedule" }: Sched
         <button
           type="button"
           onClick={clear}
-          className="rounded-full border border-transparent bg-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-all duration-200"
+          className="rounded-full border border-transparent bg-slate-200 px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-slate-600 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-all duration-200"
         >
           Clear
         </button>
       </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-8 xl:grid-cols-2">
+      <div className="mb-6 sm:mb-8 grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-2">
         <div>
           <Calendar
             selectedDate={value || minDateTime}
@@ -466,7 +505,7 @@ export default function Scheduler({ value, onChange, label = "Schedule" }: Sched
             maxTime={timeMax}
           />
           {(timeMin || timeMax) && (
-            <p className="mt-3 text-sm text-slate-600 bg-blue-50 rounded-lg p-3 border border-blue-200">
+            <p className="mt-2 sm:mt-3 text-sm text-slate-600 bg-blue-50 rounded-lg p-2 sm:p-3 border border-blue-200">
               {timeMin ? `⏰ Earliest today: ${timeMin}` : ""}
               {timeMax ? ` • Latest this day: ${timeMax}` : ""}
             </p>
@@ -474,15 +513,13 @@ export default function Scheduler({ value, onChange, label = "Schedule" }: Sched
         </div>
       </div>
 
-
-
       {/* Selection summary + messages */}
-      <div className="flex items-start justify-between gap-4 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex items-start justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
         <div className="text-sm text-slate-600">
           {value ? (
             <>
-              <div className="font-semibold text-slate-800 text-base mb-1">
-               {formatDate(value)} at {formatTime(value)}
+              <div className="font-semibold text-slate-800 text-sm sm:text-base mb-1">
+                {formatDate(value)} at {formatTime(value)}
               </div>
               <div className="text-slate-500">{selectedInfo?.rel}</div>
             </>
@@ -494,7 +531,7 @@ export default function Scheduler({ value, onChange, label = "Schedule" }: Sched
         {note && (
           <div
             aria-live="polite"
-            className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm"
+            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 sm:px-4 sm:py-3 text-sm text-amber-800 shadow-sm"
           >
             {note}
           </div>
@@ -503,4 +540,3 @@ export default function Scheduler({ value, onChange, label = "Schedule" }: Sched
     </div>
   )
 }
-

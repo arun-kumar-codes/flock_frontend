@@ -136,7 +136,7 @@ export default function BlogsPage() {
   const [publishError, setPublishError] = useState("")
   // Inside your component state
 const [isScheduled, setIsScheduled] = useState(false);
-const [scheduledAt, setScheduledAt] = useState<Date | null>(new Date(new Date().getDate() + 30 * 60 * 1000)); 
+const [scheduledAt, setScheduledAt] = useState<Date | null>(null); 
 
 
   // Image upload states
@@ -207,6 +207,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(new Date(new Date().
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [showCreateModal, showEditModal, showViewModal])
+
 
   // Helper function to set loading state for specific actions
   const setActionLoading = (blogId: number, action: string, loading: boolean) => {
@@ -1679,6 +1680,7 @@ if (
                         setImageError("")
                         setCreateError("")
                         setCreateSuccess("")
+                        setIsScheduled(false)
                         if (fileInputRef.current) {
                           fileInputRef.current.value = ""
                         }
@@ -1691,7 +1693,7 @@ if (
                 </div>
                 {/* Modal Content - Scrollable */}
                 <div className="flex-1 overflow-y-auto">
-                  <form onSubmit={handleCreateBlog} className="p-4 sm:p-6">
+                  <form  className="p-4 sm:p-6">
                     {/* Success Message */}
                     {createSuccess && (
                       <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -1888,6 +1890,7 @@ if (
                       <button
                         type="submit"
                         disabled={isCreating || !blogForm.title.trim() || !blogForm.content.trim()}
+                        onClick={handleCreateBlog}
                         className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
                       >
                         {isCreating ? (

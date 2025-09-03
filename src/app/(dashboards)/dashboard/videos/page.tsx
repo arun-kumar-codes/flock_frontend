@@ -658,7 +658,7 @@ export default function VideoDashboard() {
   isScheduled &&
   (
     !scheduledAt || 
-    scheduledAt <= new Date(Date.now() + 30 * 60 * 1000) || 
+    scheduledAt < new Date(Date.now() + 29 * 60 * 1000) || 
     scheduledAt > new Date(Date.now() + 7 * 24 *60* 60 * 1000)
   )
 ) {
@@ -1492,7 +1492,7 @@ export default function VideoDashboard() {
 
             {/* Modal Content - Scrollable */}
             <div className="flex-1 overflow-y-auto">
-              <form onSubmit={handleCreateVideo} className="p-6">
+              <form  className="p-6">
                 {/* Success Message */}
                 {createSuccess && (
                   <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -1725,6 +1725,7 @@ export default function VideoDashboard() {
                       stripHtmlTags(videoForm.description).length < 10 ||
                       !videoForm.video
                     }
+                    onClick={handleCreateVideo}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {isCreating ? (
