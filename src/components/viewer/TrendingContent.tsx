@@ -448,7 +448,7 @@ export default function TrendingContentTab() {
           <div className="flex items-center space-x-3">
             <button
               onClick={handleRefresh}
-              className="theme-text-primary hover:theme-text-secondary font-semibold text-xs md:text-sm px-4 py-2 rounded-xl theme-bg-secondary hover:theme-bg-card transition-all duration-200 theme-border border"
+              className="theme-text-primary hover:theme-text-secondary font-semibold cursor-pointer text-xs md:text-sm px-4 py-2 rounded-xl theme-bg-secondary hover:theme-bg-card transition-all duration-200 theme-border border"
             >
               Refresh
             </button>

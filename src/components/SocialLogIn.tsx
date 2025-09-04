@@ -83,7 +83,7 @@ const SocialLogin = () => {
           <button
             onClick={() => loginWithProvider(new GoogleAuthProvider(), "google")}
             disabled={isLoading !== null}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-300 bg-white/50 backdrop-blur-sm text-slate-700 shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center cursor-pointer  justify-center gap-3 py-3 px-4 rounded-xl border border-slate-300 bg-white/50 backdrop-blur-sm text-slate-700 shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading === "google" ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-600"></div>
@@ -96,7 +96,7 @@ const SocialLogin = () => {
           <button
             onClick={() => loginWithProvider(new FacebookAuthProvider(), "facebook")}
             disabled={isLoading !== null}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-blue-600 text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center cursor-pointer  justify-center gap-3 py-3 px-4 rounded-xl bg-blue-600 text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading === "facebook" ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>

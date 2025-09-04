@@ -208,7 +208,7 @@ export default function TrendingBlogsTab() {
           <div className="flex items-center space-x-3">
             <button
               onClick={handleRefresh}
-              className="text-orange-600 hover:text-orange-700 font-semibold text-sm px-4 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 transition-all duration-200 border border-orange-200"
+              className="text-orange-600 hover:text-orange-700 font-semibold text-sm px-4 py-2 rounded-xl cursor-pointer  bg-orange-50 hover:bg-orange-100 transition-all duration-200 border border-orange-200"
             >
               Refresh
             </button>

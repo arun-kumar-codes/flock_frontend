@@ -390,7 +390,7 @@ export default function BlogPageRedesigned() {
                   fetchFollowingData()
                 }}
                 disabled={isLoading}
-                className="flex items-center space-x-2 px-6 py-2 md:py-3 theme-button-primary rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+                className="flex items-center space-x-2 px-6 py-2 md:py-3 theme-button-primary cursor-pointer  rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
               >
                 <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                 <span>{isLoading ? "Loading..." : "Refresh"}</span>

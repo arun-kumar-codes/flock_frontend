@@ -365,7 +365,7 @@ export default function BlogsPage() {
               <button
                 onClick={fetchBlogs}
                 disabled={isLoading}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-xl font-medium text-sm md:text-base"
+                className="inline-flex items-center px-6 py-3 cursor-pointer  bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-xl font-medium text-sm md:text-base"
               >
                 <RefreshCwIcon className={`w-3 h-4 md:w-5 md:h-5 mr-2 ${isLoading ? "animate-spin" : ""}`} />
                 {isLoading ? "Refreshing..." : "Refresh"}

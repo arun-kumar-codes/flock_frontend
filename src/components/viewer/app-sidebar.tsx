@@ -106,7 +106,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
               <button
                 key={item.title}
                 onClick={() => router.push(item.url)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                   isActive
                     ? "bg-blue-600 text-white shadow-md border-r-2 border-blue-400"
                     : "theme-text-primary hover:theme-bg-hover hover:text-blue-600"
@@ -138,7 +138,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
               <button
                 key={item.title}
                 onClick={() => router.push(item.url)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                className={`w-full flex items-center space-x-3 px-3 cursor-pointer py-2.5 rounded-lg transition-all duration-200 group ${
                   isActive
                     ? "bg-blue-600 text-white shadow-md border-r-2 border-blue-400"
                     : "theme-text-primary hover:theme-bg-hover hover:text-blue-600"
@@ -183,7 +183,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg theme-text-primary hover:bg-red-500 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer  theme-text-primary hover:bg-red-500 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
             title={!isExpanded ? "Sign Out" : undefined}
           >
             <LogOutIcon className="w-5 h-5 flex-shrink-0" />
@@ -206,7 +206,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
 
           <button
             onClick={() => router.push("/login")}
-            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-md"
+            className="w-full flex items-center space-x-3 cursor-pointer  px-3 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-md"
             title={!isExpanded ? "Sign In" : undefined}
           >
             <UserIcon className="w-5 h-5 flex-shrink-0 " />

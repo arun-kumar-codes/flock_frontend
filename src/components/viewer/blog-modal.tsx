@@ -412,14 +412,14 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                               <button
                                 onClick={() => handleSaveEditComment(comment.id)}
                                 disabled={!editCommentText.trim()}
-                                className="px-3 py-1 theme-button-primary text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
+                                className="px-3 py-1 theme-button-primary cursor-pointer  text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
                               >
                                 <Check className="w-3 h-3" />
                                 <span>Save</span>
                               </button>
                               <button
                                 onClick={handleCancelEdit}
-                                className="px-3 py-1 theme-button-secondary theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
+                                className="px-3 py-1 theme-button-secondary cursor-pointer  theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
                               >
                                 Cancel
                               </button>

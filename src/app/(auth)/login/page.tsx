@@ -301,7 +301,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors duration-200"
+                  className="absolute right-3 top-1/2 cursor-pointer  transform -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors duration-200"
                 >
                   {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                 </button>
@@ -364,7 +364,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 font-bold text-white shadow-xl transition-all duration-200 hover:from-indigo-700 hover:to-purple-700 hover:shadow-2xl hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:scale-100"
+                className="w-full rounded-lg cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 font-bold text-white shadow-xl transition-all duration-200 hover:from-indigo-700 hover:to-purple-700 hover:shadow-2xl hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:scale-100"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">

@@ -501,7 +501,7 @@ export default function DashboardPage() {
                   fetchFollowingData()
                 }}
                 disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 md:py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs md:text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 cursor-pointer  py-2 md:py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs md:text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCwIcon className={`w-3 h-3 md:w-4 md:h-4 ${isLoading ? "animate-spin" : ""}`} />
                 <span>{isLoading ? "Loading..." : "Refresh"}</span>

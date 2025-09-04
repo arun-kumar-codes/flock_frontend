@@ -540,7 +540,7 @@ export default function AdminVideosPage() {
               <button
                 onClick={fetchVideos}
                 disabled={isLoading}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-purple-600 text-white rounded-2xl hover:from-red-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-xl font-medium"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 cursor-pointer  to-purple-600 text-white rounded-2xl hover:from-red-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-xl font-medium"
               >
                 <RefreshCwIcon className={`w-5 h-5 mr-2 ${isLoading ? "animate-spin" : ""}`} />
                 {isLoading ? "Refreshing..." : "Refresh Videos"}

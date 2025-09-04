@@ -108,7 +108,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
         <div className="flex items-center ml-2 space-x-2 md:space-x-4">
           <button
             onClick={toggleTheme}
-            className="p-3 rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
+            className="p-3 rounded-xl theme-bg-secondary theme-bg-hover cursor-pointer theme-border transition-all duration-300 group"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDark ? (
@@ -122,7 +122,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
             // User is logged in - show profile button
             <button
               onClick={() => router.push("/viewer/profile")}
-              className="flex items-center space-x-3 px-6 py-3 rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
+              className="flex items-center space-x-3 px-6 py-3 rounded-xl cursor-pointer  theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
               title="View Profile"
             >
               <User className="w-4 h-4 md:w-5 md:h-5 theme-text-primary group-hover:scale-110 transition-transform duration-300" />
@@ -135,7 +135,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => router.push("/login")}
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
+                className="flex items-center space-x-2 px-5 py-3 cursor-pointer  rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
                 title="Sign In"
               >
                 <LogIn className="w-4 h-4 theme-text-primary group-hover:translate-x-1 transition-transform duration-300" />
@@ -144,7 +144,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
 
               <button
                 onClick={() => router.push("/signup")}
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl theme-button-primary transition-all duration-300 group shadow-lg"
+                className="flex items-center space-x-2 px-5 py-3 rounded-xl cursor-pointer  theme-button-primary transition-all duration-300 group shadow-lg"
                 title="Sign Up"
               >
                 <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />

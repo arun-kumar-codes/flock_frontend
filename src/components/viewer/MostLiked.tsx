@@ -387,7 +387,7 @@ export default function MostLikedTab() {
           <div className="flex items-center space-x-3">
             <button
               onClick={handleRefresh}
-              className="theme-button-secondary font-semibold text-sm px-4 py-2 rounded-xl transition-all duration-200"
+              className="theme-button-secondary font-semibold text-sm px-4 py-2 rounded-xl transition-all duration-200 cursor-pointer "
             >
               Refresh
             </button>

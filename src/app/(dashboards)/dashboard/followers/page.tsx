@@ -194,7 +194,7 @@ export default function FollowersPage() {
               <button
                 onClick={fetchFollowers}
                 disabled={isLoading}
-                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+                className="flex items-center space-x-2 px-6 py-3 bg-blue-600 cursor-pointer  text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
               >
                 <RefreshCwIcon className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                 <span>{isLoading ? "Loading..." : "Refresh"}</span>
