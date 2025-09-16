@@ -374,7 +374,7 @@ export default function BlogPageRedesigned() {
                   disabled={isLoadingFollowing}
                 >
                   <option value="all">
-    {user.isLogin ? "All Following" : "All Creator"}
+    {user.isLogin ? "All Following" : "All Creators"}
   </option>
                   {followings.map((following) => (
                     <option key={following.id} value={following.username}>

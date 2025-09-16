@@ -590,11 +590,11 @@ export default function AdminVideosPage() {
                 <p className="text-gray-600">Please wait while we fetch the video content</p>
               </div>
             ) : filteredVideos.length > 0 ? (
-              <div className="grid gap-8">
+              <div className="flex flex-col gap-8 px-3 py-3">
                 {filteredVideos.map((video) => (
                   <div
                     key={video.id}
-                    className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 hover:shadow-2xl hover:border-red-200 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                    className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 hover:shadow-2xl hover:border-red-200 transition-all duration-300 hover:-translate-y-1 cursor-pointer "
                     onClick={() => handleVideoDoubleClick(video)}
                   >
                     <div className="flex flex-col lg:flex-row gap-6">
@@ -628,9 +628,10 @@ export default function AdminVideosPage() {
                             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
                               {video.title}
                             </h3>
-                            <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 line-clamp-2">
-                              {generateExcerpt(video.description, 180)}
-                            </p>
+                <p className="text-sm text-gray-600 break-all">
+                {generateExcerpt(video.description, 150) || "No description provided."}
+                </p>
+        
                           </div>
 
                           {/* Action Menu */}
@@ -928,7 +929,7 @@ export default function AdminVideosPage() {
                 {/* Video Description */}
                 <div className="mb-8">
                   <h4 className="text-xl font-semibold text-gray-900 mb-4">Description</h4>
-                  <div className="prose prose-lg prose-slate max-w-none bg-gray-50 p-6 rounded-2xl">
+                  <div className="prose prose-lg prose-slate max-w-none bg-gray-50 p-6 rounded-2xl break-all">
                     <TipTapContentDisplay content={videoToView.description} className="text-gray-700" />
                   </div>
                 </div>

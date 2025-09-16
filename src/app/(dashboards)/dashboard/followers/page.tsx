@@ -86,25 +86,12 @@ export default function FollowersPage() {
   const filteredAndSortedFollowers = followers
     .filter((follower) => {
       const matchesSearch =
-        follower.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        follower.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        follower.role.toLowerCase().includes(searchTerm.toLowerCase())
+        (follower.username&&follower?.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      ( follower.email&& follower?.email.toLowerCase().includes(searchTerm.toLowerCase()) )
 
       const matchesRole = filterRole === "all" || follower.role.toLowerCase() === filterRole.toLowerCase()
 
       return matchesSearch && matchesRole
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "username":
-          return a.username.localeCompare(b.username)
-        case "followers_count":
-          return b.followers_count - a.followers_count
-        case "following_count":
-          return b.following_count - a.following_count
-        default:
-          return a.username.localeCompare(b.username)
-      }
     })
 
   // Get unique roles for filter

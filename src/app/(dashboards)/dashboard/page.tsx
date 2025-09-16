@@ -199,8 +199,7 @@ export default function CreatorDashboard() {
                 </button>
                 <button
                   onClick={() => {
-                    // Add analytics route when available
-                    //console.log("Analytics coming soon!")
+                    router.push("/dashboard/analytics")
                   }}
                   className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm text-sm md:text-base"
                 >

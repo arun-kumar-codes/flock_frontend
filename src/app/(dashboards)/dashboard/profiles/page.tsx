@@ -6,6 +6,7 @@ import { useSelector } from "react-redux"
 import { updateProfile } from "@/api/user"
 import Loader2 from "@/components/Loader2"
 import { toast } from "react-hot-toast"
+import placeholderImg from "../../../../assets/profile.png";
 
 
 interface UserData {
@@ -136,7 +137,7 @@ export default function ProfilePage() {
                   >
                     <div className="h-28 w-28 md:h-40 md:w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
                       <img
-                        src={profileImage || "/placeholder.svg?height=160&width=160&query=profile"}
+                        src={profileImage?profileImage:placeholderImg}
                         alt={username}
                         className="h-full w-full rounded-full object-cover bg-white"
                       />

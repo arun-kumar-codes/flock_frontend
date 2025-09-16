@@ -30,6 +30,7 @@ import TipTapContentDisplay from "../tiptap-content-display"
 import { Stream } from "@cloudflare/stream-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import profileImg from "../../assets/profile.png"
 interface VideoModalProps {
   video: any
   onClose: () => void
@@ -376,14 +377,12 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
             <form onSubmit={handleCommentSubmit} className="mb-6">
               <div className="flex space-x-3">
              <Image
-                             src={user?.profileImage}
+                             src={user.profileImage?user.profileImage:profileImg}
                              alt="Your avatar"
                              width={40}
                              height={40}
                              className="rounded-full flex-shrink-0 w-10 h-10 object-cover"
-                             onError={(e) => {
-                               e.currentTarget.src = "/diverse-user-avatars.png"
-                             }}
+                           
                            />
                 <div className="flex-1">
                   <textarea
@@ -415,14 +414,12 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
                       <div className="w-10 h-10 theme-button-secondary rounded-full flex items-center justify-center flex-shrink-0">
 
                            <Image
-                                              src={comment.commenter.profile_picture}
+                                              src={comment.commenter.profile_picture?comment.commenter.profile_picture:profileImg}
                                               alt={comment.commenter.username}
                                               width={40}
                                               height={40}
                                               className="rounded-full flex-shrink-0 w-10 h-10"
-                                              onError={(e) => {
-                                                e.currentTarget.src = "/diverse-user-avatars.png"
-                                              }}
+                                            
                                             />
                     
                       </div>

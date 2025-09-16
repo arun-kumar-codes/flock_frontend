@@ -690,7 +690,7 @@ export default function VideoDashboard() {
           title: "",
           description: "",
           video: null,
-          is_draft: true,
+          is_draft: false,
         })
         setVideoPreview(null)
         setVideoError("")
@@ -875,7 +875,7 @@ export default function VideoDashboard() {
                     Video Management
                   </h1>
                   <p className="text-slate-600 text-sm md:text-base lg:text-lg">
-                    Manage Yuor Videos and track your performance.
+                    Manage Your Videos and track your performance.
                   </p>
                 </div>
                 <div className="flex justify-center sm:justify-end">

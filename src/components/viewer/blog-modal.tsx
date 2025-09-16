@@ -21,6 +21,7 @@ import { addComment, editComments, deleteComment, viewBLog, addFollowing, remove
 import { useSelector } from "react-redux"
 import TipTapContentDisplay from "@/components/tiptap-content-display";
 import { useRouter } from "next/navigation"
+import profileImg from "../../assets/profile.png"
 
 interface BlogModalProps {
   blog: any
@@ -306,14 +307,12 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
             <form onSubmit={handleCommentSubmit} className="mb-6">
               <div className="flex space-x-3">
                 <Image
-                  src={user?.profileImage}
+                  src={user.profileImage?user.profileImage:profileImg}
                   alt="Your avatar"
                   width={40}
                   height={40}
                   className="rounded-full flex-shrink-0 w-10 h-10 object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "/diverse-user-avatars.png"
-                  }}
+               
                 />
                 <div className="flex-1">
                   <textarea
@@ -343,14 +342,12 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                 .map((comment: any) => (
                   <div key={comment.id} className="flex space-x-3 items-center">
                     <Image
-                      src={comment.commenter.profile_picture}
+                      src={comment.commenter.profile_picture?comment.commenter.profile_picture:profileImg}
                       alt={comment.commenter.username}
                       width={40}
                       height={40}
                       className="rounded-full flex-shrink-0 w-10 h-10"
-                      onError={(e) => {
-                        e.currentTarget.src = "/diverse-user-avatars.png"
-                      }}
+                    
                     />
                     <div className="flex-1">
                       <div className="theme-bg-secondary rounded-lg p-3">
