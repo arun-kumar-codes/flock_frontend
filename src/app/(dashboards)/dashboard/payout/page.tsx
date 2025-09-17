@@ -308,7 +308,7 @@ export default function PayoutPage() {
                   <div className="text-center space-y-4">
                     <CheckCircle className="h-10 w-10 text-green-600 mx-auto" />
                     <p className="text-gray-700 font-medium">
-                      Your Stripe account is connected 🎉
+                      Your account is connected 🎉
                     </p>
                     <button
                       onClick={handleRemoveAccount}

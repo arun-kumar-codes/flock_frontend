@@ -162,6 +162,7 @@ export default function TrendingContentTab() {
   const loadTrendingContent = async () => {
     try {
       setError(null)
+      setLoading(true);
       const response = await getAllTrendingContent()
 
       const mixedContent: ContentItem[] = []
@@ -205,6 +206,7 @@ export default function TrendingContentTab() {
       setLoading(false)
     }
   }
+  
 
   const handleRefresh = () => {
     loadTrendingContent()
@@ -323,8 +325,67 @@ export default function TrendingContentTab() {
     }
   }
 
-  const handleRefreshContent = () => {
-    loadTrendingContent()
+  const handleRefreshContent =async () => {
+    try {
+      const response = await getAllTrendingContent()
+
+      const mixedContent: ContentItem[] = []
+
+      // Process videos
+      if (response?.data?.videos) {
+        const videosWithUIFields = response.data.videos
+          .filter((video: any) => video.status === "published" && !video.archived)
+          .map((video: any) => ({
+            ...video,
+            type: "video" as const,
+            views: video.views || 0,
+            comments: video.comments || [],
+            comments_count: video.comments_count || video.comments?.length || 0,
+          }))
+
+           if(selectedVideo){
+
+              videosWithUIFields.forEach((video:any)=>{
+            if(selectedVideo.id===video.id){
+                    setSelectedVideo(video);
+                
+            }
+        })
+      }
+        mixedContent.push(...videosWithUIFields)
+      }
+      // Process blogs
+      if (response?.data?.blogs) {
+        const blogsWithUIFields = response.data.blogs
+          .filter((blog: any) => blog.status === "published" && !blog.archived)
+          .map((blog: any) => ({
+            ...blog,
+            type: "blog" as const,
+            excerpt: generateExcerpt(blog.content, blog.image),
+            readTime: calculateReadTime(blog.content),
+            comments: blog.comments || [],
+            comments_count: blog.comments_count || blog.comments?.length || 0,
+          }))
+
+          if(selectedBlog){
+        blogsWithUIFields.forEach((blog:any)=>{
+            if(selectedBlog.id===blog.id){
+                    setSelectedBlog(blog);
+                    console.log("BLog",blog)               
+            }
+        })
+          }    
+        mixedContent.push(...blogsWithUIFields)
+      }
+
+      // Sort mixed content by creation date (newest first)
+      mixedContent.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      setContent(mixedContent)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch trending content")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filteredContent = content.filter((item) => {
@@ -581,7 +642,7 @@ export default function TrendingContentTab() {
                       </div>
 
                       {/* Content Info */}
-                      <div className="flex-1 min-w-0 flex flex-col">
+                      {/* <div className="flex-1 min-w-0 flex flex-col">
                         <h3
                           title={item.title}
                           className="font-semibold text-sm leading-5 line-clamp-2 group-hover:text-purple-500 transition-colors theme-text-primary mb-2 h-10 flex items-start"
@@ -635,7 +696,58 @@ export default function TrendingContentTab() {
                             <span>{item.likes}</span>
                           </button>
                         </div>
-                      </div>
+                      </div> */}
+
+                       <div className="flex-1 min-w-0 flex flex-col">
+                                                <h3
+                                                title={item.title}
+                                                className="font-semibold text-sm leading-5 line-clamp-2 group-hover:text-red-500 transition-colors theme-text-primary mb-2 h-10 overflow-hidden"
+                                              >
+                                                {item.title}
+                                              </h3>
+                      
+                                                <p className="text-sm theme-text-secondary mt-2 truncate">
+                                                  {item.type === "video"
+                                                    ? item.creator?.username || "Unknown Creator"
+                                                    : item.author?.username || "Unknown Creator"}
+                                                </p>
+                      
+                                                <div className="flex items-center justify-between mt-auto">
+                                                  <div className="flex items-center text-xs theme-text-muted">
+                                                    {item.type === "video" ? (
+                                                      <>
+                                                        <span>{formatViews(item.views || 0)} views</span>
+                                                        <span className="mx-1">•</span>
+                                                        <span>{formatDate(item.created_at)}</span>
+                                                      </>
+                                                    ) : (
+                                                      <>
+                                                        <span>{item.readTime}</span>
+                                                        <span className="mx-1">•</span>
+                                                        <span>{formatDate(item.created_at)}</span>
+                                                      </>
+                                                    )}
+                                                  </div>
+                      
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.stopPropagation()
+                                                      if (item.type === "video") {
+                                                        handleToggleVideoLike(item.id)
+                                                      } else {
+                                                        handleToggleBlogLike(item.id)
+                                                      }
+                                                    }}
+                                                    className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs ${
+                                                      item.is_liked ? "text-blue-500" : "theme-text-muted hover:text-blue-500"
+                                                    }`}
+                                                  >
+                                                    <ThumbsUpIcon className={`w-3 h-3 ${item.is_liked ? "fill-current" : ""} ${likeAnimation[`${item.type}-${item.id}`] ? "animate-pop" : "" }`} />
+                                                    <span>{item.likes}</span>
+                                                  </button>
+                                                </div>
+                        </div>
+                        
                     </div>
                   </div>
                 </div>

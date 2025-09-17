@@ -195,7 +195,8 @@ export default function TrendingContentTab() {
   }
 
   const handleRefresh = () => {
-    loadTrendingContent()
+    setLoading(true);
+    loadTrendingContent();
   }
 
   const openVideoModal = (video: Video) => {
@@ -297,8 +298,73 @@ export default function TrendingContentTab() {
     }
   }
 
-  const handleRefreshContent = () => {
-    loadTrendingContent()
+
+  const handleRefreshContent = async () => {
+    try {
+      setError(null)
+      const response = await getAllTrendingContent()
+
+      const mixedContent: ContentItem[] = []
+
+      // Process videos
+      if (response?.data?.videos) {
+        const videosWithUIFields = response.data.videos
+          .filter((video: any) => video.status === "published" && !video.archived)
+          .map((video: any) => ({
+            ...video,
+            type: "video" as const,
+            views: video.views || 0,
+            comments: video.comments || [],
+            comments_count: video.comments_count || video.comments?.length || 0,
+          }))
+
+          
+
+            if(selectedVideo){
+              console.log()
+              videosWithUIFields.forEach((video:any)=>{
+            if(selectedVideo.id===video.id){
+                    setSelectedVideo(video);              
+            }
+        })
+      }
+        mixedContent.push(...videosWithUIFields)
+      }
+
+      // Process blogs
+      if (response?.data?.blogs) {
+        const blogsWithUIFields = response.data.blogs
+          .filter((blog: any) => blog.status === "published" && !blog.archived)
+          .map((blog: any) => ({
+            ...blog,
+            type: "blog" as const,
+            excerpt: generateExcerpt(blog.content, blog.image),
+            readTime: calculateReadTime(blog.content),
+            comments: blog.comments || [],
+            comments_count: blog.comments_count || blog.comments?.length || 0,
+          }))
+
+              if(selectedBlog){
+        blogsWithUIFields.forEach((blog:any)=>{
+            if(selectedBlog.id===blog.id){
+                    setSelectedBlog(blog);
+                    console.log("BLog",blog)               
+            }
+        })
+          }  
+          
+        mixedContent.push(...blogsWithUIFields)
+      }
+
+      // Sort mixed content by creation date (newest first)
+      mixedContent.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+      setContent(mixedContent)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch trending content")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filteredContent = content.filter((item) => {
@@ -592,6 +658,7 @@ export default function TrendingContentTab() {
                             </button>
                           </div>
                         </div>
+
                       </div>
                     </div>
                   </div>

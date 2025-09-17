@@ -22,6 +22,7 @@ import { useSelector } from "react-redux"
 import TipTapContentDisplay from "@/components/tiptap-content-display";
 import { useRouter } from "next/navigation"
 import profileImg from "../../assets/profile.png"
+import BlogsPage from "@/app/(dashboards)/admin/blogs/page"
 
 interface BlogModalProps {
   blog: any
@@ -44,22 +45,32 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
   const [isLoading, setIsLoading] = useState(false)
   const [likeAnimation, setLikeAnimation] = useState<{[key: number]: boolean}>({})
   const router=useRouter();
+  const commentsToShow = [...blog.comments].reverse();
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose()
-      }
-      if (commentMenuRef.current && !commentMenuRef.current.contains(event.target as Node)) {
-        setShowCommentMenu(null)
-      }
+
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      onClose();
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
+    // Check if click is outside the open comment menu
+    if (showCommentMenu !== null) {
+      console.log(showCommentMenu);
+      const menu = document.getElementById(`comment-menu-${showCommentMenu}`);
+      if (menu && !menu.contains(event.target as Node)) {
+        setShowCommentMenu(null);
+      }
     }
-  }, [onClose])
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, [onClose, showCommentMenu]);
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -94,7 +105,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
   }
 
   const formatCommentDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString+'z')
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
 
@@ -129,6 +140,8 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
   const handleSaveEditComment = async (commentId: number) => {
     if (!editCommentText.trim()) return
 
+    setIsSaving(true);
+
     try {
       await editComments(commentId, editCommentText.trim())
       setEditingCommentId(null)
@@ -136,6 +149,8 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
       onRefreshBlogs()
     } catch (error) {
       console.error("Error updating comment:", error)
+    }finally{
+      setIsSaving(false);
     }
   }
 
@@ -338,7 +353,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
 
             {/* Comments List */}
             <div className="space-y-4">
-              {blog.comments
+              {commentsToShow
                 .map((comment: any) => (
                   <div key={comment.id} className="flex space-x-3 items-center">
                     <Image
@@ -367,23 +382,27 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                                 <MoreVertical className="w-3 h-3 theme-text-muted" />
                               </button>
                               {showCommentMenu === comment.id && (
-                                <div className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10">
-                                  <button
-                                    onClick={() => handleEditComment(comment)}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
-                                  >
-                                    <Edit className="w-3 h-3 theme-text-muted" />
-                                    <span className="theme-text-secondary">Edit</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteComment(comment.id)}
-                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                  >
-                                    <Trash className="w-3 h-3 text-red-500" />
-                                    <span>Delete</span>
-                                  </button>
-                                </div>
-                              )}
+  <div
+    id={`comment-menu-${comment.id}`}
+    className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10"
+  >
+    <button
+      onClick={() => handleEditComment(comment)}
+      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
+    >
+      <Edit className="w-3 h-3 theme-text-muted" />
+      <span className="theme-text-secondary">Edit</span>
+    </button>
+    <button
+      onClick={() => handleDeleteComment(comment.id)}
+      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+    >
+      <Trash className="w-3 h-3 text-red-500" />
+      <span>Delete</span>
+    </button>
+  </div>
+)}
+
                             </div>
                           )}
                         </div>
@@ -406,14 +425,19 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                               }}
                             />
                             <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleSaveEditComment(comment.id)}
-                                disabled={!editCommentText.trim()}
-                                className="px-3 py-1 theme-button-primary cursor-pointer  text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
-                              >
-                                <Check className="w-3 h-3" />
-                                <span>Save</span>
-                              </button>
+                          <button
+  onClick={() => handleSaveEditComment(comment.id)}
+  disabled={!editCommentText.trim() || isSaving}
+  className="px-3 py-1 theme-button-primary cursor-pointer text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
+>
+  {isSaving ? (
+    <Loader2 className="w-3 h-3 animate-spin" />
+  ) : (
+    <Check className="w-3 h-3" />
+  )}
+  <span>{isSaving ? "Saving..." : "Save"}</span>
+</button>
+
                               <button
                                 onClick={handleCancelEdit}
                                 className="px-3 py-1 theme-button-secondary cursor-pointer  theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"

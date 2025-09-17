@@ -236,8 +236,23 @@ export default function DashboardPage() {
           comments: video.comments || [],
           comments_count: video.comments_count || video.comments?.length || 0,
         }))
-        mixedContent.push(...videosWithUIFields)
+        mixedContent.push(...videosWithUIFields)  
+          console.log(selectedVideo);  
+          console.log("VIDEO WITH FIELDS : ")
+          console.log(videosWithUIFields);
+              if(selectedVideo){
+              videosWithUIFields.forEach((video:any)=>{
+                if(video.id==60){
+                  console.log(video);
+                }
+            if(selectedVideo.id===video.id){
+                    setSelectedVideo(video);          
+            }
+        })
       }
+      }
+
+
 
       // Process blogs
       if (response?.data?.blogs) {
@@ -251,6 +266,16 @@ export default function DashboardPage() {
           comments: blog.comments || [],
           comments_count: blog.comments_count || blog.comments?.length || 0,
         }))
+
+            if(selectedBlog){
+        blogsWithUIFields.forEach((blog:any)=>{
+            if(selectedBlog.id===blog.id){
+                    setSelectedBlog(blog);
+                    console.log("BLog",blog)               
+            }
+        })
+          }  
+
         mixedContent.push(...blogsWithUIFields)
       }
 

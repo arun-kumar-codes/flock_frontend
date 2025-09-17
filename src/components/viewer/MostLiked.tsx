@@ -133,7 +133,6 @@ export default function MostLikedTab() {
   const loadMostLikedContent = async () => {
     try {
       setError(null)
-      setLoading(true)
 
       const response = await getAllTrendingContent()
 
@@ -192,7 +191,8 @@ export default function MostLikedTab() {
   }, [])
 
   const handleRefresh = async () => {
-    loadMostLikedContent()
+    setLoading(true);
+    loadMostLikedContent();
   }
 
   const openVideoModal = (video: VideoPost) => {

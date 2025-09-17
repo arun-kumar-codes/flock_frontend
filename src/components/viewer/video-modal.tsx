@@ -31,6 +31,7 @@ import { Stream } from "@cloudflare/stream-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import profileImg from "../../assets/profile.png"
+import Video from "../Video"
 interface VideoModalProps {
   video: any
   onClose: () => void
@@ -58,6 +59,9 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
   const router=useRouter();
   const watchTimeRef = useRef(0) // Use ref to ensure we have the latest value in cleanup
   // Update ref whenever totalWatchTime changes
+  const [isSaving, setIsSaving] = useState(false);
+  const showComment=[...video.comments].reverse();
+
   useEffect(() => {
     watchTimeRef.current = totalWatchTime
   }, [totalWatchTime])
@@ -124,9 +128,14 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         handleClose()
       }
-      if (commentMenuRef.current && !commentMenuRef.current.contains(event.target as Node)) {
-        setShowCommentMenu(null)
+
+        if (showCommentMenu !== null) {
+      console.log(showCommentMenu);
+      const menu = document.getElementById(`comment-menu-${showCommentMenu}`);
+      if (menu && !menu.contains(event.target as Node)) {
+        setShowCommentMenu(null);
       }
+    }     
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => {
@@ -158,7 +167,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
     })
   }
   const formatCommentDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString+'z')
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
     if (diffInHours < 1) return "Just now"
@@ -204,6 +213,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
   }
   const handleSaveEditComment = async (commentId: number) => {
     if (!editCommentText.trim()) return
+     setIsSaving(true)
     try {
       await editVideoComment(commentId, editCommentText.trim())
       setEditingCommentId(null)
@@ -211,6 +221,8 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
       onRefreshVideos()
     } catch (error) {
       console.error("Error updating comment:", error)
+    }finally{
+      setIsSaving(false);
     }
   }
   const handleDeleteComment = async (commentId: number) => {
@@ -270,7 +282,9 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
     }
   }
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+
+   
       <div
         ref={modalRef}
         className="theme-bg-card rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col transform transition-all duration-200"
@@ -332,7 +346,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
           <div className="p-6 theme-border-b">
             <div className="relative rounded-lg overflow-hidden">
               <div className="w-full h-full rounded-lg overflow-hidden">
-                <div style={{ objectFit: "cover", width: "100%", height: "100%" }}>               
+                {/* <div style={{ objectFit: "cover", width: "100%", height: "100%" }}>               
                   <Stream
                     controls
                     autoplay={false}
@@ -344,7 +358,9 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
                     onLoadedData={() => setLoading(false)}
                     onWaiting={() => setLoading(true)}
                   />
-                </div>
+                </div> */}
+
+                <Video videoId={video.video_id} />
               </div>
                 </div>
               </div>
@@ -407,8 +423,8 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
             </form>
             {/* Comments List */}
             <div className="space-y-4">
-              {video.comments && video.comments.length > 0 ? (
-                video.comments
+              {showComment && showComment.length > 0 ? (
+                showComment
                   .map((comment: any) => (
                     <div key={comment.id} className="flex space-x-3 items-center">
                       <div className="w-10 h-10 theme-button-secondary rounded-full flex items-center justify-center flex-shrink-0">
@@ -444,7 +460,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
                                   <MoreVerticalIcon className="w-3 h-3 theme-text-muted" />
                                 </button>
                                 {showCommentMenu === comment.id && (
-                                  <div className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10">
+                                  <div id={`comment-menu-${comment.id}`} className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10">
                                     <button
                                       onClick={() => handleEditComment(comment)}
                                       className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
@@ -482,14 +498,19 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
                                 }}
                               />
                               <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleSaveEditComment(comment.id)}
-                                  disabled={!editCommentText.trim()}
-                                  className="px-3 py-1 theme-button-primary text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
-                                >
-                                  <CheckIcon className="w-3 h-3" />
-                                  <span>Save</span>
-                                </button>
+                              <button
+  onClick={() => handleSaveEditComment(comment.id)}
+  disabled={!editCommentText.trim() || isSaving}
+  className="px-3 py-1 theme-button-primary text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
+>
+  {isSaving ? (
+    <Loader2 className="w-3 h-3 animate-spin" />
+  ) : (
+    <CheckIcon className="w-3 h-3" />
+  )}
+  <span>{isSaving ? "Saving..." : "Save"}</span>
+</button>
+
                                 <button
                                   onClick={handleCancelEdit}
                                   className="px-3 py-1 theme-button-secondary theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
