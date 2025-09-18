@@ -2202,7 +2202,7 @@ export default function VideoDashboard() {
 
               {viewVideo.keywords && viewVideo.keywords.length > 0 && (
                 <div className="mb-8">
-                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords & Hashtags</h4>
+                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords</h4>
                   <div className="bg-gray-50 rounded-2xl p-6">
                     <div className="flex flex-wrap gap-2">
                       {viewVideo.keywords.map((keyword, index) => (

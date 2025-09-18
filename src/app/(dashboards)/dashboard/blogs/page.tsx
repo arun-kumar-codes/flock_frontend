@@ -912,9 +912,7 @@ export default function BlogsPage() {
 
           embeddedImages = Object.values(urlMapping)
 
-          console.log("[v0] Successfully uploaded and replaced all blob images")
         } catch (uploadError) {
-          console.error("[v0] Image upload failed:", uploadError)
           setCreateError("Failed to upload images. Please try again.")
           setIsCreating(false)
           return
@@ -1811,7 +1809,7 @@ export default function BlogsPage() {
                               alt="Preview"
                               width={400}
                               height={200}
-                              className="w-full h-32 sm:h-48 object-cover rounded-lg border border-slate-200"
+                              className="w-full h-auto object-cover rounded-lg border border-slate-200"
                             />
                             <button
                               type="button"

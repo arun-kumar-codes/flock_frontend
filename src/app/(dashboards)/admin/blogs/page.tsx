@@ -718,26 +718,9 @@ export default function BlogsPage() {
                   )}
                          <div>
                   
-              {blogToView.keywords && blogToView.keywords.length > 0 && (
-                <div className="mt-8">
-                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords </h4>
-                  <div className="bg-gray-50 rounded-2xl p-6">
-                    <div className="flex flex-wrap gap-2">
-                      {blogToView.keywords.map((keyword, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full border border-emerald-200"
-                        >
-                          <span className="text-emerald-600 mr-1">#</span>
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+           
                 </div>
-              )}
-                </div>
-                  <h1 className="text-4xl font-bold text-gray-900 mt-4 md:mt-0 mb-6 leading-tight">{blogToView.title}</h1>
+                  <h1 className="text-4xl font-bold text-gray-900 mt-4 md:mt-5 mb-6 leading-tight">{blogToView.title}</h1>
 
                   <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-6">
                     <div className="flex items-center space-x-3">
@@ -774,6 +757,27 @@ export default function BlogsPage() {
                 <div className="mb-8">
                   <TipTapContentDisplay content={blogToView.content} className="text-gray-700" />
                 </div>
+
+
+
+            {blogToView.keywords && blogToView.keywords.length > 0 && (
+                <div className="mt-8 mb-3">
+                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords </h4>
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="flex flex-wrap gap-2">
+                      {blogToView.keywords.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full border border-emerald-200"
+                        >
+                          <span className="text-emerald-600 mr-1">#</span>
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
 
                 {/* Author Info */}
