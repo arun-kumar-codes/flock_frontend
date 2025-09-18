@@ -64,6 +64,7 @@ interface Video {
   category?: string
   isFavorite?: boolean
   author?: Creator
+  keywords?:string[]
 }
 
 interface Following {
@@ -249,14 +250,21 @@ export default function VideoPage() {
     }
   }
 
-  const filteredVideos = videos.filter((video) => {
-    const plainDescription = stripHtmlAndDecode(video.description)
-    const matchesSearch =
-      video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.creator.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plainDescription.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
-  })
+const filteredVideos = videos.filter((video) => {
+  const lowerSearch = searchTerm.toLowerCase()
+  const plainDescription = stripHtmlAndDecode(video.description)
+
+  const matchesSearch =
+    video.title.toLowerCase().includes(lowerSearch) ||
+    video.creator.username.toLowerCase().includes(lowerSearch) ||
+    plainDescription.toLowerCase().includes(lowerSearch) ||
+    // ✅ search in keywords if available
+    (Array.isArray(video.keywords) &&
+      video.keywords.some((kw) => kw.toLowerCase().includes(lowerSearch)))
+
+  return matchesSearch
+})
+
 
   const totalPages = Math.ceil(filteredVideos.length / videosPerPage)
   const currentVideos = filteredVideos.slice(currentPage * videosPerPage, (currentPage + 1) * videosPerPage)

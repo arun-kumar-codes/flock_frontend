@@ -77,6 +77,7 @@ interface Blog {
   createdAt?: string
   views?: number
   category?: string
+  keywords?:string[]
 }
 
 interface CreateBlogData {
@@ -86,14 +87,13 @@ interface CreateBlogData {
   category?: string
   image?: File | null
   is_draft?: boolean
+  keywords?: string[]
 }
 
 interface EditBlogData extends CreateBlogData {
   id: number
   existingImageUrl?: string
 }
-
-
 
 export default function BlogsPage() {
   const router = useRouter()
@@ -138,9 +138,8 @@ export default function BlogsPage() {
   const [isPublishing, setIsPublishing] = useState<{ [key: number]: boolean }>({})
   const [publishError, setPublishError] = useState("")
   // Inside your component state
-const [isScheduled, setIsScheduled] = useState(false);
-const [scheduledAt, setScheduledAt] = useState<Date | null>(null); 
-
+  const [isScheduled, setIsScheduled] = useState(false)
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
 
   // Image upload states
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -158,6 +157,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
     category: "General",
     image: null,
     is_draft: false,
+    keywords: [],
   })
 
   // Edit blog form state
@@ -169,6 +169,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
     category: "General",
     image: null,
     existingImageUrl: "",
+    keywords: [],
   })
 
   // Store original edit form data for comparison
@@ -180,7 +181,10 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
     category: "General",
     image: null,
     existingImageUrl: "",
+    keywords: [],
   })
+  const [keywordInput, setKeywordInput] = useState("")
+  const [editKeywordInput, setEditKeywordInput] = useState("")
 
   const createModalRef = useRef<HTMLDivElement>(null)
   const editModalRef = useRef<HTMLDivElement>(null)
@@ -211,7 +215,6 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
     }
   }, [showCreateModal, showEditModal, showViewModal])
 
-
   // Helper function to set loading state for specific actions
   const setActionLoading = (blogId: number, action: string, loading: boolean) => {
     setLoadingActions((prev) => ({
@@ -231,64 +234,63 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   }
 
   const extractBlobUrls = (htmlContent: string): string[] => {
-  const blobUrls: string[] = []
-  const imgRegex = /<img[^>]+src="(blob:[^"]+)"[^>]*>/g
-  let match
+    const blobUrls: string[] = []
+    const imgRegex = /<img[^>]+src="(blob:[^"]+)"[^>]*>/g
+    let match
 
-  while ((match = imgRegex.exec(htmlContent)) !== null) {
-    blobUrls.push(match[1])
-  }
-
-  return blobUrls
-}
-
- const replaceBlobUrls = (htmlContent: string, urlMapping: Record<string, string>): string => {
-  let updatedContent = htmlContent
-
-  Object.entries(urlMapping).forEach(([blobUrl, finalUrl]) => {
-    updatedContent = updatedContent.replace(new RegExp(blobUrl, "g"), finalUrl)
-  })
-
-  return updatedContent
-}
-
-
- const uploadBlobImages = async (blobUrls: string[]): Promise<Record<string, string>> => {
-  const urlMapping: Record<string, string> = {}
-
-  if (blobUrls.length === 0) return urlMapping
-
-  try {
-    const formData = new FormData()
-
-    // Add all blob images to the form data
-    for (let i = 0; i < blobUrls.length; i++) {
-      const blobUrl = blobUrls[i]
-      const response = await fetch(blobUrl)
-      const blob = await response.blob()
-      formData.append("images", blob, `image-${Date.now()}-${i}.png`)
+    while ((match = imgRegex.exec(htmlContent)) !== null) {
+      blobUrls.push(match[1])
     }
 
-    const uploadResponse = await uploadImages(formData)
-    console.log("Upload response:", uploadResponse)
-
-    const uploadedImages = uploadResponse.data.images
-
-    // Map blob URLs to uploaded URLs based on order
-    const uploadedUrls = Object.values(uploadedImages)
-    blobUrls.forEach((blobUrl, index) => {
-      if (uploadedUrls[index] && typeof uploadedUrls[index] === "string") {
-        urlMapping[blobUrl] = uploadedUrls[index] as string
-        URL.revokeObjectURL(blobUrl)
-      }
-    })
-  } catch (error) {
-    console.error(`Failed to upload images:`, error)
-    throw error
+    return blobUrls
   }
 
-  return urlMapping
-}
+  const replaceBlobUrls = (htmlContent: string, urlMapping: Record<string, string>): string => {
+    let updatedContent = htmlContent
+
+    Object.entries(urlMapping).forEach(([blobUrl, finalUrl]) => {
+      updatedContent = updatedContent.replace(new RegExp(blobUrl, "g"), finalUrl)
+    })
+
+    return updatedContent
+  }
+
+  const uploadBlobImages = async (blobUrls: string[]): Promise<Record<string, string>> => {
+    const urlMapping: Record<string, string> = {}
+
+    if (blobUrls.length === 0) return urlMapping
+
+    try {
+      const formData = new FormData()
+
+      // Add all blob images to the form data
+      for (let i = 0; i < blobUrls.length; i++) {
+        const blobUrl = blobUrls[i]
+        const response = await fetch(blobUrl)
+        const blob = await response.blob()
+        formData.append("images", blob, `image-${Date.now()}-${i}.png`)
+      }
+
+      const uploadResponse = await uploadImages(formData)
+      console.log("Upload response:", uploadResponse)
+
+      const uploadedImages = uploadResponse.data.images
+
+      // Map blob URLs to uploaded URLs based on order
+      const uploadedUrls = Object.values(uploadedImages)
+      blobUrls.forEach((blobUrl, index) => {
+        if (uploadedUrls[index] && typeof uploadedUrls[index] === "string") {
+          urlMapping[blobUrl] = uploadedUrls[index] as string
+          URL.revokeObjectURL(blobUrl)
+        }
+      })
+    } catch (error) {
+      console.error(`Failed to upload images:`, error)
+      throw error
+    }
+
+    return urlMapping
+  }
 
   // Image validation function
   const validateImage = (file: File): string | null => {
@@ -676,6 +678,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
       category: blog.category || "General",
       image: null,
       existingImageUrl: blog.image || "",
+      keywords: blog.keywords || [],
     }
 
     setEditBlogForm(editData)
@@ -727,17 +730,15 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
       setUpdateError("Content must be at least 10 characters long")
       return
     }
-    setIsUpdating(true)    
+    setIsUpdating(true)
 
     try {
-
       const blobUrls = extractBlobUrls(editBlogForm.content)
       let updatedContent = editBlogForm.content
       let embeddedImages: string[] = []
 
       // If there are blob URLs, upload them first
       if (blobUrls.length > 0) {
-
         try {
           // Upload all blob images
           const urlMapping = await uploadBlobImages(blobUrls)
@@ -746,7 +747,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
 
           // Replace blob URLs with final URLs in content
           updatedContent = replaceBlobUrls(editBlogForm.content, urlMapping)
-          
+
           embeddedImages = Object.values(urlMapping)
 
           console.log("[v0] Successfully uploaded and replaced all blob images")
@@ -757,8 +758,6 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
           return
         }
       }
-
-      
 
       const formData = new FormData()
       let hasChanges = false
@@ -793,6 +792,15 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
         hasChanges = true
       }
 
+    if (
+  JSON.stringify(editBlogForm.keywords || []) !==
+  JSON.stringify(originalEditData.keywords || [])
+) {
+  formData.append("keywords", JSON.stringify(editBlogForm.keywords || []))
+  hasChanges = true
+}
+    
+
       if (!hasChanges) {
         setUpdateError("No changes detected")
         setIsUpdating(false)
@@ -806,9 +814,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
           ...editBlogForm,
           title: editBlogForm.title.trim(),
           content: typeof editBlogForm.content === "string" ? editBlogForm.content.trim() : "",
-          description: generateExcerpt(
-            typeof editBlogForm.content === "string" ? editBlogForm.content.trim() : "",
-          ),
+          description: generateExcerpt(typeof editBlogForm.content === "string" ? editBlogForm.content.trim() : ""),
           image: response.data?.image || (removeExistingImage ? null : editBlogForm.existingImageUrl),
         }
 
@@ -832,6 +838,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
             category: "General",
             image: null,
             existingImageUrl: "",
+            keywords: [],
           })
           setOriginalEditData({
             id: 0,
@@ -841,6 +848,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
             category: "General",
             image: null,
             existingImageUrl: "",
+            keywords: [],
           })
         }, 2000)
       } else {
@@ -855,6 +863,7 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   }
 
   const handleCreateBlog = async (e: React.FormEvent) => {
+    console.log("Handle Create Blog ")
     e.preventDefault()
     setCreateError("")
     setCreateSuccess("")
@@ -874,19 +883,16 @@ const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
       setCreateError("Content must be at least 10 characters long")
       return
     }
-if (
-  isScheduled &&
-  (
-    !scheduledAt || 
-    scheduledAt <= new Date(Date.now() + 30 * 60 * 1000) || 
-    scheduledAt > new Date(Date.now() + 7 * 24 *60* 60 * 1000)
-  )
-) {
-  console.log("Invalid scheduled date:", scheduledAt);
-  setCreateError("Please select a valid future date and time for scheduling.")
-  return
-}
-
+    if (
+      isScheduled &&
+      (!scheduledAt ||
+        scheduledAt <= new Date(Date.now() + 30 * 60 * 1000) ||
+        scheduledAt > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
+    ) {
+      console.log("Invalid scheduled date:", scheduledAt)
+      setCreateError("Please select a valid future date and time for scheduling.")
+      return
+    }
 
     setIsCreating(true)
 
@@ -897,7 +903,6 @@ if (
 
       // If there are blob URLs, upload them first
       if (blobUrls.length > 0) {
-
         try {
           // Upload all blob images
           const urlMapping = await uploadBlobImages(blobUrls)
@@ -921,11 +926,9 @@ if (
       formData.append("content", updatedContent) // Use updated content with final URLs
       formData.append("is_draft", blogForm.is_draft ? "true" : "false")
 
-      if(isScheduled && scheduledAt) {
+      if (isScheduled && scheduledAt) {
         formData.append("scheduled_at", scheduledAt.toISOString())
       }
-
-      
 
       if (embeddedImages.length > 0) {
         formData.append("embedded_images", JSON.stringify(embeddedImages))
@@ -933,6 +936,12 @@ if (
 
       if (blogForm.image) {
         formData.append("image", blogForm.image)
+      }
+
+      console.log(blogForm);
+
+      if(blogForm.keywords?.length!=0){
+        formData.append("keywords",JSON.stringify(blogForm.keywords));
       }
 
       const response = await createBlog(formData)
@@ -943,6 +952,10 @@ if (
           title: "",
           content: "",
           image: null,
+          status: "draft",
+          category: "General",
+          is_draft: false,
+          keywords: [],
         })
         setImagePreview(null)
         setImageError("")
@@ -1062,6 +1075,51 @@ if (
   }
 
   const filteredContent = getFilteredContent()
+
+  const addKeyword = (keyword: string, isEdit = false) => {
+    const trimmedKeyword = keyword.trim()
+    if (!trimmedKeyword) return
+
+    if (isEdit) {
+      if (!editBlogForm.keywords?.includes(trimmedKeyword)) {
+        setEditBlogForm((prev) => ({
+          ...prev,
+          keywords: [...(prev.keywords || []), trimmedKeyword],
+        }))
+      }
+      setEditKeywordInput("")
+    } else {
+      if (!blogForm.keywords?.includes(trimmedKeyword)) {
+        setBlogForm((prev) => ({
+          ...prev,
+          keywords: [...(prev.keywords || []), trimmedKeyword],
+        }))
+      }
+      setKeywordInput("")
+    }
+  }
+
+  const removeKeyword = (keyword: string, isEdit = false) => {
+    if (isEdit) {
+      setEditBlogForm((prev) => ({
+        ...prev,
+        keywords: prev.keywords?.filter((k) => k !== keyword) || [],
+      }))
+    } else {
+      setBlogForm((prev) => ({
+        ...prev,
+        keywords: prev.keywords?.filter((k) => k !== keyword) || [],
+      }))
+    }
+  }
+
+  const handleKeywordKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      const keyword = isEdit ? editKeywordInput : keywordInput
+      addKeyword(keyword, isEdit)
+    }
+  }
 
   if (isLoading) {
     return <Loader2></Loader2>
@@ -1421,22 +1479,22 @@ if (
                               </div>
                             </div>
 
-                            {item.is_scheduled ?(
+                            {item.is_scheduled ? (
                               <div className="text-xs text-blue-600 font-medium flex items-center space-x-1 bg-blue-100 border border-blue-200 px-2 py-1 rounded-full w-fit">
                                 <ClockIcon className="w-3 h-3" />
-                                <span>Scheduled for {new Date(item.scheduled_at+'z').toLocaleString()}</span>
+                                <span>Scheduled for {new Date(item.scheduled_at + "z").toLocaleString()}</span>
                               </div>
-                            ):( <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
-                                item.status || "draft",
-                                isArchived(item),
-                              )}`}
-                            >
-
-                              {getStatusIcon(item.status || "draft", isArchived(item))}
-                              <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
-                            </span>)}
-                           
+                            ) : (
+                              <span
+                                className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+                                  item.status || "draft",
+                                  isArchived(item),
+                                )}`}
+                              >
+                                {getStatusIcon(item.status || "draft", isArchived(item))}
+                                <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
+                              </span>
+                            )}
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs text-slate-500">
@@ -1686,12 +1744,14 @@ if (
                           category: "General",
                           image: null,
                           is_draft: false,
+                          keywords: [],
                         })
                         setImagePreview(null)
                         setImageError("")
                         setCreateError("")
                         setCreateSuccess("")
                         setIsScheduled(false)
+                        setKeywordInput("")
                         if (fileInputRef.current) {
                           fileInputRef.current.value = ""
                         }
@@ -1704,7 +1764,7 @@ if (
                 </div>
                 {/* Modal Content - Scrollable */}
                 <div className="flex-1 overflow-y-auto">
-                  <form  className="p-4 sm:p-6">
+                  <form className="p-4 sm:p-6">
                     {/* Success Message */}
                     {createSuccess && (
                       <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -1819,22 +1879,68 @@ if (
                           {blogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
                         </p>
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Keywords (Optional)</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={keywordInput}
+                            onChange={(e) => setKeywordInput(e.target.value)}
+                            onKeyPress={handleKeywordKeyPress}
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                            placeholder="Enter a keyword..."
+                            maxLength={50}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => addKeyword(keywordInput)}
+                            disabled={!keywordInput.trim()}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                          >
+                            Add
+                          </button>
+                        </div>
+                        {/* Keywords display */}
+                        {blogForm.keywords && blogForm.keywords.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {blogForm.keywords.map((keyword, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+                              >
+                                {keyword}
+                                <button
+                                  type="button"
+                                  onClick={() => removeKeyword(keyword)}
+                                  className="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-500 mt-1">
+                          Press Enter or click Add to add keywords. Click × to remove.
+                        </p>
+                      </div>
                     </div>
-                    
-{/* Scheduler */}
-<div className="mt-4">
-  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
-    <input
-      type="checkbox"
-      name="is_scheduled"
-      checked={isScheduled}
-      onChange={(e) => {
-        setIsScheduled(e.target.checked);
-        if (!e.target.checked) {
-          setScheduledAt(null);
-        }
-      }}
-      className="
+
+                    {/* Scheduler */}
+                    <div className="mt-4">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                        <input
+                          type="checkbox"
+                          name="is_scheduled"
+                          checked={isScheduled}
+                          onChange={(e) => {
+                            setIsScheduled(e.target.checked)
+                            if (!e.target.checked) {
+                              setScheduledAt(null)
+                            }
+                          }}
+                          className="
         w-5 h-5 
         accent-indigo-600 
         cursor-pointer 
@@ -1845,23 +1951,19 @@ if (
         checked:border-indigo-600 
         relative
       "
-    />
-    Schedule Publish
-  </label>
+                        />
+                        Schedule Publish
+                      </label>
 
-  {isScheduled && (
-   <Scheduler value={scheduledAt} onChange={setScheduledAt}></Scheduler>
-  )}
-</div>
+                      {isScheduled && <Scheduler value={scheduledAt} onChange={setScheduledAt}></Scheduler>}
+                    </div>
 
-
-
-<div className="mt-4">
-  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
-    <input
-      type="checkbox"
-      name="is_draft"
-      className="
+                    <div className="mt-4">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                        <input
+                          type="checkbox"
+                          name="is_draft"
+                          className="
         w-5 h-5 
         accent-indigo-600 
         cursor-pointer 
@@ -1872,11 +1974,11 @@ if (
         checked:border-indigo-600 
         relative
       "
-      onChange={(e) => handleFormChange("is_draft", e.target.checked)}
-    />
-    Save as Draft
-  </label>
-</div>
+                          onChange={(e) => handleFormChange("is_draft", e.target.checked)}
+                        />
+                        Save as Draft
+                      </label>
+                    </div>
 
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
@@ -1884,11 +1986,20 @@ if (
                         type="button"
                         onClick={() => {
                           setShowCreateModal(false)
-                          setBlogForm({ title: "", content: "", image: null })
+                          setBlogForm({
+                            title: "",
+                            content: "",
+                            image: null,
+                            status: "draft",
+                            category: "General",
+                            is_draft: false,
+                            keywords: [],
+                          })
                           setImagePreview(null)
                           setImageError("")
                           setCreateError("")
                           setCreateSuccess("")
+                          setKeywordInput("")
                           if (fileInputRef.current) {
                             fileInputRef.current.value = ""
                           }
@@ -1945,12 +2056,14 @@ if (
                           category: "General",
                           image: null,
                           existingImageUrl: "",
+                          keywords: [],
                         })
                         setEditImagePreview(null)
                         setRemoveExistingImage(false)
                         setImageError("")
                         setUpdateError("")
                         setUpdateSuccess("")
+                        setEditKeywordInput("")
                         if (editFileInputRef.current) {
                           editFileInputRef.current.value = ""
                         }
@@ -2010,7 +2123,7 @@ if (
                               alt="Preview"
                               width={400}
                               height={200}
-                              className="w-full h-32 sm:h-48 object-cover rounded-lg border border-slate-200"
+                              className="w-full h-auto object-cover rounded-lg border border-slate-200"
                             />
                             <button
                               type="button"
@@ -2048,7 +2161,7 @@ if (
                                   </button>{" "}
                                   or drag and drop
                                 </p>
-                                <p className="text-xs text-slate-500">PNG, JPG, GIF, WebP up to 5MB</p>
+                                {/* <p className="text-xs text-slate-500">PNG, JPG, GIF, WebP up to 5MB</p> */}
                               </div>
                             </div>
                             <input
@@ -2080,6 +2193,52 @@ if (
                           {editBlogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
                         </p>
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Keywords (Optional)</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={editKeywordInput}
+                            onChange={(e) => setEditKeywordInput(e.target.value)}
+                            onKeyPress={(e) => handleKeywordKeyPress(e, true)}
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                            placeholder="Enter a keyword..."
+                            maxLength={50}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => addKeyword(editKeywordInput, true)}
+                            disabled={!editKeywordInput.trim()}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                          >
+                            Add
+                          </button>
+                        </div>
+                        {/* Keywords display */}
+                        {editBlogForm.keywords && editBlogForm.keywords.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {editBlogForm.keywords.map((keyword, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+                              >
+                                {keyword}
+                                <button
+                                  type="button"
+                                  onClick={() => removeKeyword(keyword, true)}
+                                  className="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-500 mt-1">
+                          Press Enter or click Add to add keywords. Click × to remove.
+                        </p>
+                      </div>
                     </div>
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
@@ -2095,12 +2254,14 @@ if (
                             category: "General",
                             image: null,
                             existingImageUrl: "",
+                            keywords: [],
                           })
                           setEditImagePreview(null)
                           setRemoveExistingImage(false)
                           setImageError("")
                           setUpdateError("")
                           setUpdateSuccess("")
+                          setEditKeywordInput("")
                           if (editFileInputRef.current) {
                             editFileInputRef.current.value = ""
                           }
@@ -2202,27 +2363,32 @@ if (
                         </span>
                       </div>
                     </div>
-                    {/* Author Info */}
-                    <div className="border-t border-slate-200 pt-4 sm:pt-6 mb-4 sm:mb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm sm:text-base">
-                            {viewBlog.author?.username?.charAt(0).toUpperCase() || "U"}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-800 text-sm sm:text-base">
-                            {viewBlog.author?.username || "Unknown"}
-                          </p>
-                          <p className="text-xs sm:text-sm text-slate-600">{viewBlog.author?.email || ""}</p>
-                          <p className="text-xs text-slate-500 capitalize">{viewBlog.author?.role || "User"}</p>
-                        </div>
-                      </div>
-                    </div>
+                 
                     {/* Blog Content */}
                     <div className="max-w-none">
                       <TipTapContentDisplay content={viewBlog.content} className="text-slate-700" />
                     </div>
+
+                    
+                       {viewBlog.keywords && viewBlog.keywords.length > 0 && (
+                <div className="my-8">
+                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords</h4>
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="flex flex-wrap gap-2">
+                      {viewBlog.keywords.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full border border-emerald-200"
+                        >
+                          <span className="text-emerald-600 mr-1">#</span>
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
                     {/* Comments Section */}
                     <div className="border-t border-slate-200 pt-4 sm:pt-6">
                       <h5 className="text-base sm:text-lg font-semibold text-slate-800 mb-4">
@@ -2288,7 +2454,10 @@ if (
                       </div>
                     </div>
                   </div>
+
                 </div>
+
+              
               </div>
             </div>
           )}

@@ -100,13 +100,7 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* Admin Status */}
-      <div className="px-3 py-2 border-t border-gray-200">
-        <div className="flex items-center min-w-0">
-          <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
-          {isExpanded && <span className="ml-3 text-sm text-gray-600 whitespace-nowrap">Admin Panel Active</span>}
-        </div>
-      </div>
+    
 
       {/* User Profile Footer */}
       <div className="p-3 border-t border-gray-200 relative group">
@@ -120,21 +114,21 @@ export default function AdminSidebar() {
             </div>
             {isExpanded && (
               <div className="ml-3 min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-700 truncate">Administrator</p>
-                <p className="text-xs text-gray-500 truncate">admin@flock.com</p>
+                <p className="text-sm font-medium text-gray-700 truncate">{user.username}</p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
               </div>
             )}
           </div>
 
           {/* Logout Button */}
-          <button
+        { isExpanded && <button
             onClick={handleLogout}
             className={`flex items-center justify-center transition-colors duration-200 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-md ${isExpanded ? "w-8 h-8 ml-2" : "w-8 h-8"
               }`}
             title="Logout"
           >
             <LogOutIcon className="w-5 h-5 md:w-4 md:h-4" />
-          </button>
+          </button>}
         </div>
 
         {/* Tooltip for user info when collapsed */}

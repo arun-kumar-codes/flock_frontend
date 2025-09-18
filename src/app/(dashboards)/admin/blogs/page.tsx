@@ -60,6 +60,7 @@ interface Blog {
   image?: string
   archived: boolean
   is_liked: boolean
+  keywords?:string[]
 }
 
 export default function BlogsPage() {
@@ -241,13 +242,19 @@ export default function BlogsPage() {
   }
 
   const filteredBlogs = blogs.filter((blog) => {
-    const matchesSearch =
-      blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      blog.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      blog.author.username.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterAuthor === "all" || blog.author.username === filterAuthor
-    return matchesSearch && matchesFilter
-  })
+  const lowerSearch = searchTerm.toLowerCase()
+
+  const matchesSearch =
+    blog.title.toLowerCase().includes(lowerSearch) ||
+    blog.author.username.toLowerCase().includes(lowerSearch) ||
+    (Array.isArray(blog.keywords) &&
+      blog.keywords.some((kw) => kw.toLowerCase().includes(lowerSearch)))
+
+  const matchesFilter = filterAuthor === "all" || blog.author.username === filterAuthor
+
+  return matchesSearch && matchesFilter
+})
+
 
   const authors = ["all", ...Array.from(new Set(blogs.map((blog) => blog.author.username)))]
   const totalBlogs = blogs.length
@@ -709,6 +716,27 @@ export default function BlogsPage() {
                       />
                     </div>
                   )}
+                         <div>
+                  
+              {blogToView.keywords && blogToView.keywords.length > 0 && (
+                <div className="mt-8">
+                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords </h4>
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="flex flex-wrap gap-2">
+                      {blogToView.keywords.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full border border-emerald-200"
+                        >
+                          <span className="text-emerald-600 mr-1">#</span>
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+                </div>
                   <h1 className="text-4xl font-bold text-gray-900 mt-4 md:mt-0 mb-6 leading-tight">{blogToView.title}</h1>
 
                   <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-6">
@@ -747,6 +775,7 @@ export default function BlogsPage() {
                   <TipTapContentDisplay content={blogToView.content} className="text-gray-700" />
                 </div>
 
+
                 {/* Author Info */}
                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 mb-8">
                   <h4 className="font-bold text-gray-900 mb-4">About the Author</h4>
@@ -763,6 +792,9 @@ export default function BlogsPage() {
                     </div>
                   </div>
                 </div>
+
+
+         
 
                 {/* Comments Section */}
                 {blogToView.comments && blogToView.comments.length > 0 ? (

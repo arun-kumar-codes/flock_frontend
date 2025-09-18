@@ -72,9 +72,10 @@ interface VideoType {
   archived: boolean
   is_liked: boolean
   is_viewed: boolean
+  keywords?:string[]
 }
 
-const IMAGE_BASE_URL = "http://116.202.210.102:5055/"
+
 
 export default function AdminVideosPage() {
   const [videos, setVideos] = useState<VideoType[]>([])
@@ -251,12 +252,7 @@ export default function AdminVideosPage() {
     setReasonError("")
   }
 
-  const handleDeleteClick = (video: VideoType) => {
-    setVideoToDelete(video)
-    setShowDeleteModal(true)
-    setShowActionMenu(null)
-    setDeleteError("")
-  }
+
 
   const handleVideoDoubleClick = (video: VideoType) => {
     
@@ -269,10 +265,6 @@ export default function AdminVideosPage() {
     setDuration(0)
   }
 
-  const getImageUrl = (imagePath: string) => {
-    if (!imagePath) return null
-    return imagePath.startsWith("http") ? imagePath : `${IMAGE_BASE_URL}${imagePath}`
-  }
 
   const generateExcerpt = (content: string, maxLength = 100): string => {
     const textContent = content.replace(/<[^>]*>/g, "")
@@ -287,92 +279,29 @@ export default function AdminVideosPage() {
     })
   }
 
-  const formatTime = (time: number) => {
-    if (isNaN(time)) return "0:00"
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }
-
-  // Video player functions
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause()
-      } else {
-        videoRef.current.play().catch((error) => {
-          console.error("Error playing video:", error)
-        })
-      }
-    }
-  }
-
-  const handleVideoPlay = () => {
-    setIsPlaying(true)
-  }
-
-  const handleVideoPause = () => {
-    setIsPlaying(false)
-  }
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime)
-    }
-  }
-
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration)
-      videoRef.current.volume = volume
-    }
-  }
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = Number.parseFloat(e.target.value)
-    if (videoRef.current && !isNaN(time)) {
-      videoRef.current.currentTime = time
-      setCurrentTime(time)
-    }
-  }
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = Number.parseFloat(e.target.value)
-    setVolume(newVolume)
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume
-    }
-    setIsMuted(newVolume === 0)
-  }
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      if (isMuted) {
-        videoRef.current.volume = volume
-        setIsMuted(false)
-      } else {
-        videoRef.current.volume = 0
-        setIsMuted(true)
-      }
-    }
-  }
-
-  const handleFullscreen = () => {
-    if (videoRef.current) {
-      if (videoRef.current.requestFullscreen) {
-        videoRef.current.requestFullscreen()
-      }
-    }
-  }
+  // const filteredVideos = videos.filter((video) => {
+  //   const matchesSearch =
+  //     video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     video.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     video.creator.username.toLowerCase().includes(searchTerm.toLowerCase())
+  //   const matchesFilter = filterAuthor === "all" || video.creator.username === filterAuthor
+  //   return matchesSearch && matchesFilter
+  // })
 
   const filteredVideos = videos.filter((video) => {
-    const matchesSearch =
-      video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.creator.username.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterAuthor === "all" || video.creator.username === filterAuthor
-    return matchesSearch && matchesFilter
-  })
+  const lowerSearch = searchTerm.toLowerCase()
+  const plainDescription =video.description
+  const matchesSearch =
+    video.title.toLowerCase().includes(lowerSearch) ||
+    video.creator.username.toLowerCase().includes(lowerSearch) ||
+    plainDescription.toLowerCase().includes(lowerSearch) ||
+    // ✅ search in keywords if available
+    (Array.isArray(video.keywords) &&
+      video.keywords.some((kw) => kw.toLowerCase().includes(lowerSearch)))
+
+  return matchesSearch
+})
+
 
   const authors = ["all", ...Array.from(new Set(videos.map((video) => video.creator.username)))]
 
@@ -602,7 +531,7 @@ export default function AdminVideosPage() {
                       {video.thumbnail && (
                         <div className="lg:w-64 lg:h-36 w-full h-48 flex-shrink-0 relative overflow-hidden rounded-xl shadow-md">
                           <Image
-                            src={getImageUrl(video.thumbnail) || "/placeholder.svg"}
+                            src={video.thumbnail}
                             alt={video.title}
                             width={256}
                             height={144}
@@ -808,7 +737,7 @@ export default function AdminVideosPage() {
                     {videoToDelete.thumbnail && (
                       <div className="w-24 h-16 relative flex-shrink-0 rounded-lg overflow-hidden">
                         <Image
-                          src={getImageUrl(videoToDelete.thumbnail) || "/placeholder.svg"}
+                          src={videoToDelete.thumbnail}
                           alt={videoToDelete.title}
                           width={96}
                           height={64}
@@ -919,12 +848,17 @@ export default function AdminVideosPage() {
 
               <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)] ">
                 {/* Video Player */}
-                <div className="mb-8">
+                <div className="mb-4">
                   <div className="relative bg-black rounded-2xl overflow-hidden">
                     {/* Video Controls */}
                     <Video videoId={videoToView.video_id}></Video>
                   </div>
                 </div>
+
+                
+              <div>
+
+              </div>
 
                 {/* Video Description */}
                 <div className="mb-8">
@@ -933,6 +867,26 @@ export default function AdminVideosPage() {
                     <TipTapContentDisplay content={videoToView.description} className="text-gray-700" />
                   </div>
                 </div>
+
+                 {videoToView.keywords && videoToView.keywords.length > 0 && (
+                <div className="mb-8">
+                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords </h4>
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="flex flex-wrap gap-2">
+                      {videoToView.keywords.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full border border-emerald-200"
+                        >
+                          <span className="text-emerald-600 mr-1">#</span>
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
 
                 {/* Video Details */}
                 <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -974,7 +928,8 @@ export default function AdminVideosPage() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div>  
+
 
                 {/* Comments Section */}
                 {videoToView.comments && videoToView.comments.length > 0 ? (
@@ -1082,7 +1037,7 @@ export default function AdminVideosPage() {
                     {videoToReject.thumbnail && (
                       <div className="w-24 h-16 relative flex-shrink-0 rounded-lg overflow-hidden">
                         <Image
-                          src={getImageUrl(videoToReject.thumbnail) || "/placeholder.svg"}
+                          src={videoToReject.thumbnail}
                           alt={videoToReject.title}
                           width={96}
                           height={64}

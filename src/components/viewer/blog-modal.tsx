@@ -19,10 +19,9 @@ import {
 import Image from "next/image"
 import { addComment, editComments, deleteComment, viewBLog, addFollowing, removeFollowing } from "@/api/content"
 import { useSelector } from "react-redux"
-import TipTapContentDisplay from "@/components/tiptap-content-display";
+import TipTapContentDisplay from "@/components/tiptap-content-display"
 import { useRouter } from "next/navigation"
 import profileImg from "../../assets/profile.png"
-import BlogsPage from "@/app/(dashboards)/admin/blogs/page"
 
 interface BlogModalProps {
   blog: any
@@ -34,8 +33,8 @@ interface BlogModalProps {
 export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogModalProps) {
   const user = useSelector((state: any) => state.user)
   const [newComment, setNewComment] = useState("")
-  const[isLiked,setIsLiked]=useState(blog.is_liked);
-  const[likeCount,setLikeCount]=useState(blog.likes);
+  const [isLiked, setIsLiked] = useState(blog.is_liked)
+  const [likeCount, setLikeCount] = useState(blog.likes)
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editCommentText, setEditCommentText] = useState("")
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null)
@@ -43,34 +42,32 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
   const commentMenuRef = useRef<HTMLDivElement>(null)
   const [isFollowing, setFollowing] = useState(blog.is_following_author)
   const [isLoading, setIsLoading] = useState(false)
-  const [likeAnimation, setLikeAnimation] = useState<{[key: number]: boolean}>({})
-  const router=useRouter();
-  const commentsToShow = [...blog.comments].reverse();
-  const [isSaving, setIsSaving] = useState(false);
+  const [likeAnimation, setLikeAnimation] = useState<{ [key: number]: boolean }>({})
+  const router = useRouter()
+  const commentsToShow = [...blog.comments].reverse()
+  const [isSaving, setIsSaving] = useState(false)
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        onClose()
+      }
 
-useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-      onClose();
-    }
-
-    // Check if click is outside the open comment menu
-    if (showCommentMenu !== null) {
-      console.log(showCommentMenu);
-      const menu = document.getElementById(`comment-menu-${showCommentMenu}`);
-      if (menu && !menu.contains(event.target as Node)) {
-        setShowCommentMenu(null);
+      // Check if click is outside the open comment menu
+      if (showCommentMenu !== null) {
+        console.log(showCommentMenu)
+        const menu = document.getElementById(`comment-menu-${showCommentMenu}`)
+        if (menu && !menu.contains(event.target as Node)) {
+          setShowCommentMenu(null)
+        }
       }
     }
-  };
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, [onClose, showCommentMenu]);
-
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [onClose, showCommentMenu])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -80,22 +77,18 @@ useEffect(() => {
     })
   }
 
-  const handleRoute=()=>{
-           //console.log("user:::",user);
-            if(user.isLogin){
-              return true;
-            }
-            router.push("/login");
-
+  const handleRoute = () => {
+    //console.log("user:::",user);
+    if (user.isLogin) {
+      return true
+    }
+    router.push("/login")
   }
 
   const handleViewBlog = async () => {
-
-      
     try {
-
-      if(!handleRoute()){
-            return;
+      if (!handleRoute()) {
+        return
       }
 
       await viewBLog(blog.id)
@@ -105,7 +98,7 @@ useEffect(() => {
   }
 
   const formatCommentDate = (dateString: string) => {
-    const date = new Date(dateString+'z')
+    const date = new Date(dateString + "z")
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
 
@@ -117,9 +110,9 @@ useEffect(() => {
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if(!handleRoute()){
-            return;
-      }
+    if (!handleRoute()) {
+      return
+    }
     if (!newComment.trim()) return
 
     try {
@@ -140,7 +133,7 @@ useEffect(() => {
   const handleSaveEditComment = async (commentId: number) => {
     if (!editCommentText.trim()) return
 
-    setIsSaving(true);
+    setIsSaving(true)
 
     try {
       await editComments(commentId, editCommentText.trim())
@@ -149,8 +142,8 @@ useEffect(() => {
       onRefreshBlogs()
     } catch (error) {
       console.error("Error updating comment:", error)
-    }finally{
-      setIsSaving(false);
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -174,42 +167,40 @@ useEffect(() => {
   }
 
   const handleLike = async () => {
-  if(!handleRoute()){
-    return;
+    if (!handleRoute()) {
+      return
+    }
+
+    setIsLiked((prev: boolean) => !prev)
+    setLikeCount((prev: number) => (isLiked ? prev - 1 : prev + 1))
+
+    // Trigger animation
+    setLikeAnimation((prev) => ({ ...prev, [blog.id]: true }))
+    setTimeout(() => {
+      setLikeAnimation((prev) => ({ ...prev, [blog.id]: false }))
+    }, 500)
+
+    try {
+      await onToggleLike(blog.id)
+      onRefreshBlogs()
+    } catch (error) {
+      console.error("Error toggling like:", error)
+    }
   }
-
-  setIsLiked((prev:boolean)=>!prev);
-  setLikeCount((prev:number)=>isLiked?prev-1:prev+1);
-
-  // Trigger animation
-  setLikeAnimation((prev) => ({ ...prev, [blog.id]: true }));
-  setTimeout(() => {
-    setLikeAnimation((prev) => ({ ...prev, [blog.id]: false }));
-  }, 500);
-
-  try {
-    await onToggleLike(blog.id);
-    onRefreshBlogs();
-  } catch (error) {
-    console.error("Error toggling like:", error);
-  }
-};
 
   useEffect(() => {
-    if (!blog.is_viewed&&user.isLogin) {
+    if (!blog.is_viewed && user.isLogin) {
       handleViewBlog()
     }
   })
 
   const handleFollowClick = async () => {
-
-    if(!handleRoute()){
-      return;
+    if (!handleRoute()) {
+      return
     }
     setIsLoading(true)
 
     try {
-    
       if (isFollowing) {
         await removeFollowing(blog.author.id)
         setFollowing(false)
@@ -250,11 +241,10 @@ useEffect(() => {
               <button
                 onClick={handleFollowClick}
                 disabled={isLoading}
-                className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium ${
-                  isFollowing
+                className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium ${isFollowing
                     ? "theme-button-secondary theme-text-secondary hover:theme-text-primary theme-border"
                     : "theme-button-primary text-white hover:opacity-90"
-                } disabled:opacity-60 disabled:cursor-not-allowed`}
+                  } disabled:opacity-60 disabled:cursor-not-allowed`}
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin w-5 h-5" />
@@ -292,8 +282,26 @@ useEffect(() => {
             </div>
           )}
 
+
+              {blog.keywords && blog.keywords.length > 0 && (
+            <div className="pt-3 pl-2 ">
+              {/* <h4 className="text-sm font-medium theme-text-primary mb-3">Keywords</h4> */}
+              <div className="flex flex-wrap gap-2 pl-2">
+                {blog.keywords.map((keyword: string, index: number) => (
+                  <span
+                    key={index}
+                 className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium text-blue-500"
+                  >
+                    <span className="mr-1">#</span>
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Blog Content */}
-          <div className="p-6 theme-border-b">
+          <div className="p-6 pt-0 theme-border-b">
             <TipTapContentDisplay content={blog.content} className="theme-text-secondary" />
           </div>
 
@@ -302,13 +310,14 @@ useEffect(() => {
             <div className="flex items-center space-x-6">
               <button
                 onClick={handleLike}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                 isLiked
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${isLiked
                     ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
                     : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
-                }`}
+                  }`}
               >
-                <ThumbsUp className={`w-5 h-5 ${isLiked ? "fill-current" : ""} ${likeAnimation[blog.id] ? "animate-pop-purple" : ""}`} />
+                <ThumbsUp
+                  className={`w-5 h-5 ${isLiked ? "fill-current" : ""} ${likeAnimation[blog.id] ? "animate-pop-purple" : ""}`}
+                />
                 <span>{likeCount} Likes</span>
               </button>
             </div>
@@ -322,12 +331,11 @@ useEffect(() => {
             <form onSubmit={handleCommentSubmit} className="mb-6">
               <div className="flex space-x-3">
                 <Image
-                  src={user.profileImage?user.profileImage:profileImg}
+                  src={user.profileImage ? user.profileImage : profileImg || "/placeholder.svg"}
                   alt="Your avatar"
                   width={40}
                   height={40}
                   className="rounded-full flex-shrink-0 w-10 h-10 object-cover"
-               
                 />
                 <div className="flex-1">
                   <textarea
@@ -353,106 +361,103 @@ useEffect(() => {
 
             {/* Comments List */}
             <div className="space-y-4">
-              {commentsToShow
-                .map((comment: any) => (
-                  <div key={comment.id} className="flex space-x-3 items-center">
-                    <Image
-                      src={comment.commenter.profile_picture?comment.commenter.profile_picture:profileImg}
-                      alt={comment.commenter.username}
-                      width={40}
-                      height={40}
-                      className="rounded-full flex-shrink-0 w-10 h-10"
-                    
-                    />
-                    <div className="flex-1">
-                      <div className="theme-bg-secondary rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium theme-text-primary text-sm">{comment.commenter.username}</span>
-                            <span className="text-xs theme-text-muted">{formatCommentDate(comment.commented_at)}</span>
-                          </div>
-
-                          {/* Comment Actions Menu */}
-                          {user && comment.commented_by === user.id && (
-                            <div className="relative" ref={commentMenuRef}>
-                              <button
-                                onClick={() => toggleCommentMenu(comment.id)}
-                                className="p-1 theme-button-secondary rounded transition-colors"
-                              >
-                                <MoreVertical className="w-3 h-3 theme-text-muted" />
-                              </button>
-                              {showCommentMenu === comment.id && (
-  <div
-    id={`comment-menu-${comment.id}`}
-    className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10"
-  >
-    <button
-      onClick={() => handleEditComment(comment)}
-      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
-    >
-      <Edit className="w-3 h-3 theme-text-muted" />
-      <span className="theme-text-secondary">Edit</span>
-    </button>
-    <button
-      onClick={() => handleDeleteComment(comment.id)}
-      className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-    >
-      <Trash className="w-3 h-3 text-red-500" />
-      <span>Delete</span>
-    </button>
-  </div>
-)}
-
-                            </div>
-                          )}
+              {commentsToShow.map((comment: any) => (
+                <div key={comment.id} className="flex space-x-3 items-center">
+                  <Image
+                    src={
+                      comment.commenter.profile_picture
+                        ? comment.commenter.profile_picture
+                        : profileImg || "/placeholder.svg"
+                    }
+                    alt={comment.commenter.username}
+                    width={40}
+                    height={40}
+                    className="rounded-full flex-shrink-0 w-10 h-10"
+                  />
+                  <div className="flex-1">
+                    <div className="theme-bg-secondary rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium theme-text-primary text-sm">{comment.commenter.username}</span>
+                          <span className="text-xs theme-text-muted">{formatCommentDate(comment.commented_at)}</span>
                         </div>
 
-                        {editingCommentId === comment.id ? (
-                          <div className="space-y-2">
-                            <textarea
-                              value={editCommentText}
-                              onChange={(e) => setEditCommentText(e.target.value)}
-                              className="w-full p-2 theme-input rounded text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              rows={2}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                  e.preventDefault()
-                                  handleSaveEditComment(comment.id)
-                                }
-                                if (e.key === "Escape") {
-                                  handleCancelEdit()
-                                }
-                              }}
-                            />
-                            <div className="flex space-x-2">
-                          <button
-  onClick={() => handleSaveEditComment(comment.id)}
-  disabled={!editCommentText.trim() || isSaving}
-  className="px-3 py-1 theme-button-primary cursor-pointer text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
->
-  {isSaving ? (
-    <Loader2 className="w-3 h-3 animate-spin" />
-  ) : (
-    <Check className="w-3 h-3" />
-  )}
-  <span>{isSaving ? "Saving..." : "Save"}</span>
-</button>
-
-                              <button
-                                onClick={handleCancelEdit}
-                                className="px-3 py-1 theme-button-secondary cursor-pointer  theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
+                        {/* Comment Actions Menu */}
+                        {user && comment.commented_by === user.id && (
+                          <div className="relative" ref={commentMenuRef}>
+                            <button
+                              onClick={() => toggleCommentMenu(comment.id)}
+                              className="p-1 theme-button-secondary rounded transition-colors"
+                            >
+                              <MoreVertical className="w-3 h-3 theme-text-muted" />
+                            </button>
+                            {showCommentMenu === comment.id && (
+                              <div
+                                id={`comment-menu-${comment.id}`}
+                                className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10"
                               >
-                                Cancel
-                              </button>
-                            </div>
+                                <button
+                                  onClick={() => handleEditComment(comment)}
+                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
+                                >
+                                  <Edit className="w-3 h-3 theme-text-muted" />
+                                  <span className="theme-text-secondary">Edit</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                >
+                                  <Trash className="w-3 h-3 text-red-500" />
+                                  <span>Delete</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        ) : (
-                          <p className="theme-text-secondary text-sm">{comment.comment}</p>
                         )}
                       </div>
+
+                      {editingCommentId === comment.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            className="w-full p-2 theme-input rounded text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            rows={2}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault()
+                                handleSaveEditComment(comment.id)
+                              }
+                              if (e.key === "Escape") {
+                                handleCancelEdit()
+                              }
+                            }}
+                          />
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleSaveEditComment(comment.id)}
+                              disabled={!editCommentText.trim() || isSaving}
+                              className="px-3 py-1 theme-button-primary cursor-pointer text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
+                            >
+                              {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                              <span>{isSaving ? "Saving..." : "Save"}</span>
+                            </button>
+
+                            <button
+                              onClick={handleCancelEdit}
+                              className="px-3 py-1 theme-button-secondary cursor-pointer  theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="theme-text-secondary text-sm">{comment.comment}</p>
+                      )}
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
 
             {blog.comments.length === 0 && (

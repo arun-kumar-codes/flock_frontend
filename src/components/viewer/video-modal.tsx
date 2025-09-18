@@ -364,9 +364,32 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
               </div>
                 </div>
               </div>
+
+{/* 
+                 {video.keywords && video.keywords.length > 0 && (
+            <div className="py-3 ">
+              <div className="flex flex-wrap gap-2 pl-2">
+                {video.keywords.map((keyword: string, index: number) => (
+                  <span
+                    key={index}
+                 className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium text-blue-500"
+                  >
+                    <span className="mr-1">#</span>
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )} */}
+
+
           {/* Video Description */}
-          <div className="p-6 theme-border-b">
+          <div className="p-6 pt-2 theme-border-b">
             <div className="prose prose-slate max-w-none">
+
+              <div>
+                   <h1 className="text-white text-2xl mb-4"> Discription</h1>       
+              </div>
               <TipTapContentDisplay content={video.description} className="theme-text-secondary" />
             </div>
           </div>

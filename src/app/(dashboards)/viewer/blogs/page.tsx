@@ -64,6 +64,7 @@ interface Blog {
   category?: string
   isFavorite?: boolean
   publishedAt?: string
+  keywords?:string[]
 }
 
 interface Following {
@@ -78,7 +79,7 @@ interface Following {
 
 
 
-export default function BlogPageRedesigned() {
+export default function BlogPage() {
   const router = useRouter()
   const [selectedFollowing, setSelectedFollowing] = useState<string>("all")
   const [followings, setFollowings] = useState<Following[]>([])
@@ -314,15 +315,23 @@ export default function BlogPageRedesigned() {
     })
   }
 
-  const filteredBlogs = blogs.filter((blog) => {
-    const matchesSearch =
-      blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      blog.author.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (blog.category && blog.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (blog.excerpt && blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesFilter = filterCategory === "all" || blog.category === filterCategory
-    return matchesSearch && matchesFilter
-  })
+const filteredBlogs = blogs.filter((blog) => {
+  const lowerSearch = searchTerm.toLowerCase()
+
+  const matchesSearch =
+    blog.title.toLowerCase().includes(lowerSearch) ||
+    blog.author.username.toLowerCase().includes(lowerSearch) ||
+    (blog.category && blog.category.toLowerCase().includes(lowerSearch)) ||
+    (blog.excerpt && blog.excerpt.toLowerCase().includes(lowerSearch)) ||
+    // ✅ check keywords if not empty
+    (Array.isArray(blog.keywords) &&
+      blog.keywords.some((kw) => kw.toLowerCase().includes(lowerSearch)))
+
+  const matchesFilter = filterCategory === "all" || blog.category === filterCategory
+
+  return matchesSearch && matchesFilter
+})
+
 
   // Pagination logic
   const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage)
