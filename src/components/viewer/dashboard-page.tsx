@@ -46,6 +46,7 @@ interface Comment {
 }
 
 interface Video {
+  keywords: string[]
   id: number
   title: string
   description: string
@@ -71,6 +72,7 @@ interface Video {
 }
 
 interface Blog {
+  keywords:string[]
   is_liked: boolean
   id: number
   title: string
@@ -365,13 +367,18 @@ export default function DashboardPage() {
       return (
         item.title.toLowerCase().includes(searchText) ||
         item.creator.username.toLowerCase().includes(searchText) ||
-        plainDescription.toLowerCase().includes(searchText)
+        plainDescription.toLowerCase().includes(searchText)||
+        (Array.isArray(item.keywords) &&
+      item.keywords.some((kw:any) => kw.toLowerCase().includes(searchText)))
       )
     } else {
       return (
         item.title.toLowerCase().includes(searchText) ||
         item.author.username.toLowerCase().includes(searchText) ||
         (item.excerpt && item.excerpt.toLowerCase().includes(searchText))
+        ||
+        (Array.isArray(item.keywords) &&
+      item.keywords.some((kw:any) => kw.toLowerCase().includes(searchText)))
       )
     }
   })
