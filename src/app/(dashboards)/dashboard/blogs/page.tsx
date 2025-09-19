@@ -444,11 +444,13 @@ export default function BlogsPage() {
           ...prev,
           content: userBlogs,
         }))
-        setIsLoading(false)
+      
       }
     } catch (error) {
       console.error("Error fetching user blogs:", error)
       setFetchError("Failed to fetch your blogs")
+    }finally{
+        setIsLoading(false)
     }
   }, [user?.id, user])
 

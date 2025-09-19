@@ -2,17 +2,18 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { EyeIcon, FlameIcon as FireIcon, HeartIcon } from "lucide-react"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import Loader from "@/components/Loader"
 import TrendingContent from "@/components/viewer/TrendingContent"
 import MostViewedTab from "@/components/viewer/MostViewed"
 import MostLikedTab from "@/components/viewer/MostLiked"
 import DashboardPage from "@/components/viewer/dashboard-page"
+import { setActiveFilter } from "@/slice/dashbaordSlice"
 
 export default function ViewerDashboard() {
   const router = useRouter()
   const user = useSelector((state: any) => state.user)
-  const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  // const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const filterButtons = [
@@ -41,6 +42,11 @@ export default function ViewerDashboard() {
       hoverColor: "hover:bg-pink-100",
     },
   ]
+
+  const activeFilter=useSelector((state:any)=>state.dashboard.activeFilter);
+  console.log(activeFilter);
+
+  
 
   useEffect(() => {
     // if (!user || !user.role) return
@@ -79,6 +85,10 @@ export default function ViewerDashboard() {
     }
   }
 
+   const dispatch = useDispatch();
+   const setActive = (value: string) => {
+           dispatch(setActiveFilter(value));
+   }
   return (
     <div className="min-h-screen theme-bg-primary">
       <div className="mx-auto lg:px-8 py-4 lg:py-8">
@@ -93,7 +103,7 @@ export default function ViewerDashboard() {
               return (
                 <button
                   key={filter.id}
-                  onClick={() => setActiveFilter(filter.id)}
+                  onClick={() => setActive(filter.id)}
                   className={`flex items-center justify-center space-x-6 px-4 py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 ${
                     isActive
                       ? `${filter.bgColor} ${filter.color} shadow-md border border-current`

@@ -388,7 +388,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
             <div className="prose prose-slate max-w-none">
 
               <div>
-                   <h1 className="text-white text-2xl mb-4"> Discription</h1>       
+                   <h1 className="text-white text-2xl mb-4">Description</h1>       
               </div>
               <TipTapContentDisplay content={video.description} className="theme-text-secondary" />
             </div>

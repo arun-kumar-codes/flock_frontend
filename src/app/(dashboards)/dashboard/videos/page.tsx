@@ -1646,7 +1646,6 @@ export default function VideoDashboard() {
                               </button>{" "}
                               or drag and drop
                             </p>
-                            <p className="text-sm text-slate-500">MP4, MOV up to 250 MB</p>
                           </div>
                         </div>
                         <input
@@ -2079,31 +2078,9 @@ export default function VideoDashboard() {
             ref={viewModalRef}
             className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden transform transition-all duration-200"
           >
-            <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-8 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 pr-4">
-                  <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-2">{viewVideo.title}</h2>
-                  <div className="flex flex-col md:flex-row items-start space-x-4 text-xs md:text-sm text-gray-600">
-                    <span>by {viewVideo.creator?.username || viewVideo.author?.username}</span>
-                    <span className="flex items-center space-x-1">
-                      <CalendarIcon className="w-3 h-3 md:w-4 md:h-4" />
-                      <span className="text-xs md:text-sm">{formatDate(viewVideo.created_at)}</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <EyeIcon className="w-3 h-3 md:w-4 md:h-4" />
-                      <span>{viewVideo.views || 0} views</span>
-                    </span>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 ${getStatusColor(
-                        viewVideo.status || "draft",
-                        isArchived(viewVideo),
-                      )}`}
-                    >
-                      {getStatusIcon(viewVideo.status || "draft", isArchived(viewVideo))}
-                      <span>{getStatusText(viewVideo.status || "draft", isArchived(viewVideo))}</span>
-                    </span>
-                  </div>
-                </div>
+            <div className=" p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between ">
+                  <h3 className="text-lg sm:text-xl font-semibold text-slate-800">View Video</h3>
                 <button
                   onClick={() => {
                     setShowViewModal(false)
@@ -2143,6 +2120,39 @@ export default function VideoDashboard() {
                   )}
                 </div>
               </div>
+
+               <div>
+                                    <h4 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">{viewVideo.title}</h4>
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 mb-4">
+                                      <span className="flex items-center space-x-1">
+                                        <CalendarIcon className="w-4 h-4" />
+                                        <span>{new Date(viewVideo.created_at).toLocaleDateString()}</span>
+                                      </span>
+                                      <span className="flex items-center space-x-1">
+                                        <EyeIcon className="w-4 h-4" />
+                                        <span>{viewVideo.views || 0} views</span>
+                                      </span>
+                                      <span className="flex items-center space-x-1">
+                                        <span>👍 {viewVideo.likes} likes</span>
+                                      </span>
+                                      <span className="flex items-center space-x-1">
+                                        <span>💬 {viewVideo.comments_count} comments</span>
+                                      </span>
+                                    </div>
+                                    <div className="mb-4 sm:mb-6">
+                                      <span
+                                        className={`px-3 py-1 text-sm font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+                                          viewVideo.status || "draft",
+                                          isArchived(viewVideo),
+                                        )}`}
+                                      >
+                                        {getStatusIcon(viewVideo.status || "draft", isArchived(viewVideo))}
+                                        <span>{getStatusText(viewVideo.status || "draft", isArchived(viewVideo))}</span>
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  
 
               {/* Video Description */}
               <div className="mb-8">

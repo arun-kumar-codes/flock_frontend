@@ -131,6 +131,7 @@ export default function VideoPage() {
   const [followingCount, setFollowingCount] = useState<number>(0)
   const [isLoadingFollowing, setIsLoadingFollowing] = useState(true)
   const [followingError, setFollowingError] = useState("")
+  
 
   // UI states
   const [searchTerm, setSearchTerm] = useState("")
@@ -222,6 +223,13 @@ export default function VideoPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleRefresh=()=>{
+    setIsLoadingFollowing(true);
+    setIsLoading(true);
+       fetchVideos();
+      fetchFollowingData();
   }
 
   useEffect(() => { 
@@ -346,7 +354,7 @@ const filteredVideos = videos.filter((video) => {
 };
 
 
-  if (isLoading && isLoadingFollowing) {
+  if (isLoading || isLoadingFollowing) {
     return <Loader />
   }
 
@@ -403,8 +411,7 @@ const filteredVideos = videos.filter((video) => {
 
   <button
     onClick={() => {
-      fetchVideos();
-      fetchFollowingData();
+    handleRefresh();
     }}
     disabled={isLoading}
     className="flex items-center gap-2 px-6 py-2 md:py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs md:text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -483,7 +490,10 @@ const filteredVideos = videos.filter((video) => {
                             title={video.title}
                             className="font-semibold text-md leading-5 line-clamp-2 group-hover:text-purple-500 transition-colors theme-text-primary pt-2 flex items-start"
                           >
-                            {video.title}
+                            {
+                             (video.title.length>25)?video.title.substring(0,25)+"...":video.title
+
+                            } 
                           </h3>
 
                           <p className="text-sm theme-text-secondary mt-2 truncate">

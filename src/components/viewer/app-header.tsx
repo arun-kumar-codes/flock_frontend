@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Sun, Moon, User, LogIn, UserPlus, Sparkles } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
 import { toggleThemeMode } from "@/slice/userSlice"
+import {clearFilter} from "@/slice/dashbaordSlice"
 
 interface HeaderNavbarProps {
   isSidebarExpanded: boolean
@@ -88,6 +89,10 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     }
   }
 
+  const handleDashboardChange=()=>{
+          dispatch(clearFilter());
+  }
+
   return (
     <header
       className={`fixed top-0 right-0 z-30 h-20 theme-bg-card theme-border transition-all duration-300 backdrop-blur-xl ${
@@ -96,8 +101,8 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     >
       <div className="flex items-center justify-between h-full px-8">
         <div className="flex items-center space-x-4">
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center space-x-2">
+          <div className={`flex flex-col justify-center ${getPageTitle()==='FlockTogether'&&'cursor-pointer'}`}>
+            <div className="flex items-center space-x-2 " onClick={handleDashboardChange}>
               <h1 className="text-xl md:text-2xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
               {/* <Sparkles className="w-5 h-5 theme-text-accent animate-pulse" /> */}
             </div>

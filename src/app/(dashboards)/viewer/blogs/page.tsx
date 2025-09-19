@@ -207,6 +207,16 @@ export default function BlogPage() {
     }
   }
 
+
+
+
+   const handleRefresh=()=>{
+    setIsLoading(true);
+       fetchBlogs();
+      fetchFollowingData();
+  }
+
+
   useEffect(() => {
     if (followings.length > 0) {
       fetchBlogs()
@@ -349,7 +359,7 @@ const filteredBlogs = blogs.filter((blog) => {
     }
   }
 
-  if (isLoading && isLoadingFollowing) {
+  if (isLoading || isLoadingFollowing) {
     return (
         <Loader/>
     )
@@ -395,8 +405,7 @@ const filteredBlogs = blogs.filter((blog) => {
 
               <button
                 onClick={() => {
-                  fetchBlogs()
-                  fetchFollowingData()
+                 handleRefresh();
                 }}
                 disabled={isLoading}
                 className="flex items-center space-x-2 px-6 py-2 md:py-3 theme-button-primary cursor-pointer  rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"

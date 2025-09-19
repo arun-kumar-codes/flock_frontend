@@ -469,7 +469,16 @@ export default function DashboardPage() {
     handleToggleBlogLike(blogId)
   }
 
-  if (isLoading && isLoadingFollowing) {
+   const handleRefresh=()=>{
+      setIsLoading(true);
+      setIsLoadingFollowing(true);
+       fetchContent();
+      fetchFollowingData();
+  }
+
+
+  
+  if (isLoading || isLoadingFollowing) {
     return <Loader />
   }
 
@@ -529,8 +538,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => {
-                  fetchContent()
-                  fetchFollowingData()
+                 handleRefresh()
                 }}
                 disabled={isLoading}
                 className="flex items-center gap-2 px-6 cursor-pointer  py-2 md:py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs md:text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
