@@ -3,7 +3,7 @@
 import { Heart, Loader2, User, PlayIcon, ThumbsUpIcon, BookOpenIcon, ArrowRightIcon, ArrowLeftIcon, LucideArrowRight as PaginationArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
-import { getAllTrendingContent, toggleVideoLike, toggleBlogLike } from "@/api/content"
+import { getMostLiked, toggleVideoLike, toggleBlogLike } from "@/api/content"
 import { VideoModal } from "./video-modal"
 import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
@@ -134,7 +134,7 @@ export default function MostLikedTab() {
     try {
       setError(null)
 
-      const response = await getAllTrendingContent()
+      const response = await getMostLiked()
 
       const mixedContent: ContentItem[] = []
 
@@ -382,6 +382,9 @@ export default function MostLikedTab() {
             <div>
               <h3 className="text-2xl font-bold theme-text-primary">Most Liked Content</h3>
               <p className="theme-text-secondary text-sm">Discover the most loved videos and articles</p>
+            </div>
+                <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs md:text-sm font-bold px-3 py-1 mt-2 mb-2 md:mt-0 md:mb-0 rounded-full shadow-md">
+              {content.length} items
             </div>
           </div>
           <div className="flex items-center space-x-3">

@@ -1,10 +1,10 @@
 "use client"
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Camera, User, Mail, Shield, Edit3 } from "lucide-react"
+import { Camera, User, Mail, Shield, Edit3, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
-import { updateProfile } from "@/api/user"
+import { updateProfile, becomeCreator } from "@/api/user"
 import Loader from "@/components/Loader"
 import { toast } from "react-hot-toast"
 
@@ -30,6 +30,8 @@ export default function ProfilePage() {
   const [profileImage, setProfileImage] = useState(user.profileImage)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [showCreatorModal, setShowCreatorModal] = useState(false)
+  const [isBecomingCreator, setIsBecomingCreator] = useState(false)
 
   // Store original values to compare against
   const [originalUsername, setOriginalUsername] = useState(user.username)
@@ -109,6 +111,24 @@ export default function ProfilePage() {
     setProfileImage(originalProfileImage)
     setImageFile(null)
   }
+
+  const handleBecomeCreator = async () => {
+    setIsBecomingCreator(true)
+    try {
+      const response = await becomeCreator()
+      toast.success("Congratulations! You are now a creator!")
+      setShowCreatorModal(false)
+      // router.push("/dashboard")
+      // window.location.reload();
+      window.location.href = "/dashboard"
+      // For now, we'll just close the modal
+    } catch (error) {
+      console.error("Error becoming creator:", error)
+      toast.error("Failed to become creator. Please try again.")
+    } finally {
+      setIsBecomingCreator(false)
+    }
+    }
 
   if (isLoading) {
     return <Loader></Loader>
@@ -196,10 +216,37 @@ export default function ProfilePage() {
                         </div>
                         <div>
                           <p className="text-sm font-medium theme-text-muted">Role</p>
-                          <p className="theme-text-primary font-semibold capitalize text-sm md:text-base">{user.role}</p>
+                          <p className="theme-text-primary font-semibold capitalize text-sm md:text-base">
+                            {user.role}
+                          </p>
                         </div>
                       </div>
                     </div>
+
+                    {user.role !== "creator" && (
+                      <div className="theme-bg-secondary rounded-xl p-4 theme-border">
+                        <div className="flex flex-col gap-8 justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-blue-500 rounded-lg p-2">
+                              <User className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium theme-text-muted">Account Type</p>
+                              <p className="theme-text-primary font-semibold text-sm md:text-base">
+                                Switch to Creator Account
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setShowCreatorModal(true)}
+                            className="inline-flex items-center justify-center  px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          >
+                            <User className="h-4 w-4 mr-2" />
+                            <span>Become Creator</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -256,7 +303,9 @@ export default function ProfilePage() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs md:text-sm theme-text-muted mt-2">Email cannot be changed for security reasons</p>
+                        <p className="text-xs md:text-sm theme-text-muted mt-2">
+                          Email cannot be changed for security reasons
+                        </p>
                       </div>
                     </div>
 
@@ -291,6 +340,64 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {showCreatorModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreatorModal(false)} />
+            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 theme-bg-card theme-border">
+              <button
+                onClick={() => setShowCreatorModal(false)}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="h-4 w-4 theme-text-secondary" />
+              </button>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="h-5 w-5 text-blue-500" />
+                  <h2 className="text-xl font-bold theme-text-primary">Switch to Creator Account</h2>
+                </div>
+
+                <div className="theme-text-secondary text-sm">
+                  Would you like to switch to a creator account? This will give you access to:
+                  <ul className="mt-2 space-y-1 text-sm">
+                    <li>• Content creation access</li>
+                    <li>• Basic analytics</li>
+                    <li>• Publishing capabilities</li>
+                    <li>• Community features</li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                  <button
+                    onClick={() => setShowCreatorModal(false)}
+                    disabled={isBecomingCreator}
+                    className="w-full sm:w-auto px-4 py-2 border-2 border-gray-300 dark:border-gray-600 theme-text-primary hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-500 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBecomeCreator}
+                    disabled={isBecomingCreator}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isBecomingCreator ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <User className="h-4 w-4 mr-2" />
+                        <span>Switch to Creator</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -111,3 +111,14 @@ export async function getCreatorData(){
     return error.response;
   }
 }
+
+
+export async function becomeCreator() {
+  try {
+    const response = await axiosInstance.post('/auth/change-to-creator');
+    return response;
+  } catch (error:any) {
+    console.error("Error becoming a creator:", error);
+    return error.response;
+  }
+}

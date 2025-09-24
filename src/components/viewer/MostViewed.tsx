@@ -2,7 +2,7 @@
 
 import { VideoIcon, Loader2, User, PlayIcon, BookOpenIcon, ThumbsUpIcon, ArrowRightIcon, ArrowLeftIcon, LucideArrowRight as PaginationArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
-import { getAllTrendingContent, toggleVideoLike, toggleBlogLike } from "@/api/content"
+import { getMostViewed, toggleVideoLike, toggleBlogLike } from "@/api/content"
 import { VideoModal } from "./video-modal"
 import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
@@ -132,7 +132,7 @@ const formatViews = (views: number) => {
   return views.toString()
 }
 
-export default function TrendingContentTab() {
+export default function MostViewedContentTab() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState<ContentItem[]>([])
@@ -150,7 +150,7 @@ export default function TrendingContentTab() {
   const loadTrendingContent = async () => {
     try {
       setError(null)
-      const response = await getAllTrendingContent()
+      const response = await getMostViewed()
 
       const mixedContent: ContentItem[] = []
 
@@ -188,7 +188,7 @@ export default function TrendingContentTab() {
 
       setContent(mixedContent)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch trending content")
+      setError(err instanceof Error ? err.message : "Failed to fetch Most Viewed")
     } finally {
       setLoading(false)
     }
@@ -302,7 +302,7 @@ export default function TrendingContentTab() {
   const handleRefreshContent = async () => {
     try {
       setError(null)
-      const response = await getAllTrendingContent()
+      const response = await getMostViewed()
 
       const mixedContent: ContentItem[] = []
 
@@ -361,7 +361,7 @@ export default function TrendingContentTab() {
 
       setContent(mixedContent)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch trending content")
+      setError(err instanceof Error ? err.message : "Failed to fetch Most Viewed")
     } finally {
       setLoading(false)
     }
@@ -407,12 +407,23 @@ export default function TrendingContentTab() {
 
   if (loading) {
     return (
-      <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-        <div className="px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
+     <div className="theme-bg-primary min-h-screen p-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <VideoIcon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold theme-text-primary">Most Viewed Content</h3>
+                <p className="theme-text-secondary text-xs md:text-sm">Discover the hottest videos and articles</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center py-16 theme-bg-secondary rounded-2xl theme-border border">
             <div className="text-center">
               <Loader2 className="w-10 h-10 text-purple-500 animate-spin mx-auto mb-4" />
-              <p className="theme-text-secondary font-medium">Loading trending content...</p>
+              <p className="theme-text-secondary font-medium">Loading most viewed content...</p>
             </div>
           </div>
         </div>
@@ -430,7 +441,7 @@ export default function TrendingContentTab() {
                 <VideoIcon className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl md:text-2xl font-bold theme-text-primary">Trending Content</h3>
+                <h3 className="text-xl md:text-2xl font-bold theme-text-primary">Most Viewed Content</h3>
                 <p className="theme-text-secondary text-xs md:text-sm">Discover the hottest videos and articles</p>
               </div>
             </div>
@@ -457,7 +468,7 @@ export default function TrendingContentTab() {
   }
 
   return (
-    <div className="min-h-screen theme-bg-primary transition-colors duration-300">
+    <div className="min-h-screen theme-bg-primary ">
       <div className="lg:px-8 md:py-8">
         <div className="mb-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex flex-col md:flex-row items-center space-x-3 mb-4">
@@ -466,7 +477,7 @@ export default function TrendingContentTab() {
                 <VideoIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg md:text-2xl font-bold theme-text-primary">Trending Content</h3>
+                <h3 className="text-lg md:text-2xl font-bold theme-text-primary">Most Viewed</h3>
                 <p className="theme-text-secondary text-xs md:text-sm">Discover the hottest videos and articles</p>
               </div>
             </div>

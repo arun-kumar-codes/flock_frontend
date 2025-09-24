@@ -281,25 +281,6 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
               />
             </div>
           )}
-
-
-              {blog.keywords && blog.keywords.length > 0 && (
-            <div className="pt-3 pl-2 ">
-              {/* <h4 className="text-sm font-medium theme-text-primary mb-3">Keywords</h4> */}
-              <div className="flex flex-wrap gap-2 pl-2">
-                {blog.keywords.map((keyword: string, index: number) => (
-                  <span
-                    key={index}
-                 className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium text-blue-500"
-                  >
-                    <span className="mr-1">#</span>
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Blog Content */}
           <div className="p-6 pt-0 theme-border-b">
             <TipTapContentDisplay content={blog.content} className="theme-text-secondary" />
