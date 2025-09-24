@@ -15,6 +15,7 @@ export default function ViewerDashboard() {
   const user = useSelector((state: any) => state.user)
   // const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+     const dispatch = useDispatch();
 
   const filterButtons = [
     {
@@ -49,7 +50,7 @@ export default function ViewerDashboard() {
   
 
   useEffect(() => {
-    // if (!user || !user.role) return
+    if (!user || !user.role) return
     const role = user.role.toLowerCase()
     if (role === "creator") {
       router.push("/dashboard")
@@ -85,7 +86,7 @@ export default function ViewerDashboard() {
     }
   }
 
-   const dispatch = useDispatch();
+
    const setActive = (value: string) => {
            dispatch(setActiveFilter(value));
    }

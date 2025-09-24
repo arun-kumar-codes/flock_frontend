@@ -242,7 +242,7 @@ export default function ProfilePage() {
                             className="inline-flex items-center justify-center  px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                           >
                             <User className="h-4 w-4 mr-2" />
-                            <span>Become Creator</span>
+                            <span>Become A Creator</span>
                           </button>
                         </div>
                       </div>
@@ -347,7 +347,7 @@ export default function ProfilePage() {
             <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 theme-bg-card theme-border">
               <button
                 onClick={() => setShowCreatorModal(false)}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="absolute top-4 right-4 p-2 rounded-full cursor-pointer dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="h-4 w-4 theme-text-secondary" />
               </button>
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                   <button
                     onClick={() => setShowCreatorModal(false)}
                     disabled={isBecomingCreator}
-                    className="w-full sm:w-auto px-4 py-2 border-2 border-gray-300 dark:border-gray-600 theme-text-primary hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-500 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-4 py-2 border-2 border-gray-300 dark:border-gray-600 theme-text-primary  dark:hover:bg-gray-700 focus:ring-gray-500 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Cancel
                   </button>

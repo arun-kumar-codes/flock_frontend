@@ -138,7 +138,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+    <div className="flex flex-col lg:flex-row bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
       {/* Left Side - Platform Showcase */}
       <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden">
         {/* Background with mesh gradient */}

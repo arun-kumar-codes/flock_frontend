@@ -87,7 +87,7 @@ export default function Signup() {
         toast.success("Account created successfully!")
         router.push("/login")
       } else {
-        toast.error("Error creating account. Please try again.")
+        toast.error(response?.data?.error||"Error creating account. Please try again.");
       }
     } catch (error) {
       console.error("Sign up error:", error)
