@@ -12,10 +12,10 @@ import { setActiveFilter } from "@/slice/dashbaordSlice"
 
 export default function ViewerDashboard() {
   const router = useRouter()
+  const dispatch = useDispatch()
   const user = useSelector((state: any) => state.user)
-  // const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const activeFilter = useSelector((state: any) => state.dashboard?.activeFilter)
   const [isLoading, setIsLoading] = useState(true)
-     const dispatch = useDispatch();
 
   const filterButtons = [
     {
@@ -44,35 +44,33 @@ export default function ViewerDashboard() {
     },
   ]
 
-  const activeFilter=useSelector((state:any)=>state.dashboard.activeFilter);
-  console.log(activeFilter);
-
-  
-
+  // Effect: handle redirect and loading. Safe checks with optional chaining.
   useEffect(() => {
-    if (!user || !user.role) return
-    const role = user.role.toLowerCase()
+    const role = user?.role?.toLowerCase() || null
+    if (!role) {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+
+      if (!token) {
+        setIsLoading(false)
+      }
+      return
+    }
     if (role === "creator") {
       router.push("/dashboard")
       return
-    } else if (role === "admin") {
+    }
+    if (role === "admin") {
       router.push("/admin")
       return
     }
-    const token=localStorage.getItem("token");
 
-
-    if (role === "viewer"||!token) setIsLoading(false)
-    //console.log(isLoading)
+    const token = localStorage.getItem("token")
+    if (role === "viewer" || !token) {
+      setIsLoading(false)
+    }
   }, [user, router])
 
-  if (isLoading) {
-    return (
-        <Loader />
-     
-    )
-  }
-
+  // Content renderer
   const renderContent = () => {
     switch (activeFilter) {
       case "trending":
@@ -86,18 +84,20 @@ export default function ViewerDashboard() {
     }
   }
 
+  const setActive = (value: string) => {
+    dispatch(setActiveFilter(value))
+  }
 
-   const setActive = (value: string) => {
-           dispatch(setActiveFilter(value));
-   }
+  // Keep this return at the end (hooks already executed above)
+  if (isLoading) {
+    return <Loader />
+  }
+
   return (
     <div className="min-h-screen theme-bg-primary">
       <div className="mx-auto lg:px-8 py-4 lg:py-8">
         <div className="mb-4 md:mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center md:ml-10">
-         
-
-            {/* Filter buttons */}
             {filterButtons.map((filter) => {
               const Icon = filter.icon
               const isActive = activeFilter === filter.id
@@ -119,8 +119,7 @@ export default function ViewerDashboard() {
           </div>
         </div>
 
-          <div >{renderContent()}</div>
-        
+        <div>{renderContent()}</div>
       </div>
     </div>
   )
