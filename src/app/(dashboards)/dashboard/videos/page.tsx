@@ -63,6 +63,7 @@ interface Comment {
   commented_at: string
   commented_by: number
   commenter: {
+    profile_picture: string | Blob | undefined
     email: string
     id: number
     role: string
@@ -233,15 +234,38 @@ export default function VideoDashboard() {
   const [keywordInput, setKeywordInput] = useState("")
   const [editKeywordInput, setEditKeywordInput] = useState("")
 
-  const addKeyword = () => {
-    if (keywordInput.trim() && !videoForm.keywords?.includes(keywordInput.trim())) {
-      setVideoForm((prev) => ({
-        ...prev,
-        keywords: [...(prev.keywords || []), keywordInput.trim()],
-      }))
-      setKeywordInput("")
+const addKeyword = () => {
+  if (!keywordInput.trim()) return;
+
+  // Split by comma or space → trim → filter empty → lowercase
+  const allKeywords = keywordInput
+    .split(/[\s,]+/) // splits on any space or comma
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0)
+    .map((k) => k.toLowerCase()); // optional: normalize to lowercase
+
+  // Deduplicate
+  const uniqueNew = Array.from(new Set(allKeywords));
+
+  // Merge with existing keywords, avoiding duplicates
+  const existing = videoForm.keywords || [];
+  const finalKeywords = [...existing];
+
+  uniqueNew.forEach((k) => {
+    if (!finalKeywords.includes(k)) {
+      finalKeywords.push(k);
     }
-  }
+  });
+
+  setVideoForm((prev) => ({
+    ...prev,
+    keywords: finalKeywords,
+  }));
+
+  setKeywordInput(""); // clear input
+};
+
+
 
   const removeKeyword = (keyword: string) => {
     setVideoForm((prev) => ({
@@ -249,16 +273,37 @@ export default function VideoDashboard() {
       keywords: prev.keywords?.filter((k) => k !== keyword) || [],
     }))
   }
+const addEditKeyword = () => {
+  if (!editKeywordInput.trim()) return;
 
-  const addEditKeyword = () => {
-    if (editKeywordInput.trim() && !editVideoForm.keywords?.includes(editKeywordInput.trim())) {
-      setEditVideoForm((prev) => ({
-        ...prev,
-        keywords: [...(prev.keywords || []), editKeywordInput.trim()],
-      }))
-      setEditKeywordInput("")
+  // Split by comma or space → trim → filter empty → lowercase
+  const allKeywords = editKeywordInput
+    .split(/[\s,]+/) // split on space or comma
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0)
+    .map((k) => k.toLowerCase()); // optional lowercase
+
+  // Deduplicate
+  const uniqueNew = Array.from(new Set(allKeywords));
+
+  // Merge with existing keywords, avoiding duplicates
+  const existing = editVideoForm.keywords || [];
+  const finalKeywords = [...existing];
+
+  uniqueNew.forEach((k) => {
+    if (!finalKeywords.includes(k)) {
+      finalKeywords.push(k);
     }
-  }
+  });
+
+  setEditVideoForm((prev) => ({
+    ...prev,
+    keywords: finalKeywords,
+  }));
+
+  setEditKeywordInput(""); // clear input
+};
+
 
   const removeEditKeyword = (keyword: string) => {
     setEditVideoForm((prev) => ({
@@ -1123,7 +1168,12 @@ export default function VideoDashboard() {
                     key={item.id}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:p-4 border md:border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
                   >
-                    <div className="flex flex-col sm:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4">
+                    <div className="flex flex-col sm:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4 cursor-pointer"
+                       onClick={(e) => {
+                          e.stopPropagation()
+                          handleViewVideo(item)
+                        }}
+                    >
                       {/* Video Thumbnail */}
                       {item.thumbnail && (
                         <div className="flex-shrink-0 relative">
@@ -1148,11 +1198,7 @@ export default function VideoDashboard() {
                         </div>
                       )}
                       <div
-                        className="flex-1 cursor-pointer p-2 min-w-0"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleViewVideo(item)
-                        }}
+                        className="flex-1 cursor-pointer p-2 min-w-0"                    
                       >
                         <div className="flex flex-col sm:flex-row flex-wrap sm:items-center gap-2 sm:gap-3 mb-2">
                           <div className="flex items-center justify-between">
@@ -1186,7 +1232,7 @@ export default function VideoDashboard() {
                                   </button>
 
                                   {/* Edit button - show for non-archived videos */}
-                                  {!isArchived(item) && item.status === "draft" && (
+                                  {!isArchived(item) &&  (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
@@ -1361,7 +1407,7 @@ export default function VideoDashboard() {
                           </button>
 
                           {/* Edit button - show for non-archived videos */}
-                          {!isArchived(item) && item.status === "draft" && (
+                          {!isArchived(item) && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -1706,7 +1752,7 @@ export default function VideoDashboard() {
                     />
                     <div className="flex justify-between items-center mt-1">
                       <p className="text-xs text-slate-500">
-                        {stripHtmlTags(videoForm.description).length}/1000 characters (minimum 10 required)
+                        {stripHtmlTags(videoForm.description).length}/5000 characters (minimum 10 required)
                       </p>
                       {stripHtmlTags(videoForm.description).length < 10 &&
                         stripHtmlTags(videoForm.description).length > 0 && (
@@ -1717,7 +1763,7 @@ export default function VideoDashboard() {
 
                   <div>
                     <label htmlFor="keywords" className="block text-sm font-medium text-slate-700 mb-2">
-                      Keywords
+                      Keywords (Optional)
                     </label>
                     <div className="flex gap-2 mb-3">
                       <input
@@ -1760,6 +1806,9 @@ export default function VideoDashboard() {
                       </div>
                     )}
                   </div>
+                   <p className="text-xs text-slate-500 mt-1">
+                          Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
+                        </p>
                 </div>
 
                 <div className="mt-4">
@@ -1970,7 +2019,7 @@ export default function VideoDashboard() {
                     />
                     <div className="flex justify-between items-center mt-1">
                       <p className="text-xs text-slate-500">
-                        {stripHtmlTags(editVideoForm.description).length}/1000 characters (minimum 10 required)
+                        {stripHtmlTags(editVideoForm.description).length}/5000 characters (minimum 10 required)
                       </p>
                       {stripHtmlTags(editVideoForm.description).length < 10 &&
                         stripHtmlTags(editVideoForm.description).length > 0 && (
@@ -1981,7 +2030,7 @@ export default function VideoDashboard() {
 
                   <div>
                     <label htmlFor="edit-keywords" className="block text-sm font-medium text-slate-700 mb-2">
-                      Keywords
+                     Keywords (Optional)
                     </label>
                     <div className="flex gap-2 mb-3">
                       <input
@@ -2023,6 +2072,9 @@ export default function VideoDashboard() {
                         ))}
                       </div>
                     )}
+                       <p className="text-xs text-slate-500 mt-1">
+                          Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
+                        </p>
                   </div>
                 </div>
 
@@ -2228,6 +2280,52 @@ export default function VideoDashboard() {
                   </div>
                 </div>
               )}
+
+
+        <div className="mb-8">
+  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+    Comments
+  </h4>
+
+  {viewVideo.comments && viewVideo.comments.length > 0 ? (
+    <div className="space-y-4">
+      {viewVideo.comments.map((comment) => (
+        <div
+          key={comment.id}
+          className="flex items-start space-x-3 bg-gray-50 p-4 rounded-2xl"
+        >
+          <img
+            src={comment.commenter?.profile_picture}
+            alt={comment.commenter?.username}
+            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+          />
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">
+                  {comment.commenter?.username || "Anonymous"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(comment.commented_at).toLocaleString()}
+                </p>
+              </div>
+            </div>
+            <p className="mt-2 text-gray-700 text-sm">{comment.comment}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-500 text-sm bg-gray-50 p-4 rounded-2xl">
+      No comments yet
+    </p>
+  )}
+</div>
+
+
+
+
+
             </div>
           </div>
         </div>

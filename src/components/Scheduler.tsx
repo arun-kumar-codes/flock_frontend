@@ -7,10 +7,15 @@ export interface SchedulerProps {
   value: Date | null
   onChange: (val: Date | null) => void
   label?: string
+  timeFormat?: "12h" | "24h"
 }
 
-function formatTime(date: Date) {
-  return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+function formatTime(date: Date, format: "12h" | "24h" = "24h") {
+  return date.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: format === "12h",
+  })
 }
 
 function formatDate(date: Date) {
@@ -150,8 +155,6 @@ function Calendar({
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-  
-
   return (
     <div className="bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -215,11 +218,15 @@ function ScrollableTimePicker({
   onTimeSelect,
   minTime,
   maxTime,
+  timeFormat,
+  onChangeTimeFormat,
 }: {
   selectedTime: string
   onTimeSelect: (time: string) => void
   minTime?: string
   maxTime?: string
+  timeFormat: "12h" | "24h"
+  onChangeTimeFormat: (fmt: "12h" | "24h") => void
 }) {
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"))
   const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0"))
@@ -239,11 +246,48 @@ function ScrollableTimePicker({
     }
   }
 
+  const displayHourLabel = (hour: string) => {
+    if (timeFormat === "24h") return hour
+    const h = Number(hour)
+    const suffix = h < 12 ? "AM" : "PM"
+    const hour12 = h % 12 === 0 ? 12 : h % 12
+    return `${hour12} ${suffix}`
+  }
+
   return (
     <div className="bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
-      <div className="flex items-center gap-2 mb-3 sm:mb-4">
-        <Clock className="w-5 h-5 text-slate-600" />
-        <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Select Time</h4>
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="flex items-center gap-2">
+          <Clock className="w-5 h-5 text-slate-600" />
+          <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Select Time</h4>
+        </div>
+
+        <div
+          role="group"
+          aria-label="Time format"
+          className="inline-flex rounded-lg border border-slate-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            aria-pressed={timeFormat === "24h"}
+            onClick={() => onChangeTimeFormat("24h")}
+            className={`px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+              timeFormat === "24h" ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            24h
+          </button>
+          <button
+            type="button"
+            aria-pressed={timeFormat === "12h"}
+            onClick={() => onChangeTimeFormat("12h")}
+            className={`px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+              timeFormat === "12h" ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            12h
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-4 sm:gap-6">
@@ -264,7 +308,7 @@ function ScrollableTimePicker({
                       : "text-slate-300 cursor-not-allowed"
                 }`}
               >
-                {hour}
+                {displayHourLabel(hour)}
               </button>
             ))}
           </div>
@@ -297,38 +341,35 @@ function ScrollableTimePicker({
   )
 }
 
-export default function Scheduler({ value, onChange, label = "Schedule" }: SchedulerProps) {
+export default function Scheduler({ value, onChange, label = "Schedule", timeFormat }: SchedulerProps) {
   // freeze "now" at mount so the window doesn't drift during interaction
-  const [now,setNow] = useState(() => new Date())
+  const [now, setNow] = useState(() => new Date())
+  const [currentFormat, setCurrentFormat] = useState<"12h" | "24h">(timeFormat ?? "24h")
 
+  useEffect(() => {
+    const tick = () => setNow(new Date())
 
-useEffect(() => {
-  const tick = () => setNow(new Date())
+    // align to next minute boundary, then run every 60s
+    const msToNextMinute = 60000 - (Date.now() % 60000)
+    const start = setTimeout(() => {
+      tick()
+      const id = setInterval(tick, 60000)
+      // cleanup will clear this interval
+      ;(window as any).__tickId = id
+    }, msToNextMinute)
 
-  // align to next minute boundary, then run every 60s
-  const msToNextMinute = 60000 - (Date.now() % 60000)
-  const start = setTimeout(() => {
-    tick()
-    const id = setInterval(tick, 60000)
-    // cleanup will clear this interval
-    ;(window as any).__tickId = id
-  }, msToNextMinute)
+    return () => {
+      clearTimeout(start)
+      if ((window as any).__tickId) clearInterval((window as any).__tickId)
+    }
+  }, [])
 
-  return () => {
-    clearTimeout(start)
-    if ((window as any).__tickId) clearInterval((window as any).__tickId)
-  }
-}, [])
+  const minDateTime = useMemo(() => new Date(now.getTime() + 30 * 60 * 1000), [now])
 
-const minDateTime = useMemo(
-  () => new Date(now.getTime() + 30 * 60 * 1000),
-  [now]
-)
-
-// Optional: auto-clamp if current value falls behind the moving window
-useEffect(() => {
-  if (value && value < minDateTime) onChange(minDateTime)
-}, [value, minDateTime, onChange])
+  // Optional: auto-clamp if current value falls behind the moving window
+  useEffect(() => {
+    if (value && value < minDateTime) onChange(minDateTime)
+  }, [value, minDateTime, onChange])
 
   const minDate = useMemo(() => {
     const today = new Date()
@@ -336,7 +377,6 @@ useEffect(() => {
     return today
   }, [])
   const maxDate = useMemo(() => addMinutes(now, 7 * 24 * 60), [now])
-
 
   const [selectedDay, setSelectedDay] = useState<string>(() => toDateInputValue(minDateTime))
   const [note, setNote] = useState<string>("")
@@ -359,14 +399,34 @@ useEffect(() => {
 
   const quickOptions = useMemo(
     () => [
-      { label: "In 30 min", get: () => addMinutes(now, 30) },
-      { label: "In 1 hour", get: () => addMinutes(now, 60) },
-      { label: "Tonight 7:00 PM", get: () => setTimeOfDay(now, 19, 0) },
-      { label: "Tomorrow 9:00 AM", get: () => setTimeOfDay(addMinutes(now, 24 * 60), 9, 0) },
-      { label: "In 3 days 9:00 AM", get: () => setTimeOfDay(addMinutes(now, 3 * 24 * 60), 9, 0) },
-      { label: "In 7 days", get: () => addMinutes(now, 7 * 24 * 60) },
+      {
+        key: "in30",
+        label: () => `In 30 min (${formatTime(addMinutes(now, 30), currentFormat)})`,
+        get: () => addMinutes(now, 30),
+      },
+      {
+        key: "in60",
+        label: () => `In 1 hour (${formatTime(addMinutes(now, 60), currentFormat)})`,
+        get: () => addMinutes(now, 60),
+      },
+      {
+        key: "tonight19",
+        label: () => `Tonight ${formatTime(setTimeOfDay(now, 19, 0), currentFormat)}`,
+        get: () => setTimeOfDay(now, 19, 0),
+      },
+      {
+        key: "tomorrow9",
+        label: () => `Tomorrow ${formatTime(setTimeOfDay(addMinutes(now, 24 * 60), 9, 0), currentFormat)}`,
+        get: () => setTimeOfDay(addMinutes(now, 24 * 60), 9, 0),
+      },
+      {
+        key: "in3d9",
+        label: () => `In 3 days ${formatTime(setTimeOfDay(addMinutes(now, 3 * 24 * 60), 9, 0), currentFormat)}`,
+        get: () => setTimeOfDay(addMinutes(now, 3 * 24 * 60), 9, 0),
+      },
+      { key: "in7d", label: () => "In 7 days", get: () => addMinutes(now, 7 * 24 * 60) },
     ],
-    [now],
+    [now, currentFormat],
   )
 
   const quickPick = (target: Date) => {
@@ -440,7 +500,7 @@ useEffect(() => {
   const selectedInfo = useMemo(() => {
     if (!value) return null
     const dateLabel = formatDate(value)
-    const timeLabel = formatTime(value)
+    const timeLabel = formatTime(value, currentFormat)
     const diffMs = value.getTime() - now.getTime()
     const diffMin = Math.max(0, Math.round(diffMs / 60_000))
     const diffHours = Math.round(diffMin / 60)
@@ -454,7 +514,7 @@ useEffect(() => {
       rel = `in ${diffDays} day${diffDays === 1 ? "" : "s"}`
     }
     return { dateLabel, timeLabel, rel }
-  }, [value, now])
+  }, [value, now, currentFormat])
 
   return (
     <div className="w-full max-w-md sm:max-w-2xl lg:max-w-5xl rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6 lg:p-8 mt-3">
@@ -470,12 +530,12 @@ useEffect(() => {
       <div className="mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-3">
         {quickOptions.map((q) => (
           <button
-            key={q.label}
+            key={q.key}
             type="button"
             onClick={() => quickPick(q.get())}
             className="rounded-full border border-slate-300 bg-white px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            {q.label}
+            {q.label()}
           </button>
         ))}
         <button
@@ -503,11 +563,25 @@ useEffect(() => {
             onTimeSelect={onTimeChange}
             minTime={timeMin}
             maxTime={timeMax}
+            timeFormat={currentFormat}
+            onChangeTimeFormat={setCurrentFormat}
           />
           {(timeMin || timeMax) && (
             <p className="mt-2 sm:mt-3 text-sm text-slate-600 bg-blue-50 rounded-lg p-2 sm:p-3 border border-blue-200">
-              {timeMin ? `⏰ Earliest today: ${timeMin}` : ""}
-              {timeMax ? ` • Latest this day: ${timeMax}` : ""}
+              {(() => {
+                const parts: string[] = []
+                if (timeMin) {
+                  const { hours, minutes } = fromTimeInputValue(timeMin)
+                  const d = setTimeOfDay(fromDateInputValue(selectedDay), hours, minutes)
+                  parts.push(`⏰ Earliest today: ${formatTime(d, currentFormat)}`)
+                }
+                if (timeMax) {
+                  const { hours, minutes } = fromTimeInputValue(timeMax)
+                  const d = setTimeOfDay(fromDateInputValue(selectedDay), hours, minutes)
+                  parts.push(`Latest this day: ${formatTime(d, currentFormat)}`)
+                }
+                return parts.join(" • ")
+              })()}
             </p>
           )}
         </div>
@@ -519,7 +593,7 @@ useEffect(() => {
           {value ? (
             <>
               <div className="font-semibold text-slate-800 text-sm sm:text-base mb-1">
-                {formatDate(value)} at {formatTime(value)}
+                {formatDate(value)} at {formatTime(value, currentFormat)}
               </div>
               <div className="text-slate-500">{selectedInfo?.rel}</div>
             </>

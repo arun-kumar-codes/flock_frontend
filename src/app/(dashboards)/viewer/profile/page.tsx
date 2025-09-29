@@ -7,6 +7,8 @@ import { useSelector } from "react-redux"
 import { updateProfile, becomeCreator } from "@/api/user"
 import Loader from "@/components/Loader"
 import { toast } from "react-hot-toast"
+import { useDispatch } from "react-redux"
+import { setUser } from "@/slice/userSlice"
 
 // This is a mock of your Redux state and API calls for demonstration purposes.
 // You can replace these with your actual Redux and API logic.
@@ -21,6 +23,7 @@ interface UserData {
 
 export default function ProfilePage() {
   const user = useSelector((state: any) => state.user)
+  const dispatch = useDispatch();
   const isDark = user.theme === "dark"
 
   //console.log("User Data:", user)
@@ -92,14 +95,19 @@ export default function ProfilePage() {
       }
       form.append("username", username)
       const response = await updateProfile(form)
+      
 
-      // Update original values after successful save
-      setOriginalUsername(username)
-      setOriginalProfileImage(profileImage)
-      setImageFile(null) // Reset image file after successful upload
+      if(response.status==200){
+        toast.success("Profile updated successfully!")
+        // Update original values after successful save
+        setOriginalUsername(username)
+        setOriginalProfileImage(profileImage)
+        setImageFile(null) // Reset image file after successful upload
+        dispatch(setUser(response?.data?.user)); // Update Redux store with new user data
+      }
     } catch (error) {
       console.error("Error updating profile:", error)
-      toast.error("Error: Failed to connect to the server. Please try again.")
+      toast.error("Unable to update profile. Please try again.")
     } finally {
       setIsSaving(false)
     }

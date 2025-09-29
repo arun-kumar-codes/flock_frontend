@@ -46,6 +46,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
   const router = useRouter()
   const commentsToShow = [...blog.comments].reverse()
   const [isSaving, setIsSaving] = useState(false)
+  const [commentPost,setCommentPost]=useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -114,6 +115,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
       return
     }
     if (!newComment.trim()) return
+    setCommentPost(true);
 
     try {
       await addComment(blog.id, newComment.trim())
@@ -121,6 +123,8 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
       onRefreshBlogs()
     } catch (error) {
       console.error("Error adding comment:", error)
+    }finally{
+      setCommentPost(false);
     }
   }
 
@@ -329,7 +333,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                   <div className="flex justify-end mt-2">
                     <button
                       type="submit"
-                      disabled={!newComment.trim()}
+                      disabled={!newComment.trim()||commentPost}
                       className="px-4 py-2 theme-button-primary text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
                       <Send className="w-4 h-4" />

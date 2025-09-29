@@ -251,7 +251,7 @@ export default function Login() {
                 id="username_or_email"
                 type="text"
                 value={formData.username_or_email}
-                onChange={(e) => handleChange("username_or_email", e.target.value)}
+                onChange={(e) => handleChange("username_or_email", e.target.value.toLocaleLowerCase())}
                 onFocus={() => setFocusedField("username_or_email")}
                 onBlur={() => setFocusedField(null)}
                 placeholder="Enter your email or username"

@@ -61,6 +61,8 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
   // Update ref whenever totalWatchTime changes
   const [isSaving, setIsSaving] = useState(false);
   const showComment=[...video.comments].reverse();
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [commentLoader, setCommentLoader] = useState(false);
 
   useEffect(() => {
     watchTimeRef.current = totalWatchTime
@@ -152,7 +154,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
         const sessionDuration = Math.floor((now - startTime) / 1000)
         finalWatchTime += sessionDuration
       }
-      //console.log("Component unmounting, final watch time:", finalWatchTime, "seconds")
+      console.log("Component unmounting, final watch time:", finalWatchTime, "seconds")
       // Send watch time to API on unmount
       if (finalWatchTime > 0&&user.isLogin) {
         sendWatchTimeToAPI(finalWatchTime)
@@ -193,6 +195,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setCommentLoader(true);
 
     if(handleRoute()){
       return;
@@ -204,6 +207,8 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
       onRefreshVideos()
     } catch (error) {
       console.error("Error adding comment:", error)
+    }finally{
+      setCommentLoader(false);
     }
   }
   const handleEditComment = (comment: any) => {
@@ -344,27 +349,32 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
         <div className="flex-1 overflow-y-auto">
           {/* Video Player */}
           <div className="p-6 theme-border-b">
-            <div className="relative rounded-lg overflow-hidden">
-              <div className="w-full h-full rounded-lg overflow-hidden">
-                {/* <div style={{ objectFit: "cover", width: "100%", height: "100%" }}>               
-                  <Stream
-                    controls
-                    autoplay={false}
-                    responsive
-                    src={video.video_id}
-                    onPlay={handlePlay}
-                    onPause={handlePause}
-                    onEnded={handleEnded}
-                    onLoadedData={() => setLoading(false)}
-                    onWaiting={() => setLoading(true)}
-                  />
-                </div> */}
+           
+<div className="relative w-full h-full rounded-lg overflow-hidden bg-black min-h-[200px] md:min-h-[610px]">
+  {videoLoading && (
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black bg-opacity-60">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-white" />
+    </div>
+  )}
 
-                <Video videoId={video.video_id} />
-              </div>
-                </div>
+  <Stream
+    src={video.video_id}
+    controls
+    autoplay={false}
+    responsive
+    onPlay={handlePlay}
+    onPause={handlePause}
+    onEnded={handleEnded}
+    onLoadedData={() => setVideoLoading(false)}
+    className="w-full h-full object-cover" // 👈 ensures video fills container
+  />
+</div>
+
+
               </div>
 
+
+              
 {/* 
                  {video.keywords && video.keywords.length > 0 && (
             <div className="py-3 ">
@@ -410,7 +420,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
             </div>
           </div>
           {/* Comments Section */}
-          <div className="p-6">
+          { video.show_comments?( <div className="p-6">
             <h3 className="text-lg font-semibold theme-text-primary mb-4">Comments ({video.comments_count || 0})</h3>
             {/* Add Comment Form */}
             <form onSubmit={handleCommentSubmit} className="mb-6">
@@ -434,7 +444,7 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
                   <div className="flex justify-end mt-2">
                     <button
                       type="submit"
-                      disabled={!newComment.trim()}
+                      disabled={!newComment.trim()||commentLoader}
                       className="px-4 py-2 theme-button-primary text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
                       <SendIcon className="w-4 h-4" />
@@ -556,7 +566,13 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
                 </div>
               )}
             </div>
-          </div>
+
+
+          </div>):(<div>Comments are off in this video </div>)
+
+            }
+
+
         </div>
       </div>
     </div>

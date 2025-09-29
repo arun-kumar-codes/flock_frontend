@@ -284,7 +284,7 @@ const handleChange = (field: string, value: string) => {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
+                onChange={(e) => handleChange("email", e.target.value.toLocaleLowerCase())}
                 onFocus={() => setFocusedField("email")}
                 onBlur={() => setFocusedField(null)}
                 placeholder="Enter your email address"

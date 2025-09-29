@@ -7,6 +7,8 @@ import { updateProfile } from "@/api/user"
 import Loader2 from "@/components/Loader2"
 import { toast } from "react-hot-toast"
 import placeholderImg from "../../../../assets/profile.png";
+import { useDispatch } from "react-redux"
+import { setUser } from "@/slice/userSlice";
 
 
 interface UserData {
@@ -20,6 +22,7 @@ interface UserData {
 
 export default function ProfilePage() {
   // Simulate Redux state for initial user data.
+  const dispatch = useDispatch();
   const initialUser = useSelector((state: any) => state.user)
   //console.log("Initial User Data:", initialUser)
 
@@ -34,6 +37,7 @@ export default function ProfilePage() {
   const [originalProfileImage, setOriginalProfileImage] = useState(initialUser.profileImage)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
 
   useEffect(() => {
     setUsername(initialUser.username)
@@ -84,10 +88,20 @@ export default function ProfilePage() {
       form.append("username", username)
       const response = await updateProfile(form)
 
-      // Update original values after successful save
-      setOriginalUsername(username)
+      console.log("Update response:", response.data.user);
+
+      if(response.status==200){
+        toast.success("Profile updated successfully!")
+           setOriginalUsername(username)
       setOriginalProfileImage(profileImage)
       setImageFile(null) // Reset image file after successful upload
+      dispatch(setUser(response?.data?.user)); // Update Redux store with new user data
+      }else{
+        toast.error("Error on profile update. Please try again.");
+      }
+
+      // Update original values after successful save
+   
     } catch (error) {
       console.error("Error updating profile:", error)
       toast.error("Error: Failed to connect to the server. Please try again.")

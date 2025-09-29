@@ -295,7 +295,7 @@ export default function BlogsPage() {
   // Image validation function
   const validateImage = (file: File): string | null => {
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    const maxSize = 19 * 1024 * 1024 // 5MB
 
     if (!allowedTypes.includes(file.type)) {
       return "Please select a valid image file (JPEG, PNG, GIF, or WebP)"
@@ -1076,28 +1076,49 @@ export default function BlogsPage() {
 
   const filteredContent = getFilteredContent()
 
-  const addKeyword = (keyword: string, isEdit = false) => {
-    const trimmedKeyword = keyword.trim()
-    if (!trimmedKeyword) return
+const addKeyword = (input: string, isEdit = false) => {
+  if (!input.trim()) return;
 
-    if (isEdit) {
-      if (!editBlogForm.keywords?.includes(trimmedKeyword)) {
-        setEditBlogForm((prev) => ({
-          ...prev,
-          keywords: [...(prev.keywords || []), trimmedKeyword],
-        }))
+  // Split by space or comma → trim → filter out empties
+  const newKeywords = input
+    .split(/[\s,]+/)
+    .map((k) => k.trim().toLowerCase()) // normalize case if needed
+    .filter((k) => k.length > 0);
+
+  // Deduplicate within this batch
+  const uniqueNew = Array.from(new Set(newKeywords));
+
+  if (isEdit) {
+    const existing = editBlogForm.keywords || [];
+    // Remove duplicates across existing + new
+    const finalKeywords = [...existing];
+    uniqueNew.forEach((k) => {
+      if (!finalKeywords.includes(k)) {
+        finalKeywords.push(k);
       }
-      setEditKeywordInput("")
-    } else {
-      if (!blogForm.keywords?.includes(trimmedKeyword)) {
-        setBlogForm((prev) => ({
-          ...prev,
-          keywords: [...(prev.keywords || []), trimmedKeyword],
-        }))
+    });
+    setEditBlogForm((prev) => ({
+      ...prev,
+      keywords: finalKeywords,
+    }));
+    setEditKeywordInput("");
+  } else {
+    const existing = blogForm.keywords || [];
+    const finalKeywords = [...existing];
+    uniqueNew.forEach((k) => {
+      if (!finalKeywords.includes(k)) {
+        finalKeywords.push(k);
       }
-      setKeywordInput("")
-    }
+    });
+    setBlogForm((prev) => ({
+      ...prev,
+      keywords: finalKeywords,
+    }));
+    setKeywordInput("");
   }
+};
+
+
 
   const removeKeyword = (keyword: string, isEdit = false) => {
     if (isEdit) {
@@ -1329,7 +1350,11 @@ export default function BlogsPage() {
                       key={item.id}
                       className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:p-4 border md:border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
                     >
-                      <div className="flex flex-col md:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4">
+                      <div className="flex flex-col md:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4 cursor-pointer"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleViewBlog(item)
+                          }}>
                         {/* Blog Thumbnail */}
                         {item.image && (
                           <div className="flex-shrink-0 relative">
@@ -1344,11 +1369,7 @@ export default function BlogsPage() {
                           </div>
                         )}
                         <div
-                          className="flex-1 cursor-pointer p-2 min-w-0"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleViewBlog(item)
-                          }}
+                          className="flex-1 cursor-pointer p-2 min-w-0"                    
                         >
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                             <div className="flex items-center justify-between">
@@ -1379,7 +1400,7 @@ export default function BlogsPage() {
                                       <span>View</span>
                                     </button>
 
-                                    {!isArchived(item) && item.status === "draft" && (
+                                    {!isArchived(item) &&  (
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation()
@@ -1553,7 +1574,7 @@ export default function BlogsPage() {
                               <span>View</span>
                             </button>
 
-                            {!isArchived(item) && item.status === "draft" && (
+                            {!isArchived(item) && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
@@ -1847,7 +1868,7 @@ export default function BlogsPage() {
                                   </button>{" "}
                                   or drag and drop
                                 </p>
-                                <p className="text-xs text-slate-500">PNG, JPG,JPEG, GIF, WebP up to 5MB</p>
+                                <p className="text-xs text-slate-500">PNG, JPG,JPEG, GIF, WebP up to 18MB</p>
                               </div>
                             </div>
                             <input
@@ -1922,9 +1943,10 @@ export default function BlogsPage() {
                           </div>
                         )}
                         <p className="text-xs text-slate-500 mt-1">
-                          Press Enter or click Add to add keywords. Click × to remove.
+                          Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
                         </p>
                       </div>
+
                     </div>
 
                     {/* Scheduler */}
@@ -2236,7 +2258,8 @@ export default function BlogsPage() {
                           </div>
                         )}
                         <p className="text-xs text-slate-500 mt-1">
-                          Press Enter or click Add to add keywords. Click × to remove.
+                         
+                          Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
                         </p>
                       </div>
                     </div>
