@@ -384,24 +384,45 @@ const filteredBlogs = blogs.filter((blog) => {
               />
             </div>
             <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative">
-                <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 theme-text-muted" />
-                <select
-                  value={selectedFollowing}
-                  onChange={(e) => setSelectedFollowing(e.target.value)}
-                  className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
-                  disabled={isLoadingFollowing}
-                >
-                  <option value="all">
-    {user.isLogin ? "All Following" : "All Creators"}
-  </option>
-                  {followings.map((following) => (
-                    <option key={following.id} value={following.username}>
-                      {following.username}
-                    </option>
-                  ))}
-                </select>
-              </div>
+<div className="relative inline-block w-fit">
+  {/* Left filter icon */}
+  <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-muted" />
+
+  <select
+    value={selectedFollowing}
+    onChange={(e) => setSelectedFollowing(e.target.value)}
+    disabled={isLoadingFollowing}
+    className="pl-10 pr-10 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] appearance-none focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
+  >
+    <option value="all">
+      {user.isLogin ? "All Following" : "All Creators"}
+    </option>
+    {followings.map((following) => (
+      <option key={following.id} value={following.username}>
+        {following.username}
+      </option>
+    ))}
+  </select>
+
+  {/* Right dropdown arrow */}
+  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+    <svg
+      className="w-4 h-4 text-gray-500 dark:text-gray-400"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M19 9l-7 7-7-7"
+      />
+    </svg>
+  </span>
+</div>
+
+
 
               <button
                 onClick={() => {

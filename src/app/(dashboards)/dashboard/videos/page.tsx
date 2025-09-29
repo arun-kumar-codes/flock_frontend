@@ -24,6 +24,8 @@ import {
   PlayIcon,
   UploadIcon,
   TrashIcon,
+  MessageCircleOff,
+  MessageCircleIcon,
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
@@ -35,6 +37,11 @@ import {
   archiveVideo,
   unarchiveVideo,
   deleteCretorVideo,
+  toggleCommentOnVideo,
+  toggleVideoLike,
+  addCommentToVideo,
+  editVideoComment,
+  deleteVideoComment,
 } from "@/api/content"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
@@ -72,6 +79,7 @@ interface Comment {
 }
 
 interface VideoType {
+  show_comments: any
   scheduled_at: string
   is_scheduled: any
   reason_for_rejection: string | null
@@ -87,6 +95,7 @@ interface VideoType {
   comments_count: number
   liked_by: number[]
   likes: number
+  is_liked?: boolean
   video_url?: string
   thumbnail?: string
   status?: string | null
@@ -149,6 +158,17 @@ export default function VideoDashboard() {
   const [viewVideo, setViewVideo] = useState<VideoType | null>(null)
   const [isScheduled, setIsScheduled] = useState(false)
   const [scheduledAt, setScheduledAt] = useState<Date | null>(new Date(new Date().getTime() + 30 * 60 * 1000))
+  
+  // Like state for view modal
+  const [isLiked, setIsLiked] = useState(false)
+  
+  // Comment states for view modal
+  const [newComment, setNewComment] = useState("")
+  const [isAddingComment, setIsAddingComment] = useState(false)
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+  const [editCommentText, setEditCommentText] = useState("")
+  const [isEditingComment, setIsEditingComment] = useState(false)
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null)
 
   // Loading states for different actions
   const [loadingActions, setLoadingActions] = useState<{ [key: string]: boolean }>({})
@@ -234,36 +254,36 @@ export default function VideoDashboard() {
   const [keywordInput, setKeywordInput] = useState("")
   const [editKeywordInput, setEditKeywordInput] = useState("")
 
-const addKeyword = () => {
-  if (!keywordInput.trim()) return;
+  const addKeyword = () => {
+    if (!keywordInput.trim()) return;
 
-  // Split by comma or space → trim → filter empty → lowercase
-  const allKeywords = keywordInput
-    .split(/[\s,]+/) // splits on any space or comma
-    .map((k) => k.trim())
-    .filter((k) => k.length > 0)
-    .map((k) => k.toLowerCase()); // optional: normalize to lowercase
+    // Split by comma or space → trim → filter empty → lowercase
+    const allKeywords = keywordInput
+      .split(/[\s,]+/) // splits on any space or comma
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0)
+      .map((k) => k.toLowerCase()); // optional: normalize to lowercase
 
-  // Deduplicate
-  const uniqueNew = Array.from(new Set(allKeywords));
+    // Deduplicate
+    const uniqueNew = Array.from(new Set(allKeywords));
 
-  // Merge with existing keywords, avoiding duplicates
-  const existing = videoForm.keywords || [];
-  const finalKeywords = [...existing];
+    // Merge with existing keywords, avoiding duplicates
+    const existing = videoForm.keywords || [];
+    const finalKeywords = [...existing];
 
-  uniqueNew.forEach((k) => {
-    if (!finalKeywords.includes(k)) {
-      finalKeywords.push(k);
-    }
-  });
+    uniqueNew.forEach((k) => {
+      if (!finalKeywords.includes(k)) {
+        finalKeywords.push(k);
+      }
+    });
 
-  setVideoForm((prev) => ({
-    ...prev,
-    keywords: finalKeywords,
-  }));
+    setVideoForm((prev) => ({
+      ...prev,
+      keywords: finalKeywords,
+    }));
 
-  setKeywordInput(""); // clear input
-};
+    setKeywordInput(""); // clear input
+  };
 
 
 
@@ -273,37 +293,56 @@ const addKeyword = () => {
       keywords: prev.keywords?.filter((k) => k !== keyword) || [],
     }))
   }
-const addEditKeyword = () => {
-  if (!editKeywordInput.trim()) return;
+  const addEditKeyword = () => {
+    if (!editKeywordInput.trim()) return;
 
-  // Split by comma or space → trim → filter empty → lowercase
-  const allKeywords = editKeywordInput
-    .split(/[\s,]+/) // split on space or comma
-    .map((k) => k.trim())
-    .filter((k) => k.length > 0)
-    .map((k) => k.toLowerCase()); // optional lowercase
+    // Split by comma or space → trim → filter empty → lowercase
+    const allKeywords = editKeywordInput
+      .split(/[\s,]+/) // split on space or comma
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0)
+      .map((k) => k.toLowerCase()); // optional lowercase
 
-  // Deduplicate
-  const uniqueNew = Array.from(new Set(allKeywords));
+    // Deduplicate
+    const uniqueNew = Array.from(new Set(allKeywords));
 
-  // Merge with existing keywords, avoiding duplicates
-  const existing = editVideoForm.keywords || [];
-  const finalKeywords = [...existing];
+    // Merge with existing keywords, avoiding duplicates
+    const existing = editVideoForm.keywords || [];
+    const finalKeywords = [...existing];
 
-  uniqueNew.forEach((k) => {
-    if (!finalKeywords.includes(k)) {
-      finalKeywords.push(k);
+    uniqueNew.forEach((k) => {
+      if (!finalKeywords.includes(k)) {
+        finalKeywords.push(k);
+      }
+    });
+
+    setEditVideoForm((prev) => ({
+      ...prev,
+      keywords: finalKeywords,
+    }));
+
+    setEditKeywordInput(""); // clear input
+  };
+
+
+  const handleToggleComments = async (videoId: any) => {
+    try {
+      const reponse = await toggleCommentOnVideo(videoId);
+
+      if (reponse?.status === 200) {
+        setUpdateSuccess("Comments toggled successfully!");
+        fetchUserVideos(); // Refresh video list to reflect changes
+      }
+    } catch (error: any) {
+      console.error("Error toggling comments:", error);
+      setUpdateError(error?.response?.data?.message || "Failed to toggle comments");
+    } finally {
+      setTimeout(() => setUpdateSuccess(""), 1000);
+      setShowActionMenu(null);
     }
-  });
 
-  setEditVideoForm((prev) => ({
-    ...prev,
-    keywords: finalKeywords,
-  }));
 
-  setEditKeywordInput(""); // clear input
-};
-
+  }
 
   const removeEditKeyword = (keyword: string) => {
     setEditVideoForm((prev) => ({
@@ -459,6 +498,20 @@ const addEditKeyword = () => {
           ...prev,
           videos: userVideos,
         }))
+
+        if(viewVideo){
+          const updatedVideo = userVideos.find((video: VideoType) => video.id === viewVideo.id)
+          if(updatedVideo){
+            console.log("Updated video with comments:", updatedVideo.comments)
+            console.log("Comments count:", updatedVideo.comments_count)
+            setViewVideo(updatedVideo)
+            setIsLiked(updatedVideo.is_liked || false)
+          } else {
+            console.log("Could not find updated video in userVideos")
+          }
+        }
+
+
       }
     } catch (error) {
       console.error("Error fetching user videos:", error)
@@ -498,10 +551,8 @@ const addEditKeyword = () => {
       setUpdateError("")
       const response = await publishContent(videoId) // This should be updated to publish directly
       if (response?.status === 200) {
-        setUserData((prev) => ({
-          ...prev,
-          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, status: "published" } : video)) || [],
-        }))
+        // Get updated video data from backend
+        await fetchUserVideos();
         setUpdateSuccess("Video published successfully!")
         setTimeout(() => setUpdateSuccess(""), 3000)
       } else {
@@ -558,10 +609,8 @@ const addEditKeyword = () => {
       setUpdateError("")
       const response = await updateVideo(videoId, { status: newStatus })
       if (response?.status === 200 || response?.data) {
-        setUserData((prev) => ({
-          ...prev,
-          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, status: newStatus } : video)) || [],
-        }))
+        // Get updated video data from backend
+        await fetchUserVideos();
         setUpdateSuccess(`Video ${newStatus === "published" ? "published" : "updated"} successfully!`)
         setTimeout(() => setUpdateSuccess(""), 3000)
       } else {
@@ -610,7 +659,103 @@ const addEditKeyword = () => {
     setViewVideo(video)
     setVideoLoadError({}) // Reset video load errors
     setShowViewModal(true)
+    // Initialize like status
+    setIsLiked(video.is_liked || false)
   }
+
+  // Handle like toggle
+  const handleToggleLike = async () => {
+
+    console.log("Like toggle");
+    if (!viewVideo) return
+
+    setIsLiked((prev) => !prev)
+    try {
+    
+      const response = await toggleVideoLike(viewVideo.id)
+      if (response?.status === 200 || response?.success === true) {
+        // Get updated video data from backend
+        await fetchUserVideos();
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error)
+    }
+  }
+
+  // Handle add comment
+  const handleAddComment = async () => {
+    if (!viewVideo || !newComment.trim()) return
+    
+    console.log("Adding comment:", newComment.trim())
+    console.log("Current viewVideo comments before:", viewVideo.comments?.length || 0)
+    setIsAddingComment(true)
+    try {
+      const response = await addCommentToVideo(viewVideo.id, newComment.trim())
+      console.log("Add comment response:", response)
+      if (response?.status === 201 || response?.success === true) {
+        setNewComment("")
+        // Get updated video data from backend - this will automatically update viewVideo
+        console.log("Fetching updated video data...")
+        await fetchUserVideos()
+        console.log("Fetch completed")
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error)
+    } finally {
+      setIsAddingComment(false)
+    }
+  }
+
+  // Handle edit comment
+  const handleEditComment = async () => {
+    if (!viewVideo || !editingCommentId || !editCommentText.trim()) return
+    
+    setIsEditingComment(true)
+    try {
+      const response = await editVideoComment(editingCommentId, editCommentText.trim())
+      if (response?.status === 200 || response?.success === true) {
+        setEditingCommentId(null)
+        setEditCommentText("")
+        // Get updated video data from backend - this will automatically update viewVideo
+        await fetchUserVideos()
+      }
+    } catch (error) {
+      console.error("Error editing comment:", error)
+    } finally {
+      setIsEditingComment(false)
+    }
+  }
+
+  // Handle delete comment
+  const handleDeleteComment = async (commentId: number) => {
+    if (!viewVideo) return
+    
+    setDeletingCommentId(commentId)
+    try {
+      const response = await deleteVideoComment(commentId)
+      if (response?.status === 200 || response?.success === true) {
+        // Get updated video data from backend - this will automatically update viewVideo
+        await fetchUserVideos()
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error)
+    } finally {
+      setDeletingCommentId(null)
+    }
+  }
+
+  // Start editing a comment
+  const startEditComment = (commentId: number, currentText: string) => {
+    setEditingCommentId(commentId)
+    setEditCommentText(currentText)
+  }
+
+  // Cancel editing
+  const cancelEditComment = () => {
+    setEditingCommentId(null)
+    setEditCommentText("")
+  }
+
 
   // Enhanced update video handler - only send changed values
   const handleUpdateVideo = async (e: React.FormEvent) => {
@@ -690,9 +835,9 @@ const addEditKeyword = () => {
             prev.videos?.map((video) =>
               video.id === editVideoForm.id
                 ? {
-                    ...video,
-                    ...updatedVideo,
-                  }
+                  ...video,
+                  ...updatedVideo,
+                }
                 : video,
             ) || [],
         }))
@@ -762,7 +907,7 @@ const addEditKeyword = () => {
     if (
       isScheduled &&
       (!scheduledAt ||
-        scheduledAt < new Date(Date.now() + 29 * 60 * 1000) ||
+        scheduledAt < new Date(Date.now() + 5 * 60 * 1000) ||
         scheduledAt > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
     ) {
       console.log("Invalid scheduled date:", scheduledAt)
@@ -804,10 +949,9 @@ const addEditKeyword = () => {
           videoInputRef.current.value = ""
         }
         await fetchUserVideos()
-        setTimeout(() => {
           setShowCreateModal(false)
           setCreateSuccess("")
-        }, 2000)
+ 
       } else {
         setCreateError("Failed to create video. Please try again.")
       }
@@ -924,10 +1068,8 @@ const addEditKeyword = () => {
       setUpdateError("")
       const response = await archiveVideo(videoId)
       if (response?.status === 200) {
-        setUserData((prev) => ({
-          ...prev,
-          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, archived: true } : video)) || [],
-        }))
+        // Get updated video data from backend
+        await fetchUserVideos();
         setUpdateSuccess("Video archived successfully!")
         setTimeout(() => setUpdateSuccess(""), 3000)
       } else {
@@ -949,10 +1091,8 @@ const addEditKeyword = () => {
       setUpdateError("")
       const response = await unarchiveVideo(videoId)
       if (response?.status === 200) {
-        setUserData((prev) => ({
-          ...prev,
-          videos: prev.videos?.map((video) => (video.id === videoId ? { ...video, archived: false } : video)) || [],
-        }))
+        // Get updated video data from backend
+        await fetchUserVideos();
         setUpdateSuccess("Video unarchived successfully!")
         setTimeout(() => setUpdateSuccess(""), 3000)
       } else {
@@ -1083,9 +1223,8 @@ const addEditKeyword = () => {
                   setActiveTab("active")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-1 lg:space-x-2">
                   <VideoIcon className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -1101,9 +1240,8 @@ const addEditKeyword = () => {
                   setActiveTab("archived")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-1 lg:space-x-2">
                   <ArchiveIcon className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -1119,9 +1257,8 @@ const addEditKeyword = () => {
                   setActiveTab("rejected")
                   setFilterStatus("all")
                 }}
-                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${
-                  activeTab === "rejected" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "rejected" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-1 lg:space-x-2">
                   <XIcon className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -1169,10 +1306,10 @@ const addEditKeyword = () => {
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between md:p-4 border md:border border-slate-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all duration-200 gap-3 sm:gap-4"
                   >
                     <div className="flex flex-col sm:flex-row md:items-start space-y-3 sm:space-y-0 sm:space-x-4 cursor-pointer"
-                       onClick={(e) => {
-                          e.stopPropagation()
-                          handleViewVideo(item)
-                        }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleViewVideo(item)
+                      }}
                     >
                       {/* Video Thumbnail */}
                       {item.thumbnail && (
@@ -1198,7 +1335,7 @@ const addEditKeyword = () => {
                         </div>
                       )}
                       <div
-                        className="flex-1 cursor-pointer p-2 min-w-0"                    
+                        className="flex-1 cursor-pointer p-2 min-w-0"
                       >
                         <div className="flex flex-col sm:flex-row flex-wrap sm:items-center gap-2 sm:gap-3 mb-2">
                           <div className="flex items-center justify-between">
@@ -1232,7 +1369,7 @@ const addEditKeyword = () => {
                                   </button>
 
                                   {/* Edit button - show for non-archived videos */}
-                                  {!isArchived(item) &&  (
+                                  {!isArchived(item) && (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
@@ -1403,8 +1540,21 @@ const addEditKeyword = () => {
                             className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
                           >
                             <EyeIcon className="w-4 h-4" />
-                            <span>View</span>
+                            <span>View </span>
                           </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleToggleComments(item.id)
+                            }}
+                            className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                          >
+                            {item.show_comments ? <><MessageCircleOff className="w-4 h-4" /> <span >Turn off comment</span></> :
+                              <><MessageCircleIcon className="w-4 h-4" /> <span> Turn on comment</span> </>
+                            }
+                          </button>
+
 
                           {/* Edit button - show for non-archived videos */}
                           {!isArchived(item) && (
@@ -1669,9 +1819,8 @@ const addEditKeyword = () => {
                     {/* Video Upload Area */}
                     {!videoPreview && (
                       <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                          isVideoDragOver ? "border-purple-500 bg-purple-50" : "border-slate-300 hover:border-slate-400"
-                        } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
+                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isVideoDragOver ? "border-purple-500 bg-purple-50" : "border-slate-300 hover:border-slate-400"
+                          } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
                         onDragOver={!isCreating ? handleVideoDragOver : undefined}
                         onDragLeave={!isCreating ? handleVideoDragLeave : undefined}
                         onDrop={!isCreating ? handleVideoDrop : undefined}
@@ -1806,9 +1955,9 @@ const addEditKeyword = () => {
                       </div>
                     )}
                   </div>
-                   <p className="text-xs text-slate-500 mt-1">
-                          Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
-                        </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
+                  </p>
                 </div>
 
                 <div className="mt-4">
@@ -2030,7 +2179,7 @@ const addEditKeyword = () => {
 
                   <div>
                     <label htmlFor="edit-keywords" className="block text-sm font-medium text-slate-700 mb-2">
-                     Keywords (Optional)
+                      Keywords (Optional)
                     </label>
                     <div className="flex gap-2 mb-3">
                       <input
@@ -2072,9 +2221,9 @@ const addEditKeyword = () => {
                         ))}
                       </div>
                     )}
-                       <p className="text-xs text-slate-500 mt-1">
-                          Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
-                        </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
+                    </p>
                   </div>
                 </div>
 
@@ -2132,7 +2281,7 @@ const addEditKeyword = () => {
           >
             <div className=" p-4 border-b border-gray-200">
               <div className="flex items-center justify-between ">
-                  <h3 className="text-lg sm:text-xl font-semibold text-slate-800">View Video</h3>
+                <h3 className="text-lg sm:text-xl font-semibold text-slate-800">View Video</h3>
                 <button
                   onClick={() => {
                     setShowViewModal(false)
@@ -2173,38 +2322,64 @@ const addEditKeyword = () => {
                 </div>
               </div>
 
-               <div>
-                                    <h4 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">{viewVideo.title}</h4>
-                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 mb-4">
-                                      <span className="flex items-center space-x-1">
-                                        <CalendarIcon className="w-4 h-4" />
-                                        <span>{new Date(viewVideo.created_at).toLocaleDateString()}</span>
-                                      </span>
-                                      <span className="flex items-center space-x-1">
-                                        <EyeIcon className="w-4 h-4" />
-                                        <span>{viewVideo.views || 0} views</span>
-                                      </span>
-                                      <span className="flex items-center space-x-1">
-                                        <span>👍 {viewVideo.likes} likes</span>
-                                      </span>
-                                      <span className="flex items-center space-x-1">
-                                        <span>💬 {viewVideo.comments_count} comments</span>
-                                      </span>
-                                    </div>
-                                    <div className="mb-4 sm:mb-6">
-                                      <span
-                                        className={`px-3 py-1 text-sm font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
-                                          viewVideo.status || "draft",
-                                          isArchived(viewVideo),
-                                        )}`}
-                                      >
-                                        {getStatusIcon(viewVideo.status || "draft", isArchived(viewVideo))}
-                                        <span>{getStatusText(viewVideo.status || "draft", isArchived(viewVideo))}</span>
-                                      </span>
-                                    </div>
-                                  </div>
+              <div>
+                <div className="flex items-start justify-between mb-4">
+                  <h4 className="text-2xl sm:text-3xl font-bold text-slate-800 flex-1">{viewVideo.title}</h4>
+                  <button
+                    onClick={handleToggleLike}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
+                      isLiked 
+                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    title={isLiked ? "Unlike this video" : "Like this video"}
+                  >
+                    <span className="text-xl">
+                      {isLiked ? '❤️' : '🤍'}
+                    </span>
+                    <span>{isLiked ? 'Liked' : 'Like'}</span>
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 mb-4">
+                  <span className="flex items-center space-x-1">
+                    <CalendarIcon className="w-4 h-4" />
+                    <span>{new Date(viewVideo.created_at).toLocaleDateString()}</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <EyeIcon className="w-4 h-4" />
+                    <span>{viewVideo.views || 0} views</span>
+                  </span>
+                  <button
+                    onClick={handleToggleLike}
+                    className={`flex items-center space-x-1 px-3 py-1 rounded-full transition-colors cursor-pointer ${
+                      isLiked 
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <span className={isLiked ? '❤️' : '🤍'}>
+                      {isLiked ? '❤️' : '🤍'}
+                    </span>
+                    <span>{viewVideo.likes} likes</span>
+                  </button>
+                  <span className="flex items-center space-x-1">
+                    <span>💬 {viewVideo.comments_count} comments</span>
+                  </span>
+                </div>
+                <div className="mb-4 sm:mb-6">
+                  <span
+                    className={`px-3 py-1 text-sm font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+                      viewVideo.status || "draft",
+                      isArchived(viewVideo),
+                    )}`}
+                  >
+                    {getStatusIcon(viewVideo.status || "draft", isArchived(viewVideo))}
+                    <span>{getStatusText(viewVideo.status || "draft", isArchived(viewVideo))}</span>
+                  </span>
+                </div>
+              </div>
 
-                                  
+
 
               {/* Video Description */}
               <div className="mb-8">
@@ -2236,6 +2411,23 @@ const addEditKeyword = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Archived:</span>
                       <span className="font-medium text-gray-900">{isArchived(viewVideo) ? "Yes" : "No"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Likes:</span>
+                      <button
+                        onClick={handleToggleLike}
+                        className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors ${
+                          isLiked 
+                            ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        title={isLiked ? "Unlike this video" : "Like this video"}
+                      >
+                        <span className="text-sm">
+                          {isLiked ? '❤️' : '🤍'}
+                        </span>
+                        <span className="font-medium text-gray-900">{viewVideo.likes}</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -2282,45 +2474,142 @@ const addEditKeyword = () => {
               )}
 
 
-        <div className="mb-8">
-  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-    Comments
-  </h4>
+              <div className="mb-8">
+                <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+                  Comments ({viewVideo.comments_count}) {!viewVideo.show_comments && <span className="bg-red-100 text-red-700 font-semibold px-3 py-1 rounded-lg">
+                          Comments are disabled
+                        </span>}
+                </h4>
 
-  {viewVideo.comments && viewVideo.comments.length > 0 ? (
-    <div className="space-y-4">
-      {viewVideo.comments.map((comment) => (
-        <div
-          key={comment.id}
-          className="flex items-start space-x-3 bg-gray-50 p-4 rounded-2xl"
-        >
-          <img
-            src={comment.commenter?.profile_picture}
-            alt={comment.commenter?.username}
-            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-          />
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900 text-sm">
-                  {comment.commenter?.username || "Anonymous"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {new Date(comment.commented_at).toLocaleString()}
-                </p>
+                {/* Add Comment Section */}
+                {viewVideo.show_comments && (
+                  <div className="mb-6">
+                    <div className="flex space-x-3">
+                      <div className="flex-1">
+                        <textarea
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          placeholder="Add a comment..."
+                          className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                          rows={3}
+                          disabled={isAddingComment}
+                        />
+                      </div>
+                      <button
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim() || isAddingComment}
+                        className="px-6 py-3 mb-1 h-12 bg-gradient-to-r from-red-600 to-purple-600 text-white rounded-2xl hover:from-red-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium self-end"
+                      >
+                        {isAddingComment ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                          "Post"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Comments List */}
+                {viewVideo.comments && viewVideo.comments.length > 0 ? (
+                  <div className="space-y-4">
+                    {viewVideo.comments
+                      .sort((a, b) => {
+                        // Show creator's comments first
+                        const aIsCreator = a.commenter?.id === user?.id
+                        const bIsCreator = b.commenter?.id === user?.id
+                        if (aIsCreator && !bIsCreator) return -1
+                        if (!aIsCreator && bIsCreator) return 1
+                        return 0
+                      })
+                      .map((comment) => {
+                        const isCreator = comment.commenter?.id === user?.id
+                        const isEditing = editingCommentId === comment.id
+                        
+                        return (
+                          <div key={comment.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <div className="flex items-start space-x-4">
+                              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white font-semibold text-sm">
+                                  {comment.commenter.username.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <span className="font-semibold text-gray-900">{comment.commenter.username}</span>
+                                  {isCreator && (
+                                    <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                      You
+                                    </span>
+                                  )}
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                                    {comment.commenter.role}
+                                  </span>
+                                  <span className="text-xs text-gray-500">{formatDate(comment.commented_at)}</span>
+                                </div>
+                                
+                                {isEditing ? (
+                                  <div className="space-y-3">
+                                    <textarea
+                                      value={editCommentText}
+                                      onChange={(e) => setEditCommentText(e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                                      rows={3}
+                                      disabled={isEditingComment}
+                                    />
+                                    <div className="flex space-x-2">
+                                      <button
+                                        onClick={handleEditComment}
+                                        disabled={!editCommentText.trim() || isEditingComment}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                                      >
+                                        {isEditingComment ? "Saving..." : "Save"}
+                                      </button>
+                                      <button
+                                        onClick={cancelEditComment}
+                                        disabled={isEditingComment}
+                                        className="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors disabled:opacity-50 text-sm font-medium"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <p className="text-gray-700 leading-relaxed">{comment.comment}</p>
+                                    {isCreator && (
+                                      <div className="flex space-x-2 mt-3">
+                                        <button
+                                          onClick={() => startEditComment(comment.id, comment.comment)}
+                                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteComment(comment.id)}
+                                          disabled={deletingCommentId === comment.id}
+                                          className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 text-sm font-medium"
+                                        >
+                                          {deletingCommentId === comment.id ? "Deleting..." : "Delete"}
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-2xl">
+                    <MessageCircleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h4 className="font-semibold text-gray-900 mb-2">No comments yet</h4>
+                    <p className="text-gray-600">Be the first to comment on this video.</p>
+                  </div>
+                )}
               </div>
-            </div>
-            <p className="mt-2 text-gray-700 text-sm">{comment.comment}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-gray-500 text-sm bg-gray-50 p-4 rounded-2xl">
-      No comments yet
-    </p>
-  )}
-</div>
 
 
 

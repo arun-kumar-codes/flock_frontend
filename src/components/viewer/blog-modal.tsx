@@ -15,6 +15,7 @@ import {
   UserCheck,
   Loader2,
   UserPlus,
+  MessageSquareOff,
 } from "lucide-react"
 import Image from "next/image"
 import { addComment, editComments, deleteComment, viewBLog, addFollowing, removeFollowing } from "@/api/content"
@@ -44,7 +45,15 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
   const [isLoading, setIsLoading] = useState(false)
   const [likeAnimation, setLikeAnimation] = useState<{ [key: number]: boolean }>({})
   const router = useRouter()
-  const commentsToShow = [...blog.comments].reverse()
+  // Separate author comments and regular comments
+  const authorComments = blog.comments.filter((comment: any) => 
+    comment.commented_by === blog.author.id
+  );
+  const regularComments = blog.comments.filter((comment: any) => 
+    comment.commented_by !== blog.author.id
+  );
+  // Author comments first (newest first), then regular comments (newest first)
+  const commentsToShow = [...authorComments.reverse(), ...regularComments.reverse()]
   const [isSaving, setIsSaving] = useState(false)
   const [commentPost,setCommentPost]=useState(false);
 
@@ -232,7 +241,7 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
             <div className="flex-1 pr-4">
               <h2 className="text-2xl font-bold theme-text-primary mb-2">{blog.title}</h2>
               <div className="flex items-center space-x-4 text-sm theme-text-secondary">
-                <span>by {blog.author.username}</span>
+                <span>by {blog.author.username} test</span>
                 <span className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />
                   <span>{formatDate(blog.created_at)}</span>
@@ -309,8 +318,33 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
           </div>
 
           {/* Comments Section */}
+
+         { 
+         blog.show_comments ?
           <div className="p-6">
             <h3 className="text-lg font-semibold theme-text-primary mb-4">Comments ({blog.comments_count})</h3>
+            
+            {/* Creator Comment at Top */}
+            {blog.creator_comment && (
+              <div className="mb-6 p-4 theme-bg-secondary rounded-lg border-l-4 border-purple-500">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Image
+                    src={blog.author.profile_picture || profileImg}
+                    alt={blog.author.username}
+                    width={32}
+                    height={32}
+                    className="rounded-full w-8 h-8 object-cover"
+                  />
+                  <span className="font-medium theme-text-primary text-sm">
+                    {blog.author.username} (Creator)
+                  </span>
+                  <span className="text-xs theme-text-muted">
+                    {formatCommentDate(blog.creator_comment.commented_at)}
+                  </span>
+                </div>
+                <p className="theme-text-secondary text-sm">{blog.creator_comment.comment}</p>
+              </div>
+            )}
 
             {/* Add Comment Form */}
             <form onSubmit={handleCommentSubmit} className="mb-6">
@@ -361,9 +395,19 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                   />
                   <div className="flex-1">
                     <div className="theme-bg-secondary rounded-lg p-3">
+                      {/* YouTube-style pinned label for author comments */}
+                      {comment.commented_by === blog.author.id ? (
+                        <div className="flex items-center space-x-2 mb-2">
+                          <div className="flex items-center space-x-1 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full">
+                            <span className="text-xs font-medium text-purple-700 dark:text-purple-300">Author</span>
+                          </div>
+                        </div>
+                      ) : null}
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium theme-text-primary text-sm">{comment.commenter.username}</span>
+                          <span className="font-medium theme-text-primary text-sm">
+                            {comment.commenter.username}
+                          </span>
                           <span className="text-xs theme-text-muted">{formatCommentDate(comment.commented_at)}</span>
                         </div>
 
@@ -451,7 +495,19 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                 <p className="theme-text-muted">No comments yet. Be the first to comment!</p>
               </div>
             )}
-          </div>
+          </div>:
+               <div className="text-center py-8">
+  <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+    <MessageSquareOff className="w-6 h-6 text-gray-400" />
+  </div>
+  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+    Comments are turned off for this blog
+  </p>
+</div>
+}
+
+
+
         </div>
       </div>
     </div>

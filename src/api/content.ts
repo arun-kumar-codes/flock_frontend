@@ -561,3 +561,24 @@ export async function getFollower() {
   }
 }
 
+
+export async function toggleComment(blogId: any) {
+  try {
+    const response = await axiosInstance.post(`/blog/${blogId}/toggle-comments`);
+    return response;
+  } catch (error:any) {
+    console.error("Error toggling comments:", error);
+    return error.response;
+  }
+}
+
+
+export async function toggleCommentOnVideo(blogId: any) {
+  try {
+    const response = await axiosInstance.post(`/video/${blogId}/toggle-comments`);
+    return response;
+  } catch (error:any) {
+    console.error("Error toggling comments:", error);
+    return error.response;
+  }
+}

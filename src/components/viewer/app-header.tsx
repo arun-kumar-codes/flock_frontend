@@ -99,18 +99,18 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
         isSidebarExpanded ? "left-64" : "left-16"
       }`}
     >
-      <div className="flex items-center justify-between h-full px-8">
+      <div className="flex items-center justify-between h-full px-4  md:px-8">
         <div className="flex items-center space-x-4">
           <div className={`flex flex-col justify-center ${getPageTitle()==='FlockTogether'&&'cursor-pointer'}`}>
             <div className="flex items-center space-x-2 " onClick={handleDashboardChange}>
-              <h1 className="text-xl md:text-2xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
+              <h1 className="text-lg md:text-xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
               {/* <Sparkles className="w-5 h-5 theme-text-accent animate-pulse" /> */}
             </div>
-            <p className="text-xs md:text-sm theme-text-secondary mt-1 font-medium opacity-80">{getPageDescription()}</p>
+            <p className="text-xs md:text-sm theme-text-secondary mt-1 font-medium opacity-80 md:flex hidden">{getPageDescription()}</p>
           </div>
         </div>
 
-        <div className="flex items-center ml-2 space-x-2 md:space-x-4">
+        <div className="flex items-center ml-2 space-x-1 md:space-x-4">
           <button
             onClick={toggleTheme}
             className="p-3 rounded-xl theme-bg-secondary theme-bg-hover cursor-pointer theme-border transition-all duration-300 group"

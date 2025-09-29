@@ -105,7 +105,7 @@ export default function ViewerDashboard() {
                 <button
                   key={filter.id}
                   onClick={() => setActive(filter.id)}
-                  className={`flex items-center justify-center space-x-6 px-4 py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 ${
+                  className={`flex items-center justify-center gap-x-2 md:gap-x-6  px-2 md:px-4  py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 ${
                     isActive
                       ? `${filter.bgColor} ${filter.color} shadow-md border border-current`
                       : `theme-button-secondary theme-border`

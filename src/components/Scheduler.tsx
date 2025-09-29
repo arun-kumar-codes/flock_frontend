@@ -193,15 +193,14 @@ function Calendar({
                 type="button"
                 onClick={() => handleDateClick(day)}
                 disabled={!isDateInRange(day)}
-                className={`w-full h-full text-sm font-medium rounded-lg transition-all duration-200 ${
-                  isSelectedDate(day)
+                className={`w-full h-full text-sm font-medium rounded-lg transition-all duration-200 ${isSelectedDate(day)
                     ? "bg-blue-500 text-white shadow-lg scale-105 hover:bg-blue-600"
                     : isToday(day) && isDateInRange(day)
                       ? "bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                       : isDateInRange(day)
                         ? "text-slate-700 hover:bg-slate-100 hover:scale-105"
                         : "text-slate-300 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {day}
               </button>
@@ -271,9 +270,8 @@ function ScrollableTimePicker({
             type="button"
             aria-pressed={timeFormat === "24h"}
             onClick={() => onChangeTimeFormat("24h")}
-            className={`px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
-              timeFormat === "24h" ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
-            }`}
+            className={`px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors ${timeFormat === "24h" ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+              }`}
           >
             24h
           </button>
@@ -281,9 +279,8 @@ function ScrollableTimePicker({
             type="button"
             aria-pressed={timeFormat === "12h"}
             onClick={() => onChangeTimeFormat("12h")}
-            className={`px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
-              timeFormat === "12h" ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
-            }`}
+            className={`px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors ${timeFormat === "12h" ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+              }`}
           >
             12h
           </button>
@@ -300,13 +297,12 @@ function ScrollableTimePicker({
                 type="button"
                 onClick={() => handleTimeChange(hour, selectedMinute)}
                 disabled={!isTimeValid(hour, selectedMinute)}
-                className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-sm font-medium text-left transition-all duration-200 ${
-                  hour === selectedHour
+                className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-sm font-medium text-left transition-all duration-200 ${hour === selectedHour
                     ? "bg-blue-500 text-white shadow-md"
                     : isTimeValid(hour, selectedMinute)
                       ? "text-slate-700 hover:bg-blue-50 hover:text-blue-700"
                       : "text-slate-300 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {displayHourLabel(hour)}
               </button>
@@ -323,13 +319,12 @@ function ScrollableTimePicker({
                 key={minute}
                 onClick={() => handleTimeChange(selectedHour, minute)}
                 disabled={!isTimeValid(selectedHour, minute)}
-                className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-sm font-medium text-left transition-all duration-200 ${
-                  minute === selectedMinute
+                className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-sm font-medium text-left transition-all duration-200 ${minute === selectedMinute
                     ? "bg-blue-500 text-white shadow-md"
                     : isTimeValid(selectedHour, minute)
                       ? "text-slate-700 hover:bg-blue-50 hover:text-blue-700"
                       : "text-slate-300 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {minute}
               </button>
@@ -354,8 +349,8 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     const start = setTimeout(() => {
       tick()
       const id = setInterval(tick, 60000)
-      // cleanup will clear this interval
-      ;(window as any).__tickId = id
+        // cleanup will clear this interval
+        ; (window as any).__tickId = id
     }, msToNextMinute)
 
     return () => {
@@ -364,7 +359,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     }
   }, [])
 
-  const minDateTime = useMemo(() => new Date(now.getTime() + 30 * 60 * 1000), [now])
+  const minDateTime = useMemo(() => new Date(now.getTime() + 5 * 60 * 1000), [now])
 
   // Optional: auto-clamp if current value falls behind the moving window
   useEffect(() => {
@@ -389,7 +384,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     } else {
       const clamped = clamp(value, minDateTime, maxDate)
       if (clamped.getTime() !== value.getTime()) {
-        setNote("Adjusted to the allowed window (30 minutes ahead minimum).")
+        setNote("Adjusted to the allowed window (5 minutes ahead minimum).")
       }
       onChange(clamped)
       setSelectedDay(toDateInputValue(clamped))
@@ -399,6 +394,11 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
 
   const quickOptions = useMemo(
     () => [
+      {
+        key: "in5",
+        label: () => `In 5 min (${formatTime(addMinutes(now, 5), currentFormat)})`,
+        get: () => addMinutes(now, 5),
+      },
       {
         key: "in30",
         label: () => `In 30 min (${formatTime(addMinutes(now, 30), currentFormat)})`,
@@ -432,7 +432,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
   const quickPick = (target: Date) => {
     const within = clamp(target, minDateTime, maxDate)
     if (within.getTime() !== target.getTime()) {
-      setNote("Adjusted to the allowed window (30 minutes ahead minimum).")
+      setNote("Adjusted to the allowed window (5 minutes ahead minimum).")
     } else {
       setNote("")
     }
@@ -455,7 +455,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     onChange(candidate)
     setSelectedDay(toDateInputValue(candidate))
     if (candidate.getTime() !== desired.getTime()) {
-      setNote("Time adjusted to be at least 30 minutes from now.")
+      setNote("Time adjusted to be at least 5 minutes from now.")
     }
   }
 
@@ -489,7 +489,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     const desired = setTimeOfDay(fromDateInputValue(selectedDay), hours, minutes)
     const candidate = clamp(desired, minDateTime, maxDate)
     if (candidate.getTime() !== desired.getTime()) {
-      setNote("Time adjusted to be at least 30 minutes from now.")
+      setNote("Time adjusted to be at least 5 minutes from now.")
     } else {
       setNote("")
     }
@@ -523,7 +523,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
           <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
           <label className="text-lg sm:text-xl font-bold text-slate-800">{label}</label>
         </div>
-        <p className="text-sm text-slate-600">Pick a time at least 30 minutes from now, up to 7 days ahead.</p>
+        <p className="text-sm text-slate-600">Pick a time at least 5 minutes from now, up to 7 days ahead.</p>
       </div>
 
       {/* Quick picks */}
