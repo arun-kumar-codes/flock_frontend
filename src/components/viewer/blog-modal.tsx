@@ -239,7 +239,45 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
         <div className="p-6 theme-border-b flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-4">
-              <h2 className="text-2xl font-bold theme-text-primary mb-2">{blog.title}</h2>
+  
+  <h2 className="flex items-center flex-wrap gap-2 text-2xl font-bold theme-text-primary mb-2">
+  <span>{blog.title}</span>
+
+  {/* 18+ badge */}
+  {blog.age_restricted && (
+    <span
+      className="
+        px-2 py-0.5 
+        rounded-full 
+        text-xs font-semibold 
+        bg-red-100 text-red-700 
+        dark:bg-red-900/30 dark:text-red-300 
+        border border-red-200 dark:border-red-800/40
+        shadow-sm
+      "
+    >
+      18+ content
+    </span>
+  )}
+
+  {/* Paid Promotion badge */}
+  {blog.paid_promotion && (
+    <span
+      className="
+        px-2 py-0.5 
+        rounded-full 
+        text-xs font-semibold 
+        bg-yellow-100 text-yellow-800 
+        dark:bg-yellow-900/30 dark:text-yellow-300 
+        border border-yellow-200 dark:border-yellow-800/40
+        shadow-sm
+      "
+    >
+      💰 Paid Promotion
+    </span>
+  )}
+</h2>
+
               <div className="flex items-center space-x-4 text-sm theme-text-secondary">
                 <span>by {blog.author.username} test</span>
                 <span className="flex items-center space-x-1">
@@ -293,11 +331,64 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                 className="w-full object-cover rounded-lg"
               />
             </div>
+            
           )}
-          {/* Blog Content */}
-          <div className="p-6 pt-0 theme-border-b">
-            <TipTapContentDisplay content={blog.content} className="theme-text-secondary" />
-          </div>
+
+        {/* Blog Content */}
+        <div className="p-6 pt-0 theme-border-b space-y-4">
+          <TipTapContentDisplay content={blog.content} className="theme-text-secondary" />
+
+          {/* Keywords */}
+          {blog.keywords && blog.keywords.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold theme-text-primary mb-2">Keywords</h4>
+              <div className="flex flex-wrap gap-2">
+                {blog.keywords.map((keyword: string, index: number) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-sm"
+                  >
+                    # {keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Brand Tags */}
+{blog.brand_tags && blog.brand_tags.length > 0 && (
+  <div>
+    <h4 className="text-sm font-semibold theme-text-primary mb-2">Brand Tags</h4>
+    <div className="flex flex-wrap gap-2">
+      {blog.brand_tags.map((brand: string, index: number) => (
+        <span
+          key={index}
+          className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-sm"
+        >
+          🏷 {brand}
+        </span>
+      ))}
+    </div>
+  </div>
+)}
+
+          {/* Locations */}
+          {blog.locations && blog.locations.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold theme-text-primary mb-2">Locations</h4>
+              <div className="flex flex-wrap gap-2">
+                {blog.locations.map((loc: string, index: number) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-sm"
+                  >
+                  📍 {loc}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
           {/* Engagement Section */}
           <div className="p-6 theme-border-b">

@@ -309,7 +309,26 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
         <div className="p-6 theme-border-b flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-4">
-              <h2 className="text-2xl font-bold theme-text-primary mb-2">{video.title}</h2>
+              <h2 className="flex items-center flex-wrap gap-2 text-2xl font-bold theme-text-primary mb-2">
+  <span>{video.title}</span>
+
+  {video.age_restricted && (
+    <span
+      className="
+        px-2 py-0.5 
+        rounded-full 
+        text-xs font-semibold 
+        bg-red-100 text-red-700 
+        dark:bg-red-900/30 dark:text-red-300 
+        border border-red-200 dark:border-red-800/40
+        shadow-sm
+      "
+    >
+      18+ content
+    </span>
+  )}
+</h2>
+
               <div className="flex items-center space-x-4 text-sm theme-text-secondary">
                 <span>by {video.creator?.username || video.author?.username} test</span>
                 <span className="flex items-center space-x-1">
@@ -404,16 +423,70 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
           )} */}
 
 
-          {/* Video Description */}
-          <div className="p-6 pt-2 theme-border-b">
-            <div className="prose prose-slate max-w-none">
+{/* Video Description + Keywords + Locations */}
+<div className="p-6 pt-2 theme-border-b">
+  <div className="prose prose-slate max-w-none">
+    <div>
+      <h1 className="text-white text-2xl mb-4">Description</h1>
+    </div>
 
-              <div>
-                <h1 className="text-white text-2xl mb-4">Description</h1>
-              </div>
-              <TipTapContentDisplay content={video.description} className="theme-text-secondary" />
-            </div>
-          </div>
+    <TipTapContentDisplay content={video.description} className="theme-text-secondary" />
+
+     {/* Brand Tags */}
+{video.brand_tags && video.brand_tags.length > 0 && (
+  <div>
+    <h4 className="text-sm font-semibold theme-text-primary mb-2">Brand Tags</h4>
+    <div className="flex flex-wrap gap-2">
+      {video.brand_tags.map((brand: string, index: number) => (
+        <span
+          key={index}
+          className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-sm"
+        >
+          🏷 {brand}
+        </span>
+      ))}
+    </div>
+  </div>
+)}
+
+    {/* Keywords Section */}
+    {video.keywords && video.keywords.length > 0 && (
+      <div className="mt-6">
+        <h4 className="text-sm font-semibold theme-text-primary mb-2">Keywords</h4>
+        <div className="flex flex-wrap gap-2">
+          {video.keywords.map((keyword: string, index: number) => (
+            <span
+              key={index}
+              className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 
+                         dark:bg-purple-900/30 dark:text-purple-300 text-sm transition-colors"
+            >
+              {keyword}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Locations Section */}
+    {video.locations && video.locations.length > 0 && (
+      <div className="mt-4">
+        <h4 className="text-sm font-semibold theme-text-primary mb-2">Locations</h4>
+        <div className="flex flex-wrap gap-2">
+          {video.locations.map((loc: string, index: number) => (
+            <span
+              key={index}
+              className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 
+                         dark:bg-blue-900/30 dark:text-blue-300 text-sm transition-colors"
+            >
+              {loc}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
           {/* Engagement Section */}
           <div className="p-6 theme-border-b">
             <div className="flex items-center space-x-6">

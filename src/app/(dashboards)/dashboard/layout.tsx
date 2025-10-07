@@ -10,6 +10,7 @@ import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
 import { Suspense } from "react"
 import Loader2 from "@/components/Loader2"
+import { toggleUserRole } from "@/api/content"
 
 const navigationItems = [
   {
@@ -99,6 +100,26 @@ export default function DashboardLayout({
     router.push("/login")
     setShowLogoutConfirm(false)
   }
+
+  const handleToggleRole = async () => {
+  try {
+    const res = await toggleUserRole();
+    if (res?.status === 200) {
+      const updatedUser = res.data.user;
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      dispatch({ type: "user/updateUser", payload: updatedUser });
+
+      // Redirect based on role
+      if (updatedUser.role.toLowerCase() === "viewer") {
+        router.push("/viewer");
+      } else {
+        router.push("/dashboard");
+      }
+    }
+  } catch (err) {
+    console.error("Error switching role:", err);
+  }
+};
 
 
 
@@ -274,7 +295,12 @@ export default function DashboardLayout({
 
               {/* Right Section - Actions */}
               <div className="flex items-center space-x-4">
-
+              <button
+                onClick={handleToggleRole}
+                className="hover:bg-blue-50 hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium"
+              >
+                Switch to Viewer
+              </button>
 
                 {/* Creator Badge */}
                 <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">

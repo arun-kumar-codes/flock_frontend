@@ -109,6 +109,9 @@ const handleChange = (field: string, value: string) => {
       return; // prevent updating formData if invalid
     }
   }
+  if (field === "email") {
+    value = value.toLowerCase();
+  }
 
   setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -291,6 +294,7 @@ const handleChange = (field: string, value: string) => {
                 className={`w-full rounded-lg border-2 px-3 py-2.5 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
                   errors.email ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
                 }`}
+                style={{ textTransform: "lowercase" }}
               />
               {errors.email && (
                 <p className="text-xs text-red-600 flex items-center font-medium">

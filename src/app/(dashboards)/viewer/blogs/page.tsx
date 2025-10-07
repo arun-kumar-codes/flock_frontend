@@ -65,6 +65,8 @@ interface Blog {
   isFavorite?: boolean
   publishedAt?: string
   keywords?:string[]
+  age_restricted?: boolean
+  paid_promotion?: boolean
 }
 
 interface Following {
@@ -448,18 +450,28 @@ const filteredBlogs = blogs.filter((blog) => {
                 onClick={() => handleBlogClick(currentBlogs[0])}
               >
                 <div className="theme-bg-card rounded-2xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300">
-                  {currentBlogs[0].image ? (
-                    <div className="aspect-[16/10] relative overflow-hidden">
-                      <Image
-                        src={currentBlogs[0].image || "/placeholder.svg"}
-                        alt={currentBlogs[0].title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  ):(  <div className="w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 flex items-center justify-center">
-                            <BookOpenIcon className="w-12 h-12 text-purple-500" />
-                          </div>)}
+                  <div className="aspect-[16/10] relative overflow-hidden">
+  {currentBlogs[0].image ? (
+    <Image
+      src={currentBlogs[0].image || "/placeholder.svg"}
+      alt={currentBlogs[0].title}
+      fill
+      className="object-cover group-hover:scale-105 transition-transform duration-300"
+    />
+  ) : (
+    <div className="w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 flex items-center justify-center">
+      <BookOpenIcon className="w-12 h-12 text-purple-500" />
+    </div>
+  )}
+
+  {/* Always show 18+ badge in top-right */}
+  {currentBlogs[0].age_restricted && (
+    <div className="absolute top-4 right-4 bg-red-700 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-md z-10">
+      18+
+    </div>
+  )}
+</div>
+
 
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="flex items-center justify-between mb-4">
@@ -479,8 +491,13 @@ const filteredBlogs = blogs.filter((blog) => {
                     </p>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center space-x-2">         
-                      </div>
+                      <div className="flex items-center gap-2">
+    {currentBlogs[0].paid_promotion && (
+      <span className="inline-flex items-center px-2.5 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full text-xs font-medium border border-yellow-200 dark:border-yellow-800">
+        💰 Paid Promotion
+      </span>
+    )}
+  </div>
 
                       <div className="flex items-center space-x-4">
                         <button
@@ -521,6 +538,11 @@ const filteredBlogs = blogs.filter((blog) => {
                                               <BookOpenIcon className="w-8 h-8 text-purple-500" />
                                             </div>
                                           )}
+                                          {blog.age_restricted && (
+                  <div className="absolute top-6 right-6 bg-red-700 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-md">
+                    18+
+                  </div>
+                )}
                   </div>
                   
                   <div className="p-4 flex-1 flex flex-col">
@@ -540,9 +562,13 @@ const filteredBlogs = blogs.filter((blog) => {
                     <p className="theme-text-secondary mb-4 line-clamp-3 flex-1 text-sm">{blog.excerpt}</p>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center space-x-1">
-                  
-                      </div>
+                <div className="flex items-center gap-2">
+                  {blog.paid_promotion && (
+                    <span className="inline-flex items-center px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full text-[10px] font-medium border border-yellow-200 dark:border-yellow-800">
+                      💰 Paid
+                    </span>
+                  )}
+                </div>
 
                       <button
                         onClick={(e) => {

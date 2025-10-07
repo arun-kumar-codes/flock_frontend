@@ -40,6 +40,7 @@ import {
   ClockIcon,
   MessageCircleIcon,
   MessageCircleOff,
+  DollarSignIcon,
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
@@ -88,6 +89,10 @@ interface Blog {
   views?: number
   category?: string
   keywords?: string[]
+  age_restricted?: boolean          
+  locations?: string[] | string 
+  brand_tags?: string[]
+  paid_promotion?: boolean
 }
 
 interface CreateBlogData {
@@ -98,11 +103,16 @@ interface CreateBlogData {
   image?: File | null
   is_draft?: boolean
   keywords?: string[]
+  age_restricted?: boolean          
+  locations?: string[]
+  brand_tags?: string[]
+  paid_promotion?: boolean
 }
 
 interface EditBlogData extends CreateBlogData {
   id: number
   existingImageUrl?: string
+  locations?: string[]
 }
 
 export default function BlogsPage() {
@@ -179,6 +189,10 @@ export default function BlogsPage() {
     image: null,
     is_draft: false,
     keywords: [],
+    age_restricted: false,   
+    locations: [], 
+    brand_tags: [],
+    paid_promotion: false,
   })
 
   // Edit blog form state
@@ -191,6 +205,10 @@ export default function BlogsPage() {
     image: null,
     existingImageUrl: "",
     keywords: [],
+    age_restricted: false,    
+    locations: [], 
+    brand_tags: [],
+    paid_promotion: false,
   })
 
   // Store original edit form data for comparison
@@ -203,9 +221,19 @@ export default function BlogsPage() {
     image: null,
     existingImageUrl: "",
     keywords: [],
+    age_restricted: false,  
+    locations: [], 
+    brand_tags: [],
+    paid_promotion: false,
   })
   const [keywordInput, setKeywordInput] = useState("")
   const [editKeywordInput, setEditKeywordInput] = useState("")
+
+  const [locationInput, setLocationInput] = useState("")
+  const [editLocationInput, setEditLocationInput] = useState("")
+
+  const [brandTagInput, setBrandTagInput] = useState("")
+  const [editBrandTagInput, setEditBrandTagInput] = useState("")
 
   const createModalRef = useRef<HTMLDivElement>(null)
   const editModalRef = useRef<HTMLDivElement>(null)
@@ -237,6 +265,29 @@ export default function BlogsPage() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [showCreateModal, showEditModal, showViewModal])
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("blogFormDraft")
+    if (savedDraft) {
+      try {
+        const parsed = JSON.parse(savedDraft)
+        setBlogForm((prev) => ({
+          ...prev,
+          ...parsed, // restore saved title/content/keywords/etc.
+        }))
+      } catch (err) {
+        console.error("Failed to parse draft:", err)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+  // Avoid saving empty form
+    if (blogForm.title || blogForm.content || blogForm.keywords?.length) {
+      localStorage.setItem("blogFormDraft", JSON.stringify(blogForm))
+    }
+  }, [blogForm])
+
 
   // Helper function to set loading state for specific actions
   const setActionLoading = (blogId: number, action: string, loading: boolean) => {
@@ -477,6 +528,7 @@ export default function BlogsPage() {
             status: blog.status || "draft",
             views: blog.views || 0,
             category: blog.author?.role === "Creator" ? "Programming" : "General",
+            location: typeof blog.locations === "string" ? (blog.locations as string).split(",") : [],
           }))
 
         setUserData((prev) => ({
@@ -705,6 +757,69 @@ export default function BlogsPage() {
     }
   }
 
+const addLocation = (isEdit: boolean = false) => {
+  const input = isEdit ? editLocationInput : locationInput;
+  if (!input.trim()) return;
+
+  // Split by comma or space, trim, and filter empty strings
+  const allLocations = input
+    .split(",")
+    .map((loc) => loc.trim())
+    .filter((loc) => loc.length > 0);
+
+  // Deduplicate
+  const uniqueNew = Array.from(new Set(allLocations));
+
+  if (isEdit) {
+    const existing = editBlogForm.locations || [];
+    const finalLocations = [...existing];
+    uniqueNew.forEach((loc) => {
+      if (!finalLocations.includes(loc)) {
+        finalLocations.push(loc);
+      }
+    });
+    setEditBlogForm((prev) => ({
+      ...prev,
+      locations: finalLocations,
+    }));
+    setEditLocationInput("");
+  } else {
+    const existing = blogForm.locations || [];
+    const finalLocations = [...existing];
+    uniqueNew.forEach((loc) => {
+      if (!finalLocations.includes(loc)) {
+        finalLocations.push(loc);
+      }
+    });
+    setBlogForm((prev) => ({
+      ...prev,
+      locations: finalLocations,
+    }));
+    setLocationInput("");
+  }
+};
+
+const removeLocation = (loc: string, isEdit: boolean = false) => {
+  if (isEdit) {
+    setEditBlogForm((prev) => ({
+      ...prev,
+      locations: (prev.locations || []).filter((l) => l !== loc),
+    }));
+  } else {
+    setBlogForm((prev) => ({
+      ...prev,
+      locations: (prev.locations || []).filter((l) => l !== loc),
+    }));
+  }
+};
+
+const handleLocationKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, isEdit: boolean = false) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    addLocation(isEdit);
+  }
+};
+
   // Enhanced edit blog handler
   const handleEditBlog = (blog: Blog) => {
     //console.log("Edit blog clicked:", blog.id)
@@ -723,7 +838,15 @@ export default function BlogsPage() {
       image: null,
       existingImageUrl: blog.image || "",
       keywords: blog.keywords || [],
-    }
+      age_restricted: blog.age_restricted || false,
+      locations: Array.isArray(blog.locations) 
+      ? blog.locations 
+      : typeof blog.locations === "string" 
+      ? blog.locations.split(",").map(l => l.trim()).filter(l => l)
+      : [],
+      brand_tags: blog.brand_tags || [],
+      paid_promotion: blog.paid_promotion || false,
+      }
 
     setEditBlogForm(editData)
     setOriginalEditData(editData) // Store original data for comparison
@@ -746,13 +869,22 @@ export default function BlogsPage() {
   const handleViewBlog = (blog: Blog) => {
     //console.log("View blog clicked:", blog.id)
     setShowActionMenu(null)
-    setViewBlog(blog)
-    setShowViewModal(true)
-    // Initialize like status
-    setIsLiked(blog.is_liked || false)
-    // Prevent body scroll when modal is open
-    document.body.style.overflow = 'hidden'
+    let parsedLocations: string[] = [];
+  if (blog.locations) {
+    if (Array.isArray(blog.locations)) {
+      parsedLocations = blog.locations;
+    } else if (typeof blog.locations === "string") {
+      parsedLocations = blog.locations.split(",").map((l) => l.trim()).filter(l => l);
+    }
   }
+        setViewBlog({
+        ...blog,
+        locations: parsedLocations,
+      });
+      setShowViewModal(true)
+      setIsLiked(blog.is_liked || false)
+      document.body.style.overflow = 'hidden'
+    }
 
   // Handle like toggle
   const handleToggleLike = async () => {
@@ -858,14 +990,23 @@ export default function BlogsPage() {
       setUpdateError("Title must be at least 3 characters long")
       return
     }
-    if (!editBlogForm.content.trim()) {
+    const plainTextContent = editBlogForm.content.replace(/<[^>]*>/g, "");
+
+    if (!plainTextContent) {
       setUpdateError("Content is required")
       return
     }
-    if (editBlogForm.content.trim().length < 10) {
+
+    if (plainTextContent.length < 10) {
       setUpdateError("Content must be at least 10 characters long")
       return
     }
+
+    if (plainTextContent.length > 5000) {
+      setUpdateError("Content must be less than or equal to 5000 characters.")
+      return
+    }
+
     setIsUpdating(true)
 
     try {
@@ -936,6 +1077,31 @@ export default function BlogsPage() {
         hasChanges = true
       }
 
+      if (editBlogForm.age_restricted !== originalEditData.age_restricted) {
+        formData.append("age_restricted", editBlogForm.age_restricted ? "true" : "false")
+        hasChanges = true
+      }
+
+      if (JSON.stringify(editBlogForm.locations || []) !== 
+          JSON.stringify(originalEditData.locations || [])
+        ){
+        formData.append("locations", JSON.stringify(editBlogForm.locations || []))  
+        hasChanges = true;
+      }
+
+      if (
+        JSON.stringify(editBlogForm.brand_tags || []) !==
+        JSON.stringify(originalEditData.brand_tags || [])
+      ) {
+        formData.append("brand_tags", JSON.stringify(editBlogForm.brand_tags || []))
+        hasChanges = true
+      }
+
+
+      if (editBlogForm.paid_promotion !== originalEditData.paid_promotion) {
+        formData.append("paid_promotion", editBlogForm.paid_promotion ? "true" : "false")
+        hasChanges = true
+      }
 
       if (!hasChanges) {
         setUpdateError("No changes detected")
@@ -1011,15 +1177,23 @@ export default function BlogsPage() {
       return
     }
 
+    const plainTextContent = blogForm.content.replace(/<[^>]*>/g, "");
+
     if (!blogForm.content.trim()) {
       setCreateError("Content is required")
       return
     }
 
-    if (blogForm.content.trim().length < 10) {
+    if (plainTextContent.length < 10) {
       setCreateError("Content must be at least 10 characters long")
       return
     }
+
+    if (plainTextContent.length > 5000) {
+      setCreateError("Content must be less than or equal to 5000 characters.")
+      return
+    }
+
     if (
       isScheduled &&
       (!scheduledAt ||
@@ -1060,6 +1234,19 @@ export default function BlogsPage() {
       formData.append("title", blogForm.title.trim())
       formData.append("content", updatedContent) // Use updated content with final URLs
       formData.append("is_draft", blogForm.is_draft ? "true" : "false")
+      formData.append("paid_promotion", blogForm.paid_promotion ? "true" : "false")
+      
+      if (blogForm.age_restricted) {
+        formData.append("age_restricted", blogForm.age_restricted ? "true" : "false")
+      }
+
+      if (blogForm.locations && blogForm.locations.length > 0) {
+        formData.append("locations", JSON.stringify(blogForm.locations)) // backend expects string
+      }
+
+      if (blogForm.brand_tags && blogForm.brand_tags.length > 0) {
+        formData.append("brand_tags", JSON.stringify(blogForm.brand_tags))
+      }
 
       if (isScheduled && scheduledAt) {
         formData.append("scheduled_at", scheduledAt.toISOString())
@@ -1083,6 +1270,9 @@ export default function BlogsPage() {
 
       if (response?.status === 200 || response?.status === 201 || response?.data) {
         setCreateSuccess("Blog created successfully!")
+
+        localStorage.removeItem("blogFormDraft")
+
         setBlogForm({
           title: "",
           content: "",
@@ -1091,6 +1281,8 @@ export default function BlogsPage() {
           category: "General",
           is_draft: false,
           keywords: [],
+          age_restricted: false, 
+          locations: [], 
         })
         setImagePreview(null)
         setImageError("")
@@ -1127,7 +1319,7 @@ export default function BlogsPage() {
     }
   }
 
-  const handleEditFormChange = (field: keyof EditBlogData, value: string) => {
+  const handleEditFormChange = (field: keyof EditBlogData, value: string | boolean | number) => {
     setEditBlogForm((prev) => ({
       ...prev,
       [field]: value,
@@ -1136,6 +1328,57 @@ export default function BlogsPage() {
       setUpdateError("")
     }
   }
+
+  const addBrandTag = (input: string, isEdit = false) => {
+  if (!input.trim()) return
+
+  const newTags = input
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+
+  const uniqueNew = Array.from(new Set(newTags))
+
+  if (isEdit) {
+    const existing = editBlogForm.brand_tags || []
+    const finalTags = [...existing]
+    uniqueNew.forEach((t) => {
+      if (!finalTags.includes(t)) finalTags.push(t)
+    })
+    setEditBlogForm((prev) => ({ ...prev, brand_tags: finalTags }))
+    setEditBrandTagInput("")
+  } else {
+    const existing = blogForm.brand_tags || []
+    const finalTags = [...existing]
+    uniqueNew.forEach((t) => {
+      if (!finalTags.includes(t)) finalTags.push(t)
+    })
+    setBlogForm((prev) => ({ ...prev, brand_tags: finalTags }))
+    setBrandTagInput("")
+  }
+}
+
+const removeBrandTag = (tag: string, isEdit = false) => {
+  if (isEdit) {
+    setEditBlogForm((prev) => ({
+      ...prev,
+      brand_tags: prev.brand_tags?.filter((t) => t !== tag) || [],
+    }))
+  } else {
+    setBlogForm((prev) => ({
+      ...prev,
+      brand_tags: prev.brand_tags?.filter((t) => t !== tag) || [],
+    }))
+  }
+}
+
+const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
+  if (e.key === "Enter") {
+    e.preventDefault()
+    const tag = isEdit ? editBrandTagInput : brandTagInput
+    addBrandTag(tag, isEdit)
+  }
+}
 
   const getStatusColor = (status: string, archived?: boolean) => {
     if (archived) {
@@ -1216,7 +1459,7 @@ export default function BlogsPage() {
 
     // Split by space or comma → trim → filter out empties
     const newKeywords = input
-      .split(/[\s,]+/)
+      .split(",")
       .map((k) => k.trim().toLowerCase()) // normalize case if needed
       .filter((k) => k.length > 0);
 
@@ -1252,7 +1495,6 @@ export default function BlogsPage() {
       setKeywordInput("");
     }
   };
-
 
 
   const removeKeyword = (keyword: string, isEdit = false) => {
@@ -1639,15 +1881,33 @@ export default function BlogsPage() {
                                 <span>Scheduled for {new Date(item.scheduled_at + "z").toLocaleString()}</span>
                               </div>
                             ) : (
-                              <span
-                                className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
-                                  item.status || "draft",
-                                  isArchived(item),
-                                )}`}
-                              >
-                                {getStatusIcon(item.status || "draft", isArchived(item))}
-                                <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
-                              </span>
+                              <div className="flex items-center gap-2 flex-wrap">
+  {/* Status Badge */}
+  <span
+    className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+      item.status || "draft",
+      isArchived(item),
+    )}`}
+  >
+    {getStatusIcon(item.status || "draft", isArchived(item))}
+    <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
+  </span>
+
+  {/* Age Restriction */}
+  {item.age_restricted && (
+    <span className="inline-flex items-center px-2 py-1 text-[11px] font-semibold bg-red-100 text-red-700 rounded-full border border-red-300">
+      🔞 18+
+    </span>
+  )}
+
+  {/* Paid Promotion */}
+  {item.paid_promotion && (
+    <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-[11px] font-medium px-2 py-1 rounded-full border border-yellow-200">
+      <DollarSignIcon className="w-3 h-3" />
+      <span>Paid</span>
+    </span>
+  )}
+</div>
                             )}
                           </div>
 
@@ -1905,24 +2165,6 @@ export default function BlogsPage() {
                     <button
                       onClick={() => {
                         setShowCreateModal(false)
-                        setBlogForm({
-                          title: "",
-                          content: "",
-                          status: "draft",
-                          category: "General",
-                          image: null,
-                          is_draft: false,
-                          keywords: [],
-                        })
-                        setImagePreview(null)
-                        setImageError("")
-                        setCreateError("")
-                        setCreateSuccess("")
-                        setIsScheduled(false)
-                        setKeywordInput("")
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = ""
-                        }
                       }}
                       className="p-2 hover:bg-slate-100 rounded-lg transition-colors z-50"
                     >
@@ -2043,9 +2285,128 @@ export default function BlogsPage() {
                           className="min-h-[250px] sm:min-h-[300px]"
                         />
                         <p className="text-xs text-slate-500 mt-1">
-                          {blogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
+                          {blogForm.content.replace(/<[^>]*>/g, "").length} / 5000 characters
                         </p>
                       </div>
+
+      {/* Location Section - Add after keywords */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Location (Optional)</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  onKeyDown={(e) => handleLocationKeyPress(e, false)}
+                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                  placeholder="Enter a location..."
+                  maxLength={50}
+                />
+                <button
+                  type="button"
+                  onClick={() => addLocation(false)}  
+                  disabled={!locationInput.trim()}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  Add
+                </button>
+              </div>
+              {/* Location tags */}
+              {blogForm.locations && blogForm.locations.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {blogForm.locations.map((loc, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                    >
+                      {loc}
+                      <button
+                      type="button"
+                      onClick={() => removeLocation(loc, false)} 
+                      className="ml-1 text-purple-600 hover:text-purple-800 transition-colors"
+                    >
+                      ×
+                    </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-slate-500 mt-1">
+                Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
+              </p>
+            </div>
+
+            {/* Brand Tags (Optional) */}
+<div className="mt-4">
+  <label className="block text-sm font-medium text-slate-700 mb-2">
+    Brand Tags (Optional)
+  </label>
+
+  {/* Brand tag input row */}
+  <div className="flex gap-2">
+    <input
+      type="text"
+      placeholder="Enter a brand..."
+      value={brandTagInput}
+      onChange={(e) => setBrandTagInput(e.target.value)}
+      onKeyDown={(e) => handleBrandTagKeyPress(e, false)}
+      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+      maxLength={50}
+    />
+    <button
+      type="button"
+      onClick={() => addBrandTag(brandTagInput, false)}
+      disabled={!brandTagInput.trim()}
+      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+    >
+      Add
+    </button>
+  </div>
+
+  {/* Show added tags */}
+  {blogForm.brand_tags && blogForm.brand_tags.length > 0 && (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {blogForm.brand_tags.map((tag, index) => (
+        <span
+          key={index}
+          className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+        >
+          {tag}
+          <button
+            type="button"
+            onClick={() => removeBrandTag(tag, false)}
+            className="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors"
+          >
+            ×
+          </button>
+        </span>
+      ))}
+    </div>
+  )}
+
+  <p className="text-xs text-slate-500 mt-1">
+    Press Enter or click Add to add brands. Separate multiple tags with commas. Click × to remove a tag.
+  </p>
+</div>
+
+{/* Paid Promotion Toggle */}
+<div className="flex items-center gap-2 mt-4">
+  <input
+    type="checkbox"
+    id="createPaidPromotion"
+    checked={blogForm.paid_promotion}
+    onChange={(e) =>
+      setBlogForm({ ...blogForm, paid_promotion: e.target.checked })
+    }
+    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+  />
+  <label
+    htmlFor="createPaidPromotion"
+    className="text-sm text-slate-700 select-none"
+  >
+    Contains Paid Promotion
+  </label>
+</div>
 
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Keywords (Optional)</label>
@@ -2131,22 +2492,46 @@ export default function BlogsPage() {
                         <input
                           type="checkbox"
                           name="is_draft"
+                          checked={blogForm.is_draft}
                           className="
-        w-5 h-5 
-        accent-indigo-600 
-        cursor-pointer 
-        rounded 
-        appearance-none
-        border border-slate-300 
-        checked:bg-indigo-600 
-        checked:border-indigo-600 
-        relative
-      "
+                          w-5 h-5 
+                          accent-indigo-600 
+                          cursor-pointer 
+                          rounded 
+                          appearance-none
+                          border border-slate-300 
+                          checked:bg-indigo-600 
+                          checked:border-indigo-600 
+                          relative
+                        "
                           onChange={(e) => handleFormChange("is_draft", e.target.checked)}
                         />
                         Save as Draft
                       </label>
                     </div>
+
+                    <div className="mt-4">
+              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  name="age_restricted"
+                  checked={blogForm.age_restricted}
+                  onChange={(e) => handleFormChange("age_restricted", e.target.checked)}
+                  className="
+                    w-5 h-5 
+                    accent-indigo-600 
+                    cursor-pointer 
+                    rounded 
+                    appearance-none
+                    border border-slate-300 
+                    checked:bg-indigo-600 
+                    checked:border-indigo-600 
+                    relative
+                  "
+                />
+                Age Restricted (18+)
+              </label>
+            </div>
 
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
@@ -2154,15 +2539,6 @@ export default function BlogsPage() {
                         type="button"
                         onClick={() => {
                           setShowCreateModal(false)
-                          setBlogForm({
-                            title: "",
-                            content: "",
-                            image: null,
-                            status: "draft",
-                            category: "General",
-                            is_draft: false,
-                            keywords: [],
-                          })
                           setImagePreview(null)
                           setImageError("")
                           setCreateError("")
@@ -2357,10 +2733,124 @@ export default function BlogsPage() {
                           className="min-h-[250px] sm:min-h-[300px]"
                         />
                         <p className="text-xs text-slate-500 mt-1">
-                          {editBlogForm.content.replace(/<[^>]*>/g, "").length} characters (minimum 10 required)
+                          {blogForm.content.replace(/<[^>]*>/g, "").length} / 5000 characters
                         </p>
                       </div>
 
+{/* Location Section in Edit Modal */}
+<div>
+  <label className="block text-sm font-medium text-slate-700 mb-2">
+    Location (Optional)
+  </label>
+  <div className="flex gap-2">
+    <input
+      type="text"
+      value={editLocationInput}
+      onChange={(e) => setEditLocationInput(e.target.value)}
+      onKeyPress={(e) => handleLocationKeyPress(e, true)}
+      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+      placeholder="Enter a location..."
+      maxLength={50}
+    />
+    <button
+      type="button"
+      onClick={() => addLocation(true)}
+      disabled={!editLocationInput.trim()}
+      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+    >
+      Add
+    </button>
+  </div>
+
+  {/* Location tags */}
+  {editBlogForm.locations && editBlogForm.locations.length > 0 && (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {editBlogForm.locations.map((loc, index) => (
+        <span
+          key={index}
+          className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+        >
+          {loc}
+          <button
+            type="button"
+            onClick={() => removeLocation(loc, true)}
+            className="ml-1 text-purple-600 hover:text-purple-800 transition-colors"
+          >
+            ×
+          </button>
+        </span>
+      ))}
+    </div>
+  )}
+  <p className="text-xs text-slate-500 mt-1">
+    Press Enter or click Add to add Location. You can add multiple Locations at once by separating them with a space or comma. Click × to remove a keyword.
+  </p>
+</div>
+
+{/* Brand Tags (Edit) */}
+<div className="mt-4">
+  <label className="block text-sm font-medium text-slate-700 mb-2">
+    Brand Tags
+  </label>
+
+  {/* Show added tags */}
+  <div className="flex flex-wrap gap-2">
+    {editBlogForm.brand_tags?.map((tag, index) => (
+      <span
+        key={index}
+        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+      >
+        {tag}
+        <button
+          type="button"
+          onClick={() => removeBrandTag(tag, true)}
+          className="rounded-full p-0.5"
+        >
+          <XIcon className="w-3 h-3" />
+        </button>
+      </span>
+    ))}
+  </div>
+
+  {/* Input for adding tags */}
+  <div className="flex gap-2 mt-2">
+    <input
+      type="text"
+      placeholder="Add brand..."
+      value={editBrandTagInput}
+      onChange={(e) => setEditBrandTagInput(e.target.value)}
+      onKeyDown={(e) => handleBrandTagKeyPress(e, true)}
+      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+    />
+    <button
+      type="button"
+      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+      onClick={() => addBrandTag(editBrandTagInput, true)}
+    >
+      Add
+    </button>
+  </div>
+</div>
+
+{/* Paid Promotion Toggle (Edit) */}
+<div className="flex items-center gap-2 mt-3">
+  <input
+    type="checkbox"
+    id="editPaidPromotion"
+    checked={editBlogForm.paid_promotion}
+    onChange={(e) =>
+      setEditBlogForm({ ...editBlogForm, paid_promotion: e.target.checked })
+    }
+  />
+  <label
+    htmlFor="editPaidPromotion"
+    className="text-sm text-slate-700 select-none"
+  >
+    Contains Paid Promotion
+  </label>
+</div>
+
+                  {/* Keywords section (edit) */}
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Keywords (Optional)</label>
                         <div className="flex gap-2">
@@ -2407,6 +2897,26 @@ export default function BlogsPage() {
                           Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
                         </p>
                       </div>
+                      {/* Age Restriction Toggle */}
+<div>
+  <label className="flex items-center gap-3 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={editBlogForm.age_restricted || false}
+      onChange={(e) => {
+        handleEditFormChange("age_restricted", e.target.checked)
+      }}
+      className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+    />
+    <span className="text-sm font-medium text-slate-700">
+      Mark as age restricted
+    </span>
+  </label>
+  <p className="text-xs text-slate-500 mt-1">
+    If enabled, this blog will be shown with an{" "}
+    <span className="font-semibold text-red-600">18+</span> badge.
+  </p>
+</div>
                     </div>
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
@@ -2500,6 +3010,11 @@ export default function BlogsPage() {
                           height={400}
                           className="w-full h-full object-cover"
                         />
+                        {viewBlog.age_restricted && (
+                        <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                          18+
+                        </div>
+                      )}
                       </div>
                     )}
                     {/* Blog Info */}
@@ -2545,7 +3060,7 @@ export default function BlogsPage() {
                           <span>💬 {viewBlog.comments_count} comments</span>
                         </span>
                       </div>
-                      <div className="mb-4 sm:mb-6">
+                      <div className="mb-4 sm:mb-6 flex items-center gap-2 flex-wrap">
                         <span
                           className={`px-3 py-1 text-sm font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
                             viewBlog.status || "draft",
@@ -2555,13 +3070,67 @@ export default function BlogsPage() {
                           {getStatusIcon(viewBlog.status || "draft", isArchived(viewBlog))}
                           <span>{getStatusText(viewBlog.status || "draft", isArchived(viewBlog))}</span>
                         </span>
+                        {viewBlog.age_restricted && (
+                  <span className="inline-flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full border border-red-300 shadow-sm">
+                    🔞 18+ Restricted
+                  </span>
+                )}
                       </div>
+                      {/* Brand Tags & Paid Promotion (View Modal) */}
+{(viewBlog?.paid_promotion || (viewBlog?.brand_tags && viewBlog.brand_tags.length > 0)) && (
+  <div className="flex flex-wrap items-center gap-2 mt-3">
+    
+    {/* Paid Promotion Badge */}
+    {viewBlog?.paid_promotion && (
+      <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full border border-yellow-200">
+        <DollarSignIcon className="w-3 h-3" />
+        <span>Paid Promotion</span>
+      </span>
+    )}
+
+    {/* Brand Tags */}
+    {viewBlog?.brand_tags?.map((tag: string, index: number) => (
+      <span
+        key={index}
+        className="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full border border-blue-200"
+      >
+        #{tag}
+      </span>
+    ))}
+  </div>
+)}
+
                     </div>
                     {/* Blog Content */}
                     <div className="max-w-none">
                       <TipTapContentDisplay content={viewBlog.content} className="text-slate-700" />
                     </div>
 
+  {viewBlog.locations && (() => {
+  const locationArray = Array.isArray(viewBlog.locations) 
+    ? viewBlog.locations 
+    : viewBlog.locations.split(',').map(l => l.trim()).filter(l => l);
+  
+  return locationArray.length > 0 && (
+    <div className="my-8">
+      <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+        Locations
+      </h4>
+      <div className="bg-gray-50 rounded-2xl p-6">
+        <div className="flex flex-wrap gap-2">
+          {locationArray.map((loc: string, idx: number) => (
+            <span
+              key={`${loc}-${idx}`}
+              className="inline-flex items-center px-3 py-1.5 bg-purple-100 text-purple-800 text-sm font-medium rounded-full border border-purple-200"
+            >
+              📍 {loc}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+})()}
 
                     {viewBlog.keywords && viewBlog.keywords.length > 0 && (
                       <div className="my-8">

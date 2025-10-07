@@ -343,7 +343,9 @@ export default function Login() {
               </div>
               {errors.recaptcha && (
                 <p className="text-xs text-red-600 flex items-center justify-center font-medium">
-                  <div className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></div>
+                  <div className="w-1 h-1 bg-red-600 rounded-full mr-1.5">
+        
+                  </div>
                   {errors.recaptcha}
                 </p>
               )}

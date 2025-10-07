@@ -270,13 +270,17 @@ export async function createVideo(data: any) {
   }
 }
 
-export async function updateVideo(videoId:any, data: any) {
+export async function updateVideo(videoId:any, formData: FormData) {
   try {
-    const response = await axiosInstance.patch(`/video/${videoId}`,data);
-    return response;
-  } catch (error:any) {
-    console.error("Error fetching videos:", error);
-    return error.response;
+    const response = await axiosInstance.patch(`/video/${videoId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", 
+      },
+    })
+    return response
+  } catch (error: any) {
+    console.error("Error updating video:", error)
+    return error.response
   }
 }
 
@@ -561,6 +565,15 @@ export async function getFollower() {
   }
 }
 
+export async function toggleUserRole() {
+  try {
+    const response = await axiosInstance.patch("/auth/toggle-role");
+    return response;
+  } catch (error: any) {
+    console.error("Error toggling role:", error);
+    throw error;
+  }
+}
 
 export async function toggleComment(blogId: any) {
   try {

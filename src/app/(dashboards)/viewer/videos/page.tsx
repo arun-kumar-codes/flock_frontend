@@ -65,6 +65,8 @@ interface Video {
   isFavorite?: boolean
   author?: Creator
   keywords?:string[]
+  age_restricted?: boolean
+  paid_promotion?: boolean
 }
 
 interface Following {
@@ -425,9 +427,6 @@ const filteredVideos = videos.filter((video) => {
   </span>
 </div>
 
-
-
-
   <button
     onClick={() => {
     handleRefresh();
@@ -468,6 +467,20 @@ const filteredVideos = videos.filter((video) => {
                           }
                         }}
                       />
+
+                        {/* Paid Promotion Badge */}
+                      {video.paid_promotion && (
+                        <div className="absolute top-3 left-3 bg-yellow-400/90 text-gray-900 text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-lg tracking-wide">
+                          💰 Paid Promotion
+                        </div>
+                      )}
+
+                      {/* Age Restriction Badge */}
+                    {video.age_restricted && (
+                      <div className="absolute top-3 right-3 bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+                        18+
+                      </div>
+                    )}
 
                       {/* Duration overlay */}
                       <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2 py-1 rounded font-medium">

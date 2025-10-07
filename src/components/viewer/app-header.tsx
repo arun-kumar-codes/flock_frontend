@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation"
 import { Sun, Moon, User, LogIn, UserPlus, Sparkles } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
 import { toggleThemeMode } from "@/slice/userSlice"
-import {clearFilter} from "@/slice/dashbaordSlice"
+import { clearFilter } from "@/slice/dashbaordSlice"
+import { toast } from "react-hot-toast"
+import { toggleUserRole } from "@/api/content"
 
 interface HeaderNavbarProps {
   isSidebarExpanded: boolean
@@ -40,6 +42,23 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     document.documentElement.setAttribute("data-theme", themeValue)
     dispatch(toggleThemeMode())
   }
+
+  // Handle dashboard reset
+  const handleDashboardChange = () => {
+    dispatch(clearFilter())
+  }
+
+  // Switch role (viewer <-> creator)
+  const handleSwitchRole = async () => {
+  try {
+    const res = await toggleUserRole();
+    toast.success(res.data.message);
+    window.location.reload();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || "Unable to switch role";
+    toast.error(msg);
+  }
+};
 
   // Get page title based on pathname
   const getPageTitle = () => {
@@ -89,10 +108,6 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     }
   }
 
-  const handleDashboardChange=()=>{
-          dispatch(clearFilter());
-  }
-
   return (
     <header
       className={`fixed top-0 right-0 z-30 h-20 theme-bg-card theme-border transition-all duration-300 backdrop-blur-xl ${
@@ -101,12 +116,13 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     >
       <div className="flex items-center justify-between h-full px-4  md:px-8">
         <div className="flex items-center space-x-4">
-          <div className={`flex flex-col justify-center ${getPageTitle()==='FlockTogether'&&'cursor-pointer'}`}>
+          <div className={`flex flex-col justify-center ${getPageTitle() === "FlockTogether" && "cursor-pointer"}`}>
             <div className="flex items-center space-x-2 " onClick={handleDashboardChange}>
-              <h1 className="text-lg md:text-xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
-              {/* <Sparkles className="w-5 h-5 theme-text-accent animate-pulse" /> */}
+              <h1 className="text-xl md:text-2xl font-bold theme-text-primary leading-tight">{getPageTitle()}</h1>
             </div>
-            <p className="text-xs md:text-sm theme-text-secondary mt-1 font-medium opacity-80 md:flex hidden">{getPageDescription()}</p>
+            <p className="text-xs md:text-sm theme-text-secondary mt-1 font-medium opacity-80">
+              {getPageDescription()}
+            </p>
           </div>
         </div>
 
@@ -124,23 +140,35 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
           </button>
 
           {user.isLogin ? (
-            // User is logged in - show profile button
-            <button
-              onClick={() => router.push("/viewer/profile")}
-              className="flex items-center space-x-3 px-6 py-3 rounded-xl cursor-pointer  theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
-              title="View Profile"
-            >
-              <User className="w-4 h-4 md:w-5 md:h-5 theme-text-primary group-hover:scale-110 transition-transform duration-300" />
-              <span className="text-sm font-semibold theme-text-primary hidden sm:block">
-                {user?.username || "Profile"}
-              </span>
-            </button>
+            <div className="flex items-center space-x-3">
+              {/* Switch role button */}
+              <button
+                onClick={handleSwitchRole}
+                className="flex items-center space-x-3 px-6 py-3 rounded-xl cursor-pointer theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
+                title="Switch Role"
+              >
+                <span className="text-sm font-semibold theme-text-primary hidden sm:block">
+                  {user.role === "Creator" ? "Switch to Viewer" : "Switch to Creator"}
+                </span>
+              </button>
+
+              {/* Profile button */}
+              <button
+                onClick={() => router.push("/viewer/profile")}
+                className="flex items-center space-x-3 px-6 py-3 rounded-xl cursor-pointer theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
+                title="View Profile"
+              >
+                <User className="w-4 h-4 md:w-5 md:h-5 theme-text-primary group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-sm font-semibold theme-text-primary hidden sm:block">
+                  {user?.username || "Profile"}
+                </span>
+              </button>
+            </div>
           ) : (
-            // User is not logged in - show login/signup buttons
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => router.push("/login")}
-                className="flex items-center space-x-2 px-5 py-3 cursor-pointer  rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
+                className="flex items-center space-x-2 px-5 py-3 cursor-pointer rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
                 title="Sign In"
               >
                 <LogIn className="w-4 h-4 theme-text-primary group-hover:translate-x-1 transition-transform duration-300" />
@@ -149,7 +177,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
 
               <button
                 onClick={() => router.push("/signup")}
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl cursor-pointer  theme-button-primary transition-all duration-300 group shadow-lg"
+                className="flex items-center space-x-2 px-5 py-3 rounded-xl cursor-pointer theme-button-primary transition-all duration-300 group shadow-lg"
                 title="Sign Up"
               >
                 <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />

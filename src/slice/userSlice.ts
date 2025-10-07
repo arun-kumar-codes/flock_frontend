@@ -49,6 +49,11 @@ const userSlice = createSlice({
       }
     },
 
+    updateUser(state, action: PayloadAction<Partial<User>>) {
+      Object.assign(state, action.payload);
+      state.loading = false;
+    },
+
     logOut(state) {
       state.id = "";
       state.username = "";

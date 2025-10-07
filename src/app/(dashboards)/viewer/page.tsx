@@ -98,25 +98,25 @@ export default function ViewerDashboard() {
       <div className="mx-auto lg:px-8 py-4 lg:py-8">
         <div className="mb-4 md:mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center md:ml-10">
-            {filterButtons.map((filter) => {
-              const Icon = filter.icon
-              const isActive = activeFilter === filter.id
-              return (
-                <button
-                  key={filter.id}
-                  onClick={() => setActive(filter.id)}
-                  className={`flex items-center justify-center gap-x-2 md:gap-x-6  px-2 md:px-4  py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 ${
-                    isActive
-                      ? `${filter.bgColor} ${filter.color} shadow-md border border-current`
-                      : `theme-button-secondary theme-border`
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{filter.label}</span>
-                </button>
-              )
-            })}
-          </div>
+  {filterButtons.map((filter) => {
+    const Icon = filter.icon
+    const isActive = activeFilter === filter.id
+    return (
+      <button
+        key={filter.id}
+        onClick={() => setActive(filter.id)}
+        className={`flex items-center justify-center gap-x-2 md:gap-x-6 px-2 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium cursor-pointer transition-all duration-200 ${
+          isActive
+            ? `${filter.bgColor} ${filter.color} shadow-md border border-current`
+            : `theme-button-secondary theme-border`
+        }`}
+      >
+        <Icon className="w-4 h-4" />
+        <span>{filter.label}</span>
+      </button>
+    )
+  })}
+</div>
         </div>
 
         <div>{renderContent()}</div>

@@ -69,6 +69,8 @@ interface Video {
   isFavorite?: boolean
   author?: Creator
   type: "video"
+  age_restricted?: boolean
+  paid_promotion?: boolean
 }
 
 interface Blog {
@@ -95,6 +97,8 @@ interface Blog {
   isFavorite?: boolean
   publishedAt?: string
   type: "blog"
+  age_restricted?: boolean
+  paid_promotion?: boolean
 }
 
 type ContentItem = Video | Blog
@@ -631,6 +635,14 @@ export default function DashboardPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
                         />
+
+                        {/* Age restriction top-right badge */}
+                  {currentContent[0].age_restricted && (
+                    <div className="absolute top-3 right-3 bg-red-700 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full shadow-md">
+                      18+
+                    </div>
+                  )}
+
                         {/* Duration overlay for videos */}
                         <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2 py-1 rounded font-medium">
                           {currentContent[0].duration
@@ -658,6 +670,21 @@ export default function DashboardPage() {
                             <BookOpenIcon className="w-12 h-12 text-purple-500" />
                           </div>
                         )}
+
+                         {/* Age restriction top-right badge */}
+                  {currentContent[0].age_restricted && (
+                    <div className="absolute top-3 right-3 bg-red-700 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full shadow-md">
+                      18+
+                    </div>
+                  )}
+
+                  {/* Paid Promotion badge — only for blogs */}
+      {currentContent[0].type === "blog" && currentContent[0].paid_promotion && (
+        <div className="absolute top-3 left-3 bg-yellow-400 text-gray-900 text-[11px] font-semibold px-2 py-0.5 rounded-full shadow-md dark:bg-yellow-500 dark:text-gray-900">
+          💰 Paid Promotion
+        </div>
+      )}
+
 
                         {/* Blog icon overlay for hover effect */}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -707,6 +734,12 @@ export default function DashboardPage() {
                         {currentContent[0].type === "video" && (
                           <div className="flex items-center text-sm theme-text-muted">
                             <span>{formatViews(currentContent[0].views || 0)} views</span>
+
+                            {currentContent[0].age_restricted && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-800 text-white dark:bg-red-800 dark:text-white">
+                            18+
+                          </span>
+                        )}
                           </div>
                         )}
                         {currentContent[0].type === "blog" && currentContent[0].readTime && (
@@ -772,6 +805,14 @@ export default function DashboardPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
                         />
+
+                        {/* Age restriction top-right badge */}
+                  {item.age_restricted && (
+                    <div className="absolute top-2 right-2 bg-red-700 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full shadow-sm">
+                      18+
+                    </div>
+                  )}
+                  
                         {/* Duration overlay for videos */}
                         <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
                           {item.duration ? formatDuration(Number.parseInt(item.duration)) : "8:38"}
@@ -797,6 +838,20 @@ export default function DashboardPage() {
                             <BookOpenIcon className="w-8 h-8 text-purple-500" />
                           </div>
                         )}
+
+                      {/* Age restriction top-right badge */}
+                    {item.age_restricted && (
+                      <div className="absolute top-2 right-2 bg-red-700 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full shadow-sm">
+                        18+
+                      </div>
+                    )}
+
+                    {/* Paid Promotion badge — only for blogs */}
+                  {item.type === "blog" && item.paid_promotion && (
+                    <div className="absolute top-2 left-2 bg-yellow-400 text-gray-900 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shadow-sm dark:bg-yellow-500 dark:text-gray-900">
+                      💰 Paid
+                    </div>
+                  )}
 
                         {/* Blog icon overlay for hover effect */}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -839,9 +894,12 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mt-auto">
                       <div className="flex items-center space-x-1">
                         {item.type === "video" && (
-                          <div className="flex items-center text-xs theme-text-muted">
-                            <span>{formatViews(item.views || 0)} views</span>
-                          </div>
+                          <div className="flex items-center text-xs theme-text-muted space-x-2">
+                    <span className="flex items-center">
+                      {formatViews(item.views || 0)} views
+                    </span>
+
+                  </div>
                         )}
                         {item.type === "blog" && item.readTime && (
                           <div className="flex items-center text-xs theme-text-muted">

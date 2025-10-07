@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import type React from "react"
 import { useRouter } from "next/navigation"
 
@@ -26,6 +26,7 @@ import {
   TrashIcon,
   MessageCircleOff,
   MessageCircleIcon,
+  ImageIcon,
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
@@ -53,7 +54,7 @@ interface UserData {
   username: string
   id: string
   imageUrl?: string
-  videos?: VideoType[]
+  videos: VideoType[]
 }
 
 interface Author {
@@ -97,7 +98,7 @@ interface VideoType {
   likes: number
   is_liked?: boolean
   video_url?: string
-  thumbnail?: string
+  thumbnail?: string | File | null
   status?: string | null
   archived?: boolean | null
   createdAt?: string
@@ -108,6 +109,10 @@ interface VideoType {
   duration_formatted?: string
   format?: string
   keywords?: string[]
+  locations?: string[]
+  age_restricted?: boolean
+  brand_tags?: string[]
+  paid_promotion?: boolean
 }
 
 interface CreateVideoData {
@@ -116,8 +121,13 @@ interface CreateVideoData {
   status?: string
   category?: string
   video?: File | null
+  thumbnail?: File | null
   is_draft?: boolean
   keywords?: string[]
+  locations?: string[]
+  age_restricted: boolean
+  brand_tags?: string[]
+  paid_promotion?: boolean
 }
 
 interface EditVideoData {
@@ -127,9 +137,14 @@ interface EditVideoData {
   status?: string
   category?: string
   videoId?: string
+  thumbnail?: File |string | null
   existingVideoUrl?: string
   is_draft?: boolean
   keywords?: string[]
+  locations?: string[]
+  age_restricted: boolean
+  brand_tags?: string[]
+  paid_promotion?: boolean
 }
 
 export default function VideoDashboard() {
@@ -177,6 +192,9 @@ export default function VideoDashboard() {
   const [videoPreview, setVideoPreview] = useState<string | null>(null)
   const [videoError, setVideoError] = useState("")
   const [isVideoDragOver, setIsVideoDragOver] = useState(false)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const thumbnailInputRef = useRef<HTMLInputElement>(null)
+  const [isThumbnailDragOver, setIsThumbnailDragOver] = useState(false)
 
   // Video loading states
   const [videoLoadError, setVideoLoadError] = useState<{ [key: string]: boolean }>({})
@@ -188,8 +206,13 @@ export default function VideoDashboard() {
     status: "draft",
     category: "General",
     video: null,
+    thumbnail: null,
     is_draft: false,
     keywords: [],
+    locations: [],
+    age_restricted: false,  
+    brand_tags: [],
+    paid_promotion: false,
   })
 
   // Edit video form state
@@ -200,9 +223,14 @@ export default function VideoDashboard() {
     status: "draft",
     category: "General",
     videoId: "",
+    thumbnail: null,
     existingVideoUrl: "",
     is_draft: true,
     keywords: [],
+    locations: [],
+    age_restricted: false, 
+    brand_tags: [],
+    paid_promotion: false,
   })
 
   // Store original edit form data for comparison
@@ -213,9 +241,14 @@ export default function VideoDashboard() {
     status: "draft",
     category: "General",
     videoId: "",
+    thumbnail: null,
     existingVideoUrl: "",
     is_draft: true,
     keywords: [],
+    locations: [],
+    age_restricted: false, 
+    brand_tags: [],
+    paid_promotion: false,
   })
 
   // Comment states
@@ -251,6 +284,89 @@ export default function VideoDashboard() {
     return truncateText(plainText, maxLength)
   }
 
+  const [locationInput, setLocationInput] = useState("")
+  const [editLocationInput, setEditLocationInput] = useState("")
+
+  const [brandTagInput, setBrandTagInput] = useState("")
+  const [editBrandTagInput, setEditBrandTagInput] = useState("")
+
+  const addLocation = () => {
+  if (!locationInput.trim()) return
+
+  const allLocations = locationInput
+    .split(",")
+    .map((loc) => loc.trim())
+    .filter((loc) => loc.length > 0)
+
+  const uniqueNew = Array.from(new Set(allLocations))
+  const existing = videoForm.locations || []
+  const finalLocations = [...existing]
+
+  uniqueNew.forEach((loc) => {
+    if (!finalLocations.includes(loc)) {
+      finalLocations.push(loc)
+    }
+  })
+
+  setVideoForm((prev) => ({
+    ...prev,
+    locations: finalLocations,
+  }))
+
+  setLocationInput("")
+}
+
+const removeLocation = (loc: string) => {
+  setVideoForm((prev) => ({
+    ...prev,
+    locations: prev.locations?.filter((l) => l !== loc) || [],
+  }))
+}
+
+const addEditLocation = () => {
+  if (!editLocationInput.trim()) return
+
+  const allLocations = editLocationInput
+    .split(",")
+    .map((loc) => loc.trim())
+    .filter((loc) => loc.length > 0)
+
+  const uniqueNew = Array.from(new Set(allLocations))
+  const existing = editVideoForm.locations || []
+  const finalLocations = [...existing]
+
+  uniqueNew.forEach((loc) => {
+    if (!finalLocations.includes(loc)) {
+      finalLocations.push(loc)
+    }
+  })
+
+  setEditVideoForm((prev) => ({
+    ...prev,
+    locations: finalLocations,
+  }))
+
+  setEditLocationInput("")
+}
+
+const removeEditLocation = (loc: string) => {
+  setEditVideoForm((prev) => ({
+    ...prev,
+    locations: prev.locations?.filter((l) => l !== loc) || [],
+  }))
+}
+
+  const handleLocationKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      if (isEdit) {
+        addEditLocation()
+      } else {
+        addLocation()
+      }
+    }
+  }
+
   const [keywordInput, setKeywordInput] = useState("")
   const [editKeywordInput, setEditKeywordInput] = useState("")
 
@@ -259,7 +375,7 @@ export default function VideoDashboard() {
 
     // Split by comma or space → trim → filter empty → lowercase
     const allKeywords = keywordInput
-      .split(/[\s,]+/) // splits on any space or comma
+      .split(",") // splits on any space or comma
       .map((k) => k.trim())
       .filter((k) => k.length > 0)
       .map((k) => k.toLowerCase()); // optional: normalize to lowercase
@@ -298,7 +414,7 @@ export default function VideoDashboard() {
 
     // Split by comma or space → trim → filter empty → lowercase
     const allKeywords = editKeywordInput
-      .split(/[\s,]+/) // split on space or comma
+      .split(",") // split on space or comma
       .map((k) => k.trim())
       .filter((k) => k.length > 0)
       .map((k) => k.toLowerCase()); // optional lowercase
@@ -391,6 +507,24 @@ export default function VideoDashboard() {
     }
   }, [showCreateModal, showEditModal, showViewModal])
 
+  // Load draft from localStorage when page mounts
+useEffect(() => {
+    const savedDraft = localStorage.getItem("videoFormDraft")
+    if (savedDraft) {
+      try {
+        setVideoForm(JSON.parse(savedDraft))
+      } catch (err) {
+        console.error("Error parsing saved draft:", err)
+      }
+    }
+  }, [])
+
+  // Save draft whenever videoForm changes
+useEffect(() => {
+  localStorage.setItem("videoFormDraft", JSON.stringify(videoForm))
+}, [videoForm])
+
+
   // Helper function to set loading state for specific actions
   const setActionLoading = (videoId: number, action: string, loading: boolean) => {
     setLoadingActions((prev) => ({
@@ -409,11 +543,15 @@ export default function VideoDashboard() {
     return video.archived === true
   }
 
-  const getThumbnailUrl = (thumbnailPath: string | null | undefined): string | null => {
-    if (!thumbnailPath) return null
-    // Since full URLs are coming from the API, just return them directly
-    return thumbnailPath
+  const getThumbnailUrl = (thumbnail: string | File | null | undefined): string => {
+  if (!thumbnail) return "/placeholder.svg?height=60&width=80"
+
+  if (typeof thumbnail === "string") {
+    return thumbnail // backend URL
   }
+  return URL.createObjectURL(thumbnail) 
+  }
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -482,42 +620,39 @@ export default function VideoDashboard() {
   }
 
   // Fetch user's videos
-  const fetchUserVideos = async () => {
-    try {
-      setFetchError("")
-      const response = await getMyVideos()
-      //console.log("Fetch videos response:", response)
-      if (response?.data?.videos) {
-        const userVideos = response.data.videos.map((video: VideoType) => ({
-          ...video,
-          createdAt: video.created_at,
-          status: video.status,
-          views: video.views || 0,
-        }))
-        setUserData((prev) => ({
-          ...prev,
-          videos: userVideos,
-        }))
+  const fetchUserVideos = useCallback(async () => {
+  try {
+    setFetchError("")
+    const response = await getMyVideos()
+    if (response?.data?.videos) {
+      const userVideos = response.data.videos.map((video: VideoType) => ({
+        ...video,
+        createdAt: video.created_at,
+        status: video.status,
+        views: video.views || 0,
+      }))
+      
+      setUserData((prev) => ({
+        ...prev,
+        videos: userVideos,
+      }))
 
-        if(viewVideo){
-          const updatedVideo = userVideos.find((video: VideoType) => video.id === viewVideo.id)
-          if(updatedVideo){
-            console.log("Updated video with comments:", updatedVideo.comments)
-            console.log("Comments count:", updatedVideo.comments_count)
-            setViewVideo(updatedVideo)
-            setIsLiked(updatedVideo.is_liked || false)
-          } else {
-            console.log("Could not find updated video in userVideos")
-          }
+      // Update viewVideo if modal is open
+      if(viewVideo){
+        const updatedVideo = userVideos.find((video: VideoType) => video.id === viewVideo.id)
+        if(updatedVideo){
+          console.log("Updated video with comments:", updatedVideo.comments)
+          console.log("Comments count:", updatedVideo.comments_count)
+          setViewVideo(updatedVideo)
+          setIsLiked(updatedVideo.is_liked || false)
         }
-
-
       }
-    } catch (error) {
-      console.error("Error fetching user videos:", error)
-      setFetchError("Failed to fetch your videos")
     }
+  } catch (error) {
+    console.error("Error fetching user videos:", error)
+    setFetchError("Failed to fetch your videos")
   }
+}, [viewVideo]) 
 
   useEffect(() => {
     if (user) {
@@ -607,7 +742,9 @@ export default function VideoDashboard() {
     try {
       setActionLoading(videoId, "status", true)
       setUpdateError("")
-      const response = await updateVideo(videoId, { status: newStatus })
+      const formData = new FormData()
+      formData.append("status", newStatus)
+      const response = await updateVideo(videoId, formData)
       if (response?.status === 200 || response?.data) {
         // Get updated video data from backend
         await fetchUserVideos();
@@ -633,6 +770,7 @@ export default function VideoDashboard() {
     setShowActionMenu(null)
     setUpdateError("")
     setUpdateSuccess("")
+    setThumbnailPreview(null)
 
     const editData = {
       id: video.id,
@@ -644,6 +782,11 @@ export default function VideoDashboard() {
       existingVideoUrl: video.video_url || video.video || "",
       is_draft: video.status === "draft",
       keywords: video.keywords || [],
+      locations: video.locations || [],
+      thumbnail: video.thumbnail || null,                  
+      age_restricted: video.age_restricted || false,  
+      brand_tags: video.brand_tags || [],
+      paid_promotion: video.paid_promotion || false,
     }
 
     //console.log("Edit data:", editData)
@@ -815,6 +958,41 @@ export default function VideoDashboard() {
         hasChanges = true
       }
 
+      const currentLocations = editVideoForm.locations || []
+      const originalLocations = originalEditData.locations || []
+      if (JSON.stringify(currentLocations.sort()) !== JSON.stringify(originalLocations.sort())) {
+        formData.append("locations", JSON.stringify(currentLocations))
+        hasChanges = true
+      }
+
+      if (editVideoForm.age_restricted !== originalEditData.age_restricted) {
+        formData.append("age_restricted", editVideoForm.age_restricted ? "true" : "false")
+        hasChanges = true
+      }
+
+      // Compare brand tags
+      const currentBrandTags = editVideoForm.brand_tags || []
+      const originalBrandTags = originalEditData.brand_tags || []
+      if (JSON.stringify(currentBrandTags.sort()) !== JSON.stringify(originalBrandTags.sort())) {
+        formData.append("brand_tags", JSON.stringify(currentBrandTags))
+        hasChanges = true
+      }
+
+      // Compare paid_promotion
+      if (editVideoForm.paid_promotion !== originalEditData.paid_promotion) {
+        formData.append("paid_promotion", editVideoForm.paid_promotion ? "true" : "false")
+        hasChanges = true
+      }
+
+      if (editVideoForm.thumbnail instanceof File) {
+        formData.append("thumbnail", editVideoForm.thumbnail)
+        hasChanges = true
+      } else if (editVideoForm.thumbnail === null && originalEditData.thumbnail !== null) {
+        // Thumbnail removed
+        formData.append("remove_thumbnail", "true")
+        hasChanges = true
+      }
+
       if (!hasChanges) {
         setUpdateError("No changes detected")
         setIsUpdating(false)
@@ -823,7 +1001,7 @@ export default function VideoDashboard() {
 
       const response = await updateVideo(editVideoForm.id, formData)
       if (response?.status === 200 || response?.data) {
-        const updatedVideo = {
+        const updatedVideo: Partial<VideoType> = {
           ...editVideoForm,
           title: editVideoForm.title.trim(),
           description: editVideoForm.description.trim(),
@@ -856,6 +1034,8 @@ export default function VideoDashboard() {
             existingVideoUrl: "",
             is_draft: true,
             keywords: [],
+            thumbnail: null,           
+            age_restricted: false, 
           })
           setOriginalEditData({
             id: 0,
@@ -865,8 +1045,10 @@ export default function VideoDashboard() {
             category: "General",
             videoId: "",
             existingVideoUrl: "",
+            thumbnail: null,
             is_draft: true,
             keywords: [],
+            age_restricted: false,
           })
           setEditKeywordInput("")
         }, 2000)
@@ -921,9 +1103,24 @@ export default function VideoDashboard() {
       formData.append("title", videoForm.title.trim())
       formData.append("description", videoForm.description.trim())
       formData.append("is_draft", videoForm.is_draft ? "true" : "false")
+      formData.append("age_restricted", videoForm.age_restricted ? "true" : "false")
+      formData.append("paid_promotion", videoForm.paid_promotion ? "true" : "false")
+
+      if (videoForm.brand_tags && videoForm.brand_tags.length > 0) {
+        formData.append("brand_tags", JSON.stringify(videoForm.brand_tags))
+      }
+
       formData.append("video", videoForm.video)
       if (videoForm.keywords && videoForm.keywords.length > 0) {
         formData.append("keywords", JSON.stringify(videoForm.keywords))
+      }
+
+      if (videoForm.locations && videoForm.locations.length > 0) {
+        formData.append("locations", JSON.stringify(videoForm.locations))
+      }
+
+      if (videoForm.thumbnail) {
+        formData.append("thumbnail", videoForm.thumbnail)
       }
 
       if (scheduledAt && isScheduled) {
@@ -935,12 +1132,17 @@ export default function VideoDashboard() {
 
       if (response?.status === 200 || response?.status === 201 || response?.data) {
         setCreateSuccess("Video created successfully!")
+
+        localStorage.removeItem("videoFormDraft")
+
         setVideoForm({
           title: "",
           description: "",
           video: null,
+          thumbnail: null,
           is_draft: false,
           keywords: [],
+          age_restricted: false,
         })
         setVideoPreview(null)
         setVideoError("")
@@ -982,6 +1184,82 @@ export default function VideoDashboard() {
       setUpdateError("")
     }
   }
+
+  // -------------------- BRAND TAG HANDLERS --------------------
+const addBrandTag = () => {
+  if (!brandTagInput.trim()) return
+
+  const allTags = brandTagInput
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0)
+
+  const uniqueNew = Array.from(new Set(allTags))
+  const existing = videoForm.brand_tags || []
+  const finalTags = [...existing]
+
+  uniqueNew.forEach((tag) => {
+    if (!finalTags.includes(tag)) {
+      finalTags.push(tag)
+    }
+  })
+
+  setVideoForm((prev) => ({
+    ...prev,
+    brand_tags: finalTags,
+  }))
+  setBrandTagInput("")
+}
+
+const removeBrandTag = (tag: string) => {
+  setVideoForm((prev) => ({
+    ...prev,
+    brand_tags: prev.brand_tags?.filter((t) => t !== tag) || [],
+  }))
+}
+
+const addEditBrandTag = () => {
+  if (!editBrandTagInput.trim()) return
+
+  const allTags = editBrandTagInput
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0)
+
+  const uniqueNew = Array.from(new Set(allTags))
+  const existing = editVideoForm.brand_tags || []
+  const finalTags = [...existing]
+
+  uniqueNew.forEach((tag) => {
+    if (!finalTags.includes(tag)) {
+      finalTags.push(tag)
+    }
+  })
+
+  setEditVideoForm((prev) => ({
+    ...prev,
+    brand_tags: finalTags,
+  }))
+  setEditBrandTagInput("")
+}
+
+const removeEditBrandTag = (tag: string) => {
+  setEditVideoForm((prev) => ({
+    ...prev,
+    brand_tags: prev.brand_tags?.filter((t) => t !== tag) || [],
+  }))
+}
+
+const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
+  if (e.key === "Enter") {
+    e.preventDefault()
+    if (isEdit) {
+      addEditBrandTag()
+    } else {
+      addBrandTag()
+    }
+  }
+}
 
   const getStatusColor = (status: string, archived?: boolean) => {
     if (archived) {
@@ -1107,6 +1385,31 @@ export default function VideoDashboard() {
       setShowActionMenu(null)
     }
   }
+
+  const handleThumbnailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (file) {
+    setThumbnailPreview(URL.createObjectURL(file))
+        setVideoForm((prev) => ({ ...prev, thumbnail: file }))
+      }
+    }
+
+    const handleThumbnailDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      setIsThumbnailDragOver(true)
+    }
+
+    const handleThumbnailDragLeave = () => setIsThumbnailDragOver(false)
+
+    const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      setIsThumbnailDragOver(false)
+      const file = e.dataTransfer.files[0]
+      if (file && file.type.startsWith("image/")) {
+        setThumbnailPreview(URL.createObjectURL(file))
+        setVideoForm((prev) => ({ ...prev, thumbnail: file }))
+      }
+    }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -1473,15 +1776,23 @@ export default function VideoDashboard() {
                               <span>Scheduled for {new Date(item.scheduled_at + "z").toLocaleString()}</span>
                             </div>
                           ) : (
-                            <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
-                                item.status || "draft",
-                                isArchived(item),
-                              )}`}
-                            >
-                              {getStatusIcon(item.status || "draft", isArchived(item))}
-                              <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
-                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+  <span
+    className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center space-x-1 w-fit ${getStatusColor(
+      item.status || "draft",
+      isArchived(item),
+    )}`}
+  >
+    {getStatusIcon(item.status || "draft", isArchived(item))}
+    <span>{getStatusText(item.status || "draft", isArchived(item))}</span>
+  </span>
+
+  {item.age_restricted && (
+    <span className="inline-flex items-center px-2 py-1 text-[11px] font-semibold bg-red-100 text-red-700 rounded-full border border-red-300">
+      🔞 18+
+    </span>
+  )}
+</div>
                           )}
                         </div>
 
@@ -1742,15 +2053,6 @@ export default function VideoDashboard() {
                 <button
                   onClick={() => {
                     setShowCreateModal(false)
-                    setVideoForm({ title: "", description: "", video: null, is_draft: true, keywords: [] })
-                    setVideoPreview(null)
-                    setVideoError("")
-                    setCreateError("")
-                    setCreateSuccess("")
-                    setKeywordInput("")
-                    if (videoInputRef.current) {
-                      videoInputRef.current.value = ""
-                    }
                   }}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                   disabled={isCreating}
@@ -1865,6 +2167,76 @@ export default function VideoDashboard() {
                     )}
                   </div>
 
+                {/* Thumbnail Upload Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-3">
+                      Custom Thumbnail (optional)
+                    </label>
+
+                    {/* Preview */}
+                      {thumbnailPreview && (
+                        <div className="mb-4">
+                          <img
+                            src={thumbnailPreview}
+                            alt="Thumbnail preview"
+                            className="w-full rounded-lg border border-slate-200 object-contain" 
+                            style={{ maxHeight: "500px" }} 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setThumbnailPreview(null)
+                              setVideoForm((prev) => ({ ...prev, thumbnail: null }))
+                              if (thumbnailInputRef.current) thumbnailInputRef.current.value = ""
+                            }}
+                            className="mt-2 px-3 py-1 text-sm text-red-600 hover:text-red-700 border border-red-300 rounded hover:bg-red-50 transition-colors"
+                            disabled={isCreating}
+                          >
+                            Remove Thumbnail
+                          </button>
+                        </div>
+                      )}
+
+                    {/* Upload Area */}
+                    {!thumbnailPreview && (
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                          isThumbnailDragOver ? "border-purple-500 bg-purple-50" : "border-slate-300 hover:border-slate-400"
+                        } ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
+                        onDragOver={!isCreating ? handleThumbnailDragOver : undefined}
+                        onDragLeave={!isCreating ? handleThumbnailDragLeave : undefined}
+                        onDrop={!isCreating ? handleThumbnailDrop : undefined}
+                      >
+                        <div className="flex flex-col items-center space-y-4">
+                          <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="w-8 h-8 text-slate-400" /> 
+                          </div>
+                          <div>
+                            <p className="text-lg text-slate-600 mb-2">
+                              <button
+                                type="button"
+                                onClick={() => !isCreating && thumbnailInputRef.current?.click()}
+                                className="text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                                disabled={isCreating}
+                              >
+                                Click to upload thumbnail
+                              </button>{" "}
+                              or drag and drop
+                            </p>
+                          </div>
+                        </div>
+                        <input
+                          ref={thumbnailInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleThumbnailInputChange}
+                          className="hidden"
+                          disabled={isCreating}
+                        />
+                      </div>
+                    )}
+                  </div>
+
                   {/* Title Input */}
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-2">
@@ -1909,6 +2281,112 @@ export default function VideoDashboard() {
                         )}
                     </div>
                   </div>
+
+                 {/* Location Input */}
+<div>
+  <label htmlFor="locations" className="block text-sm font-medium text-slate-700 mb-2">
+    Locations (Optional)
+  </label>
+  <div className="flex gap-2 mb-3">
+    <input
+      type="text"
+      id="locations"
+      value={locationInput}
+      onChange={(e) => setLocationInput(e.target.value)}
+      onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addLocation())}
+      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+      placeholder="Add a location..."
+      disabled={isCreating}
+    />
+    <button
+      type="button"
+      onClick={addLocation}
+      disabled={!locationInput.trim() || isCreating}
+      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Add
+    </button>
+  </div>
+
+  {videoForm.locations && videoForm.locations.length > 0 && (
+    <div className="flex flex-wrap gap-2">
+      {videoForm.locations.map((locations, index) => (
+        <span
+          key={index}
+          className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+        >
+          {locations}
+          <button
+            type="button"
+            onClick={() => removeLocation(locations)}
+            disabled={isCreating}
+            className="hover:bg-purple-200 rounded-full p-0.5 transition-colors disabled:opacity-50"
+          >
+            <XIcon className="w-3 h-3" />
+          </button>
+        </span>
+      ))}
+    </div>
+  )}
+</div>
+
+{/* Paid Promotion Toggle */}
+<div className="flex items-center gap-2 mt-4">
+  <input
+    type="checkbox"
+    id="paidPromotion"
+    checked={videoForm.paid_promotion}
+    onChange={(e) => handleFormChange("paid_promotion", e.target.checked)}
+    className="w-4 h-4 accent-purple-600"
+  />
+  <label htmlFor="paidPromotion" className="text-sm text-slate-700">
+    Contains paid promotion
+  </label>
+</div>
+
+{/* Brand Tags Input */}
+<div className="mt-4">
+  <label className="block text-sm font-medium text-slate-700 mb-2">
+    Brand Tags
+  </label>
+  <div className="flex items-center gap-2">
+    <input
+      type="text"
+      value={brandTagInput}
+      onChange={(e) => setBrandTagInput(e.target.value)}
+      onKeyDown={(e) => handleBrandTagKeyPress(e)}
+      placeholder="Add brand names (comma separated or Enter)"
+      className="theme-input w-full"
+    />
+    <button
+      type="button"
+      onClick={addBrandTag}
+      className="btn-primary text-xs px-3 py-2"
+    >
+      Add
+    </button>
+  </div>
+
+  {videoForm.brand_tags && videoForm.brand_tags.length > 0 && (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {videoForm.brand_tags.map((tag, i) => (
+        <span
+          key={i}
+          className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+        >
+          {tag}
+          <button
+            type="button"
+            onClick={() => removeBrandTag(tag)}
+            className="hover:bg-purple-200 rounded-full p-0.5"
+          >
+            ×
+          </button>
+        </span>
+      ))}
+    </div>
+  )}
+</div>
 
                   <div>
                     <label htmlFor="keywords" className="block text-sm font-medium text-slate-700 mb-2">
@@ -1956,7 +2434,7 @@ export default function VideoDashboard() {
                     )}
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
+                    Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a comma. Click × to remove a keyword.
                   </p>
                 </div>
 
@@ -1994,22 +2472,47 @@ export default function VideoDashboard() {
                     <input
                       type="checkbox"
                       name="is_draft"
+                      checked={videoForm.is_draft}
                       className="
-        w-5 h-5 
-        accent-indigo-600 
-        cursor-pointer 
-        rounded 
-        appearance-none
-        border border-slate-300 
-        checked:bg-indigo-600 
-        checked:border-indigo-600 
-        relative
-      "
-                      onChange={(e) => handleFormChange("is_draft", e.target.checked)}
+                      w-5 h-5 
+                      accent-indigo-600 
+                      cursor-pointer 
+                      rounded 
+                      appearance-none
+                      border border-slate-300 
+                      checked:bg-indigo-600 
+                      checked:border-indigo-600 
+                      relative
+                    "
+                    onChange={(e) => handleFormChange("is_draft", e.target.checked)}
                     />
                     Save as Draft
                   </label>
                 </div>
+
+                <div className="mt-4">
+              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  name="age_restricted"
+                  checked={videoForm.age_restricted || false}
+                  onChange={(e) => handleFormChange("age_restricted", e.target.checked)}
+                  className="
+                    w-5 h-5 
+                    accent-indigo-600 
+                    cursor-pointer 
+                    rounded 
+                    appearance-none
+                    border border-slate-300 
+                    checked:bg-indigo-600 
+                    checked:border-indigo-600 
+                    relative
+                  "
+                />
+                Mark as Age Restricted (not for kids)
+              </label>
+            </div>
+
 
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-6 border-t border-slate-200">
@@ -2017,14 +2520,17 @@ export default function VideoDashboard() {
                     type="button"
                     onClick={() => {
                       setShowCreateModal(false)
-                      setVideoForm({ title: "", description: "", video: null, is_draft: false, keywords: [] })
                       setVideoPreview(null)
+                      setThumbnailPreview(null)
                       setVideoError("")
                       setCreateError("")
                       setCreateSuccess("")
                       setKeywordInput("")
                       if (videoInputRef.current) {
                         videoInputRef.current.value = ""
+                      }
+                      if (thumbnailInputRef.current) {  
+                        thumbnailInputRef.current.value = ""
                       }
                     }}
                     disabled={isCreating}
@@ -2089,6 +2595,7 @@ export default function VideoDashboard() {
                     setUpdateError("")
                     setUpdateSuccess("")
                     setEditKeywordInput("")
+                    setThumbnailPreview(null)
                   }}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                   disabled={isUpdating}
@@ -2155,6 +2662,77 @@ export default function VideoDashboard() {
                     )}
                   </div>
 
+                  {/* Thumbnail Upload */}
+                    <div>
+                      <label htmlFor="edit-thumbnail" className="block text-sm font-medium text-slate-700 mb-2">
+                        Thumbnail
+                      </label>
+                      <div className="mb-3">
+                        {thumbnailPreview ? (
+                          
+                          <img
+                            src={thumbnailPreview}
+                            alt="Thumbnail Preview"
+                            className="w-48 h-28 object-cover rounded-lg border"
+                          />
+                        ) : editVideoForm.thumbnail && typeof editVideoForm.thumbnail === "string" ? (
+                          <img
+                            src={editVideoForm.thumbnail}
+                            alt="Current Thumbnail"
+                            className="w-48 h-28 object-cover rounded-lg border"
+                          />
+                        ) : (
+                          <p className="text-xs text-slate-500">No thumbnail selected</p>
+                        )}
+                      </div>
+
+                      <input
+                        type="file"
+                        id="edit-thumbnail"
+                        accept="image/*"
+                        onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setEditVideoForm((prev) => ({
+                            ...prev,
+                            thumbnail: file, 
+                          }))
+                          setThumbnailPreview(URL.createObjectURL(file)) // preview URL
+                        }
+                      }}
+
+                        disabled={isUpdating}
+                        className="block w-full text-sm text-slate-600
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-full file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-purple-50 file:text-purple-700
+                                  hover:file:bg-purple-100"
+                      />
+                      {/* Remove Thumbnail Button */}
+{(thumbnailPreview || editVideoForm.thumbnail) && (
+  <div className="mt-3">
+    <button
+      type="button"
+      onClick={() => {
+        setThumbnailPreview(null)
+        setEditVideoForm((prev) => ({ ...prev, thumbnail: null }))
+      const fileInput = document.getElementById('edit-thumbnail') as HTMLInputElement
+          if (fileInput) {
+            fileInput.value = ''
+          }
+        }}
+      disabled={isUpdating}
+      className="px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg 
+                 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Remove Thumbnail
+    </button>
+  </div>
+)}
+
+                    </div>
+
                   {/* Description */}
                   <div>
                     <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 mb-2">
@@ -2176,6 +2754,113 @@ export default function VideoDashboard() {
                         )}
                     </div>
                   </div>
+
+{/* Location Input - Add this section */}
+<div>
+  <label htmlFor="edit-locations" className="block text-sm font-medium text-slate-700 mb-2">
+    Locations (Optional)
+  </label>
+  <div className="flex gap-2 mb-3">
+    <input
+      type="text"
+      id="edit-locations"
+      value={editLocationInput}
+      onChange={(e) => setEditLocationInput(e.target.value)}
+      onKeyPress={(e) => handleLocationKeyPress(e, true)}
+      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+      placeholder="Add a location..."
+      disabled={isUpdating}
+    />
+    <button
+      type="button"
+      onClick={addEditLocation}
+      disabled={!editLocationInput.trim() || isUpdating}
+      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Add
+    </button>
+  </div>
+
+  {editVideoForm.locations && editVideoForm.locations.length > 0 && (
+    <div className="flex flex-wrap gap-2">
+      {editVideoForm.locations.map((locations, index) => (
+        <span
+          key={index}
+          className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+        >
+          {locations}
+          <button
+            type="button"
+            onClick={() => removeEditLocation(locations)}
+            disabled={isUpdating}
+            className="hover:bg-purple-200 rounded-full p-0.5 transition-colors disabled:opacity-50"
+          >
+            <XIcon className="w-3 h-3" />
+          </button>
+        </span>
+      ))}
+    </div>
+  )}
+</div>
+
+{/* Paid Promotion Toggle */}
+<div className="flex items-center gap-2 mt-4">
+  <input
+    type="checkbox"
+    id="editPaidPromotion"
+    checked={editVideoForm.paid_promotion}
+    onChange={(e) => handleEditFormChange("paid_promotion", e.target.checked)}
+    className="w-4 h-4 accent-purple-600"
+  />
+  <label htmlFor="editPaidPromotion" className="text-sm text-slate-700">
+    Contains paid promotion
+  </label>
+</div>
+
+{/* Brand Tags Input */}
+<div className="mt-4">
+  <label className="block text-sm font-medium text-slate-700 mb-2">
+    Brand Tags
+  </label>
+  <div className="flex items-center gap-2">
+    <input
+      type="text"
+      value={editBrandTagInput}
+      onChange={(e) => setEditBrandTagInput(e.target.value)}
+      onKeyDown={(e) => handleBrandTagKeyPress(e, true)}
+      placeholder="Add brand names"
+      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+    />
+    <button
+      type="button"
+      onClick={addEditBrandTag}
+      disabled={!editBrandTagInput.trim() || isUpdating}
+      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Add
+    </button>
+  </div>
+
+  {editVideoForm.brand_tags && editVideoForm.brand_tags.length > 0 && (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {editVideoForm.brand_tags.map((tag, i) => (
+        <span
+          key={i}
+          className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+        >
+          {tag}
+          <button
+            type="button"
+            onClick={() => removeEditBrandTag(tag)}
+            className="rounded-full p-0.5"
+          >
+            ×
+          </button>
+        </span>
+      ))}
+    </div>
+  )}
+</div>
 
                   <div>
                     <label htmlFor="edit-keywords" className="block text-sm font-medium text-slate-700 mb-2">
@@ -2222,9 +2907,25 @@ export default function VideoDashboard() {
                       </div>
                     )}
                     <p className="text-xs text-slate-500 mt-1">
-                      Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a space or comma. Click × to remove a keyword.
+                      Press Enter or click Add to add keywords. You can add multiple keywords at once by separating them with a comma. Click × to remove a keyword.
                     </p>
                   </div>
+
+                  <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editVideoForm.age_restricted || false}
+                    onChange={(e) => handleEditFormChange("age_restricted", e.target.checked)}
+                    disabled={isUpdating}
+                    className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Mark as age restricted</span>
+                </label>
+                <p className="text-xs text-slate-500 mt-1">
+                  If enabled, this video will be shown with an <span className="font-semibold text-red-600">18+</span> badge.
+                </p>
+              </div>
                 </div>
 
                 {/* Form Actions */}
@@ -2236,6 +2937,7 @@ export default function VideoDashboard() {
                       setUpdateError("")
                       setUpdateSuccess("")
                       setEditKeywordInput("")
+                      setThumbnailPreview(null)
                     }}
                     disabled={isUpdating}
                     className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2324,22 +3026,32 @@ export default function VideoDashboard() {
 
               <div>
                 <div className="flex items-start justify-between mb-4">
-                  <h4 className="text-2xl sm:text-3xl font-bold text-slate-800 flex-1">{viewVideo.title}</h4>
-                  <button
-                    onClick={handleToggleLike}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
-                      isLiked 
-                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    title={isLiked ? "Unlike this video" : "Like this video"}
-                  >
-                    <span className="text-xl">
-                      {isLiked ? '❤️' : '🤍'}
-                    </span>
-                    <span>{isLiked ? 'Liked' : 'Like'}</span>
-                  </button>
-                </div>
+  <div className="flex flex-col space-y-2 flex-1">
+    <div className="flex items-center flex-wrap gap-2">
+      <h4 className="text-2xl sm:text-3xl font-bold text-slate-800">{viewVideo.title}</h4>
+
+      {viewVideo.paid_promotion && (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium border border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800">
+          💰 Paid Promotion
+        </span>
+      )}
+    </div>
+  </div>
+
+  <button
+    onClick={handleToggleLike}
+    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
+      isLiked 
+        ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg' 
+        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+    }`}
+    title={isLiked ? "Unlike this video" : "Like this video"}
+  >
+    <span className="text-xl">{isLiked ? '❤️' : '🤍'}</span>
+    <span>{isLiked ? 'Liked' : 'Like'}</span>
+  </button>
+</div>
+
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 mb-4">
                   <span className="flex items-center space-x-1">
                     <CalendarIcon className="w-4 h-4" />
@@ -2378,8 +3090,6 @@ export default function VideoDashboard() {
                   </span>
                 </div>
               </div>
-
-
 
               {/* Video Description */}
               <div className="mb-8">
@@ -2454,6 +3164,24 @@ export default function VideoDashboard() {
                 </div> */}
               </div>
 
+              {viewVideo.locations && viewVideo.locations.length > 0 && (
+                <div className="mb-8">
+                  <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Location</h4>
+  <div className="bg-gray-50 rounded-2xl p-6 theme-border-b">
+    <div className="flex flex-wrap gap-2">
+      {viewVideo.locations.map((loc: string, idx: number) => (
+        <span
+          key={`${loc}-${idx}`}
+          className="inline-flex items-center px-3 py-1.5 bg-purple-100 text-purple-800 text-sm font-medium rounded-full border border-purple-200"
+        >
+         📍 {loc}
+        </span>
+      ))}
+    </div>
+  </div>
+  </div>
+)}
+
               {viewVideo.keywords && viewVideo.keywords.length > 0 && (
                 <div className="mb-8">
                   <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Keywords</h4>
@@ -2472,6 +3200,24 @@ export default function VideoDashboard() {
                   </div>
                 </div>
               )}
+
+              {viewVideo.brand_tags && viewVideo.brand_tags.length > 0 && (
+  <div className="mb-8">
+    <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Brand Tags</h4>
+    <div className="bg-gray-50 rounded-2xl p-6">
+      <div className="flex flex-wrap gap-2">
+        {viewVideo.brand_tags.map((tag: string, idx: number) => (
+          <span
+            key={`${tag}-${idx}`}
+            className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 text-sm font-medium rounded-full border border-blue-200"
+          >
+            🏷️ {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
 
 
               <div className="mb-8">
@@ -2610,11 +3356,6 @@ export default function VideoDashboard() {
                   </div>
                 )}
               </div>
-
-
-
-
-
             </div>
           </div>
         </div>

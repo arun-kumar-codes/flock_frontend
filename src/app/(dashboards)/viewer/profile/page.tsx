@@ -235,23 +235,7 @@ export default function ProfilePage() {
                       <div className="theme-bg-secondary rounded-xl p-4 theme-border">
                         <div className="flex flex-col gap-8 justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="bg-blue-500 rounded-lg p-2">
-                              <User className="h-4 w-4 md:h-5 md:w-5 text-white" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium theme-text-muted">Account Type</p>
-                              <p className="theme-text-primary font-semibold text-sm md:text-base">
-                                Switch to Creator Account
-                              </p>
-                            </div>
                           </div>
-                          <button
-                            onClick={() => setShowCreatorModal(true)}
-                            className="inline-flex items-center justify-center  px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                          >
-                            <User className="h-4 w-4 mr-2" />
-                            <span>Become A Creator</span>
-                          </button>
                         </div>
                       </div>
                     )}
