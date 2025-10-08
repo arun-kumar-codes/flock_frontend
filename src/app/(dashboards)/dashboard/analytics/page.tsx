@@ -256,6 +256,7 @@ export default function CreatorEarningsPage() {
                 <tr>
                   <th className="text-left font-semibold px-4 py-3">Date</th>
                   <th className="text-left font-semibold px-4 py-3">Video</th>
+                  <th className="text-left font-semibold px-4 py-3">Views</th>
                   <th className="text-left font-semibold px-4 py-3">Watch Time</th>
                   <th className="text-left font-semibold px-4 py-3">RPM Used</th>
                   <th className="text-left font-semibold px-4 py-3">Earnings</th>
@@ -290,7 +291,7 @@ export default function CreatorEarningsPage() {
                   ))
                 ) : items.length === 0 ? (
                   <tr className="border-t border-slate-200">
-                    <td colSpan={5} className="px-4 py-10 text-center text-slate-600">
+                    <td colSpan={6} className="px-4 py-10 text-center text-slate-600">
                       No earnings yet.
                     </td>
                   </tr>
@@ -323,7 +324,11 @@ export default function CreatorEarningsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-slate-900">{row.watch_time_minutes} min</td>
+                      <td className="px-4 py-3 text-slate-900">{row.video?.views ?? 0}</td>
+                      <td className="px-4 py-3 text-slate-900">
+                        {row.video?.total_watch_time_formatted || "0:00"}
+                      </td>  
+                       {/* <td className="px-4 py-3 text-slate-900">{row.watch_time_minutes} min</td> */} {/* before edit - used minute logic */}
                       <td className="px-4 py-3 text-slate-900">${row.cpm_rate_used?.toFixed(2)}</td>
                       <td className="px-4 py-3 text-slate-900">{formatUSD(row.earnings)}</td>
                     </tr>
