@@ -227,17 +227,6 @@ export default function MostViewedContentTab() {
       setTimeout(() => {
         setLikeAnimation(prev => ({ ...prev, [`video-${videoId}`]: false }))
       }, 500)
-      if (selectedVideo && selectedVideo.id === videoId) {
-        setSelectedVideo((prev) =>
-          prev
-            ? {
-                ...prev,
-                is_liked: !prev.is_liked,
-                likes: prev.is_liked ? prev.likes - 1 : prev.likes + 1,
-              }
-            : null,
-        )
-      }
       await toggleVideoLike(videoId)
     } catch (error) {
       console.error("Error toggling video like:", error)
@@ -311,14 +300,6 @@ export default function MostViewedContentTab() {
 
           
 
-            if(selectedVideo){
-              console.log()
-              videosWithUIFields.forEach((video:any)=>{
-            if(selectedVideo.id===video.id){
-                    setSelectedVideo(video);              
-            }
-        })
-      }
         mixedContent.push(...videosWithUIFields)
       }
 

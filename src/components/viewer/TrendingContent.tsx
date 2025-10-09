@@ -243,18 +243,6 @@ export default function TrendingContentTab() {
       setTimeout(() => {
         setLikeAnimation(prev => ({ ...prev, [`video-${videoId}`]: false }))
       }, 500)
-
-      if (selectedVideo && selectedVideo.id === videoId) {
-        setSelectedVideo((prev) =>
-          prev
-            ? {
-              ...prev,
-              is_liked: !prev.is_liked,
-              likes: prev.is_liked ? prev.likes - 1 : prev.likes + 1,
-            }
-            : null,
-        )
-      }
       await toggleVideoLike(videoId)
     } catch (error) {
       console.error("Error toggling video like:", error)
@@ -336,15 +324,6 @@ export default function TrendingContentTab() {
             comments_count: video.comments_count || video.comments?.length || 0,
           }))
 
-           if(selectedVideo){
-
-              videosWithUIFields.forEach((video:any)=>{
-            if(selectedVideo.id===video.id){
-                    setSelectedVideo(video);
-                
-            }
-        })
-      }
         mixedContent.push(...videosWithUIFields)
       }
       // Process blogs
