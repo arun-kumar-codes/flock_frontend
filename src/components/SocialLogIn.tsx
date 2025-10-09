@@ -79,31 +79,31 @@ const SocialLogin = () => {
 
   return (
     <div className="w-full">
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             onClick={() => loginWithProvider(new GoogleAuthProvider(), "google")}
             disabled={isLoading !== null}
-            className="w-full flex items-center cursor-pointer  justify-center gap-3 py-3 px-4 rounded-xl border border-slate-300 bg-white/50 backdrop-blur-sm text-slate-700 shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-1 py-3 px-2 cursor-pointer rounded-full border border-gray-300 bg-white text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading === "google" ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-600"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
             ) : (
               <Image src={google || "/placeholder.svg"} alt="Google" className="w-5 h-5" />
             )}
-            <span className="font-medium">{isLoading === "google" ? "Connecting..." : "Continue with Google"}</span>
+            <span className="font-medium text-sm sm:text-base">{isLoading === "google" ? "Connecting..." : "Continue with Google"}</span>
           </button>
 
           <button
             onClick={() => loginWithProvider(new FacebookAuthProvider(), "facebook")}
             disabled={isLoading !== null}
-            className="w-full flex items-center cursor-pointer  justify-center gap-3 py-3 px-4 rounded-xl bg-blue-600 text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-1 py-3 px-2 cursor-pointer rounded-full border border-gray-300 bg-white text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading === "facebook" ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
             ) : (
               <Image src={facebook || "/placeholder.svg"} alt="Facebook" className="w-5 h-5" />
             )}
-            <span className="font-medium">{isLoading === "facebook" ? "Connecting..." : "Continue with Facebook"}</span>
+            <span className="font-medium text-sm sm:text-base">{isLoading === "facebook" ? "Connecting..." : "Continue with Facebook"}</span>
           </button>
 {/* 
           <button

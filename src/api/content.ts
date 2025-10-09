@@ -56,6 +56,18 @@ export async function getTrendingBlog() {
   }
 }
 
+export async function getAllTrendingContent() {
+  try {
+    const response = await axiosInstance.get("/content/trending");
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching trending content:", error);
+    return error.response;
+  }
+}
+
+
+
 
 export async function getBlogByStatus(status: any) {
   try {
@@ -427,17 +439,6 @@ export async function getAllTrendingVideo() {
   }
 }
 
-export async function getAllTrendingContent() {
-  try {
-    const response = await axiosInstance.get("/content/trending");
-    return response;
-  } catch (error:any) {
-    console.error("Error fetching video by creator:", error);
-    return error.response;
-  }
-}
-
-
 export async function getVideoByStatus(status: any) {
   try {
     const response = await axiosInstance.get(`/video/get-all?status=${status}`);
@@ -595,3 +596,4 @@ export async function toggleCommentOnVideo(blogId: any) {
     return error.response;
   }
 }
+

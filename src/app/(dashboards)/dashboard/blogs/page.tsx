@@ -48,6 +48,7 @@ import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
 import Loader2 from "@/components/Loader2"
 import Scheduler from "@/components/Scheduler"
+import BlogImageCropper from '@/components/BlogImageCropper'
 
 interface UserData {
   email: string
@@ -175,6 +176,10 @@ export default function BlogsPage() {
   // Image upload states
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
+  const [showCropper, setShowCropper] = useState(false)
+  const [showCreateCropper, setShowCreateCropper] = useState(false)
+  const [showEditCropper, setShowEditCropper] = useState(false)
+  const [pendingImageSrc, setPendingImageSrc] = useState<string | null>(null)
   const [imageError, setImageError] = useState("")
   const [isDragOver, setIsDragOver] = useState(false)
   const [isEditDragOver, setIsEditDragOver] = useState(false)
@@ -245,6 +250,8 @@ export default function BlogsPage() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // If any cropper is open, ignore outside clicks (prevent parent modals from closing)
+      if (showCreateCropper || showEditCropper) return
       if (!event.target || !(event.target as Element).closest(".action-menu-container")) {
         setShowActionMenu(null)
       }
@@ -391,13 +398,10 @@ export default function BlogsPage() {
     }
 
     setImageError("")
+    // set file and preview, let user choose to crop
+    const objUrl = URL.createObjectURL(file)
     setBlogForm((prev) => ({ ...prev, image: file }))
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
+    setImagePreview(objUrl)
   }
 
   // Handle image selection for edit form
@@ -409,15 +413,22 @@ export default function BlogsPage() {
     }
 
     setImageError("")
+    const objUrl = URL.createObjectURL(file)
     setEditBlogForm((prev) => ({ ...prev, image: file }))
+    // console.log(objUrl,"<<<<< edit image ")
+    setEditImagePreview(objUrl)
     setRemoveExistingImage(false)
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setEditImagePreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
   }
+
+  // Open cropper for edit preview
+  const openCropperForEdit = () => {
+                                  // Ensure we have a source for the cropper; fall back to existing image URL
+                                  const cropSrc = editImagePreview || editBlogForm.existingImageUrl || null
+                                  if (cropSrc) {
+                                    setPendingImageSrc(cropSrc)
+                                    setShowEditCropper(true)
+                                  }
+}
 
   const handleToggleComment = async (blogId: any) => {
     try {
@@ -500,7 +511,7 @@ export default function BlogsPage() {
       fileInputRef.current.value = ""
     }
   }
-
+  // console.log(editImagePreview,"<<<<<")
   // Remove image for edit
   const removeEditImage = () => {
     setEditBlogForm((prev) => ({ ...prev, image: null }))
@@ -1568,6 +1579,8 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
             </div>
           )}
 
+          
+
           {updateSuccess && (
             <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-2">
@@ -2163,8 +2176,36 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg sm:text-xl font-semibold text-slate-800">Create New Blog</h3>
                     <button
-                      onClick={() => {
-                        setShowCreateModal(false)
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        // close any cropper state first to avoid race with modal closing
+                        setShowCreateCropper(false)
+                        setShowEditCropper(false)
+                        setPendingImageSrc(null)
+                        // close modal next tick so cropper unmounts first
+                        setTimeout(() => {
+                          setShowCreateModal(false)
+                          setBlogForm({
+                            title: "",
+                            content: "",
+                            status: "draft",
+                            category: "General",
+                            image: null,
+                            is_draft: false,
+                            keywords: [],
+                          })
+                          setImagePreview(null)
+                          setImageError("")
+                          setCreateError("")
+                          setCreateSuccess("")
+                          setIsScheduled(false)
+                          setKeywordInput("")
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = ""
+                          }
+                        }, 0)
                       }}
                       className="p-2 hover:bg-slate-100 rounded-lg transition-colors z-50"
                     >
@@ -2223,13 +2264,31 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                               height={200}
                               className="w-full h-auto object-cover rounded-lg border border-slate-200"
                             />
+                              <div className="absolute top-2 right-2 flex space-x-2">
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    e.preventDefault()
+                                    // open cropper for this preview
+                                    if (imagePreview) {
+                                      setPendingImageSrc(imagePreview)
+                                      setShowCreateCropper(true)
+                                    }
+                                  }}
+                                  className="px-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 text-md cursor-pointer"
+                                >
+                                  Crop Image
+                                </button>
                             <button
                               type="button"
                               onClick={removeImage}
-                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                  className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors cursor-pointer"
                             >
                               <XIcon className="w-4 h-4" />
                             </button>
+                              </div>
                           </div>
                         )}
                         {/* Upload Area */}
@@ -2573,6 +2632,26 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                       </button>
                     </div>
                   </form>
+                  {/* Inline Cropper inside Create Modal */}
+                  {showCreateCropper && pendingImageSrc && !showEditModal && (
+                    <BlogImageCropper
+                      imageSrc={pendingImageSrc}
+                      aspect={16 / 9}
+                      inline={true}
+                      onCancel={() => {
+                        setShowCreateCropper(false)
+                        setPendingImageSrc(null)
+                      }}
+                      onSave={(file: File) => {
+                        setBlogForm((prev) => ({ ...prev, image: file }))
+                        const reader = new FileReader()
+                        reader.onload = (e) => setImagePreview(e.target?.result as string)
+                        reader.readAsDataURL(file)
+                        setShowCreateCropper(false)
+                        setPendingImageSrc(null)
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -2590,27 +2669,37 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg sm:text-xl font-semibold text-slate-800">Edit Blog</h3>
                     <button
-                      onClick={() => {
-                        setShowEditModal(false)
-                        setEditBlogForm({
-                          id: 0,
-                          title: "",
-                          content: "",
-                          status: "draft",
-                          category: "General",
-                          image: null,
-                          existingImageUrl: "",
-                          keywords: [],
-                        })
-                        setEditImagePreview(null)
-                        setRemoveExistingImage(false)
-                        setImageError("")
-                        setUpdateError("")
-                        setUpdateSuccess("")
-                        setEditKeywordInput("")
-                        if (editFileInputRef.current) {
-                          editFileInputRef.current.value = ""
-                        }
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        // close croppers first to avoid race opening cropper
+                        setShowEditCropper(false)
+                        setShowCreateCropper(false)
+                        setPendingImageSrc(null)
+                        // close modal next tick
+                        setTimeout(() => {
+                          setShowEditModal(false)
+                          setEditBlogForm({
+                            id: 0,
+                            title: "",
+                            content: "",
+                            status: "draft",
+                            category: "General",
+                            image: null,
+                            existingImageUrl: "",
+                            keywords: [],
+                          })
+                          setEditImagePreview(null)
+                          setRemoveExistingImage(false)
+                          setImageError("")
+                          setUpdateError("")
+                          setUpdateSuccess("")
+                          setEditKeywordInput("")
+                          if (editFileInputRef.current) {
+                            editFileInputRef.current.value = ""
+                          }
+                        }, 0)
                       }}
                       className="p-2 hover:bg-slate-100 rounded-lg transition-colors z-50"
                     >
@@ -2669,13 +2758,21 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                               height={200}
                               className="w-full h-auto object-cover rounded-lg border border-slate-200"
                             />
+                            <div className="absolute top-2 right-2 flex space-x-2">
+                                  {/* Crop functionality removed from edit modal per request */}
                             <button
                               type="button"
-                              onClick={removeEditImage}
-                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                removeEditImage()
+                              }}
+                                className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors cursor-pointer"
                             >
                               <XIcon className="w-4 h-4" />
                             </button>
+                            </div>
                           </div>
                         )}
                         {/* Upload Area */}
@@ -2714,6 +2811,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                               onChange={handleEditFileInputChange}
                               className="hidden"
                             />
+                            {/* Cropper removed for edit modal; image replacement still supported via upload */}
                           </div>
                         )}
                         {/* Image Error */}
