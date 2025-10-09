@@ -33,8 +33,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <HeaderNavbar isSidebarExpanded={isSidebarExpanded} />
 
       {/* Main Content */}
-      <div className={`transition-all duration-300 ease-in-out pt-16 ${isSidebarExpanded ? "ml-64" : "ml-16"}`}>
-        <main className="min-h-screen p-6">{children}</main>
+      <div className={`transition-all duration-300 ease-in-out pt-10 ${isSidebarExpanded ? "ml-64" : "ml-16"}`}>
+        <main className="min-h-screen p-2">{children}</main>
       </div>
     </div>
   )

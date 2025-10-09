@@ -164,8 +164,8 @@ export default function CreatorDashboard() {
   ]
 
   return (
-    <div className="min-h-screen p-2 md:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-2 md:p-4">
+      <div className="max-w-full mx-auto">
         {/* Hero Banner */}
         <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl mb-8">
           <div className="absolute inset-0 bg-black/20"></div>

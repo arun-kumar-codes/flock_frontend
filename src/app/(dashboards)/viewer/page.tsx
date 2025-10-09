@@ -95,8 +95,8 @@ export default function ViewerDashboard() {
 
   return (
     <div className="min-h-screen theme-bg-primary">
-      <div className="mx-auto lg:px-8 py-4 lg:py-8">
-        <div className="mb-4 md:mb-8">
+      <div className="mx-auto lg:px-2 py-1 lg:py-2">
+        {/* <div className="mb-4 md:mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center md:ml-10">
   {filterButtons.map((filter) => {
     const Icon = filter.icon
@@ -117,7 +117,7 @@ export default function ViewerDashboard() {
     )
   })}
 </div>
-        </div>
+        </div> */}
 
         <div>{renderContent()}</div>
       </div>

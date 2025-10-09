@@ -11,6 +11,8 @@ import { logOut } from "@/slice/userSlice"
 import { Suspense } from "react"
 import Loader2 from "@/components/Loader2"
 import { toggleUserRole } from "@/api/content"
+import Logo from "@/assets/logo.svg"
+import Exit from '@/assets/Exit.svg'
 
 const navigationItems = [
   {
@@ -128,21 +130,21 @@ export default function DashboardLayout({
   if (user.loading || user.role.toLowerCase() !== "creator") return <Loader2 />
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-white">
       {/* Sidebar */}
       <div
-        className={`bg-white shadow-lg transition-all duration-300 ease-in-out ${isExpanded ? "w-64" : "w-16"
+        className={`bg-[#E6EEFF] mx-2 my-2 rounded-4xl  transition-all duration-300 ease-in-out ${isExpanded ? "w-64" : "w-18"
           } flex flex-col border-r border-gray-200 overflow-hidden`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* Logo/Brand */}
-        <div className="flex items-center h-16 border-b border-gray-200 px-3 min-w-0">
-          <div className="flex items-center space-x-3 min-w-0">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg flex-shrink-0">
-              <Building2 className="w-5 h-5 text-white" />
+        <div className="p-3 mt-2 h-20 ">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Image src={Logo} alt="logo" className="w-10 h-10 text-white" />
             </div>
-            {isExpanded && <span className="font-bold text-xl text-gray-800 whitespace-nowrap">Flock</span>}
+            {isExpanded && <span className="font-bold text-xl text-gray-800 whitespace-nowrap">FLOCK</span>}
           </div>
         </div>
 
@@ -155,7 +157,7 @@ export default function DashboardLayout({
               <div key={item.name} className="relative">
                 <Link
                   href={item.href}
-                  className={`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 group min-w-0 ${isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 group min-w-0 ${isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }`}
                 >
                   <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
@@ -179,7 +181,7 @@ export default function DashboardLayout({
 
 
         {/* User Profile */}
-        <div className="p-3 border-t border-gray-200 relative group " onClick={() => router.push("/dashboard/profiles")}>
+        <div className="p-5 border-t border-gray-200 relative group " onClick={() => router.push("/dashboard/profiles")}>
           <div className="flex items-center min-w-0 cursor-pointer">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
@@ -212,7 +214,7 @@ export default function DashboardLayout({
         <div className="p-3 border-t border-gray-200 relative" ref={logoutRef}>
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="w-full flex items-center px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 group min-w-0"
+            className="w-full flex items-center px-3 py-2 text-gray-600 hover:text-gray-300 hover:bg-red-50 rounded-lg transition-colors duration-200 group min-w-0"
           >
             <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
               <LogOutIcon className="w-5 h-5 text-gray-500 group-hover:text-red-600" />
@@ -286,8 +288,8 @@ export default function DashboardLayout({
       <Suspense fallback={<div>Loading...</div>}>
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* Header */}
-          <header className="bg-white shadow-sm border-b border-gray-200">
-            <div className="px-6 py-4 flex items-center justify-between">
+          <header className="bg-white ">
+            <div className="px-6 py-2 flex items-center justify-between">
               {/* Left Section - Current Page Name */}
               <div className="flex items-center space-x-4">
                 <h1 className="text-2xl font-semibold text-gray-800">{currentPageName}</h1>
@@ -312,7 +314,7 @@ export default function DashboardLayout({
           </header>
 
           {/* Page Content */}
-          <main className="flex-1 overflow-auto md:p-6">{children}</main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </Suspense>
     </div>

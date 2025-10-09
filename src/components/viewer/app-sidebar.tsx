@@ -2,27 +2,32 @@
 
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { HomeIcon, BookOpenIcon, VideoIcon, UserIcon, LogOutIcon, TrendingUpIcon } from "lucide-react"
+import { UserIcon, LogOutIcon, TrendingUpIcon } from "lucide-react"
+import HomeIconSvg from "@/assets/Home-icon.svg"
+import BlogIconSvg from "@/assets/Blog.svg"
+import VideoIconSvg from "@/assets/Video.svg"
 import Image from "next/image"
 import { useSelector, useDispatch } from "react-redux"
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
+import Logo from "@/assets/logo.svg"
+import Exit from '@/assets/Exit.svg'
 
 const menuItems = [
   {
-    title: "FlockTogether",
+    title: "Home",
     url: "/viewer",
-    icon: HomeIcon,
+    icon: HomeIconSvg,
   },
   {
     title: "Blog",
     url: "/viewer/blogs",
-    icon: BookOpenIcon,
+    icon: BlogIconSvg,
   },
   {
     title: "Video",
     url: "/viewer/videos",
-    icon: VideoIcon,
+    icon: VideoIconSvg,
   },
 ]
 
@@ -75,56 +80,62 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
     router.push("/login")
   }
 
-  const sidebarWidth = isExpanded ? "w-64" : "w-16"
+  const sidebarWidth = isExpanded ? "w-64" : "w-20"
   const textVisibility = isExpanded ? "opacity-100" : "opacity-0"
 
   return (
     <div
-      className={`fixed left-0 top-0 h-full theme-bg-card theme-border-r transition-all duration-300 ease-in-out z-40 ${sidebarWidth}`}
+      className={`fixed left-0 top-0 h-full transition-all duration-300 ease-in-out z-40 ${sidebarWidth}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Header */}
-      <div className="p-4 h-20 theme-border-b">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <TrendingUpIcon className="w-5 h-5 text-white" />
-          </div>
-          <div className={`transition-opacity duration-300 ${textVisibility} ${isExpanded ? "" : "hidden"}`}>
-            <div className="font-semibold theme-text-primary">Flock</div>
-            <div className="text-xs theme-text-secondary">Content Hub</div>
+      <div className="flex flex-col h-full bg-[#E6EEFF] mx-2 my-2 rounded-4xl">
+        {/* Header */}
+        <div className="p-3 mt-2 h-20 ">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Image src={Logo} alt="logo" className="w-10 h-10 text-white" />
+            </div>
+            <div className={`transition-opacity duration-300 ${textVisibility} ${isExpanded ? "" : "hidden"}`}>
+              <div className="font-bold text-[#2C50A2]">FLOCK</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Navigation */}
-      <div className="py-4">
-        <nav className="space-y-1 px-2">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.url
-            return (
-              <button
-                key={item.title}
-                onClick={() => router.push(item.url)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-md border-r-2 border-blue-400"
-                    : "theme-text-primary hover:theme-bg-hover hover:text-blue-600"
-                }`}
-                title={!isExpanded ? item.title : undefined}
-              >
-                <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : ""}`} />
-                <span
-                  className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
-                    isExpanded ? "" : "hidden"
-                  } ${isActive ? "text-white" : ""}`}
+        {/* Main Navigation */}
+        <div className="py-4 flex-grow">
+          <nav className="space-y-1 px-2">
+            {menuItems.map((item) => {
+              const isActive = pathname === item.url
+              return (
+                <button
+                  key={item.title}
+                  onClick={() => router.push(item.url)}
+                  className={`w-full flex items-center hover:bg-gray-300 space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                    isActive
+                    ? " text-[#0F0A0F]"
+                    : "text-[#424242] hover:theme-bg-hover hover:text-gray-600"
+                  }`}
+                  title={!isExpanded ? item.title : undefined}
                 >
-                  {item.title}
-                </span>
-              </button>
-            )
-          })}
-        </nav>
+                  {/* {item.title === "FlockTogether" ? (
+                    <Image src={item.icon} alt="icon" width={20} height={20} className={`flex-shrink-0 ${isActive ? "text-white" : ""}`} />
+                  ) : (
+                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : ""}`} />
+                  )} */}
+                  <Image src={item.icon} alt="icon" width={20} height={20} className={`flex-shrink-0 ${isActive ? "text-black" : ""}`} />
+                  <span
+                    className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
+                      isExpanded ? "" : "hidden"
+                    } ${isActive ? "text-black" : "hover:theme-bg-hover hover:text-gray-600"}`}
+                  >
+                    {item.title}
+                  </span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
       </div>
 
       <div className="mx-4 my-2 border-t theme-border opacity-30"></div>
@@ -138,18 +149,18 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
               <button
                 key={item.title}
                 onClick={() => router.push(item.url)}
-                className={`w-full flex items-center space-x-3 px-3 cursor-pointer py-2.5 rounded-lg transition-all duration-200 group ${
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-md border-r-2 border-blue-400"
-                    : "theme-text-primary hover:theme-bg-hover hover:text-blue-600"
-                }`}
+                    ? " text-[#0F0A0F]"
+                    : "text-[#424242] hover:theme-bg-hover hover:text-blue-600"
+                  }`}
                 title={!isExpanded ? item.title : undefined}
               >
-                <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : ""}`} />
+                <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-black" : ""}`} />
                 <span
                   className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
                     isExpanded ? "" : "hidden"
-                  } ${isActive ? "text-white" : ""}`}
+                  } ${isActive ? "text-[#0F0A0F]" : ""}`}
                 >
                   {item.title}
                 </span>
@@ -162,8 +173,8 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
       {/* User Profile & Logout OR Sign In */}
       {user.isLogin ? (
         // Logged-in state → Profile & Logout
-        <div className="absolute bottom-0 left-0 right-0 p-4 theme-border-t">
-          <div
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          {/* <div
             className="flex items-center space-x-3 mb-3 cursor-pointer hover:theme-bg-hover rounded-lg p-2 transition-colors duration-200"
             onClick={() => router.push("/viewer/profile")}
           >
@@ -180,13 +191,13 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
               <div className="text-sm font-medium theme-text-primary">{user?.username || "User"}</div>
               <div className="text-xs theme-text-secondary">{user?.role || "Viewer"}</div>
             </div>
-          </div>
+          </div> */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer  theme-text-primary hover:bg-red-500 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer  theme-text-primary hover:bg-gray-300 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
             title={!isExpanded ? "Sign Out" : undefined}
           >
-            <LogOutIcon className="w-5 h-5 flex-shrink-0" />
+            <Image src={Exit} alt="exit" className="w-6 h-6 text-white" />
             <span
               className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
                 isExpanded ? "" : "hidden"
@@ -206,7 +217,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
 
           <button
             onClick={() => router.push("/login")}
-            className="w-full flex items-center space-x-3 cursor-pointer  px-3 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-md"
+            className="w-full flex items-center space-x-3 cursor-pointer  px-3 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
             title={!isExpanded ? "Sign In" : undefined}
           >
             <UserIcon className="w-5 h-5 flex-shrink-0 " />

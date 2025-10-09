@@ -424,13 +424,13 @@ export function VideoModal({ video, onClose, onToggleLike, onRefreshVideos }: Vi
 
 
 {/* Video Description + Keywords + Locations */}
-<div className="p-6 pt-2 theme-border-b">
-  <div className="prose prose-slate max-w-none">
-    <div>
-      <h1 className="text-white text-2xl mb-4">Description</h1>
-    </div>
+          <div className="p-6 pt-2 theme-border-b">
+            <div className="prose prose-slate max-w-none">
+              <div>
+                <h1 className="text-white text-2xl mb-4">Description</h1>
+              </div>
 
-    <TipTapContentDisplay content={video.description} className="theme-text-secondary" />
+              <TipTapContentDisplay content={video.description} className="theme-text-secondary" />
 
      {/* Brand Tags */}
 {video.brand_tags && video.brand_tags.length > 0 && (

@@ -141,8 +141,8 @@ export default function Login() {
         <div className="flex flex-col lg:flex-row items-stretch gap-4 w-full">
           {/* Left translucent panel */}
           <div className="w-full lg:w-1/2 flex items-center justify-center mt-2 mb-2">
-            <div className="w-full h-full rounded-3xl bg-gradient-to-br from-white/50 to-white/0 backdrop-blur-md p-6 sm:p-8 md:p-10 shadow-xl flex items-center justify-center">
-              <div className="w-full max-w-md mx-auto">
+            <div className="w-full h-full rounded-3xl bg-gradient-to-br from-white/50 to-white/0 backdrop-blur-sm p-6 sm:p-8 md:p-10 shadow-xl flex items-center justify-center">
+              <div className="w-full max-w-xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-20 h-20 flex items-center justify-center">
                     <Image src={logo} alt="logo" className="h-20 w-20" />
@@ -253,7 +253,7 @@ export default function Login() {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="rounded-full cursor-pointer bg-[#C14C42] px-14 py-3 font-bold text-sm sm:text-base text-white uppercase tracking-wide transition-all duration-200 hover:bg-[#A63E36] focus:outline-none focus:ring-2 focus:ring-[#C14C42] focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+                        className="rounded-full cursor-pointer bg-[#C14C42] px-20 py-3 font-bold text-sm sm:text-base text-white uppercase tracking-wide transition-all duration-200 hover:bg-[#A63E36] focus:outline-none focus:ring-2 focus:ring-[#C14C42] focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
                       >
                         {isSubmitting ? (
                           <div className="flex items-center justify-center space-x-2">
