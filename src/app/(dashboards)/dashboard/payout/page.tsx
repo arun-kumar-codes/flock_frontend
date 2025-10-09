@@ -1,14 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getEarning, setupStripeAccount, getStripeAccount, removeStripeAccount, refreshStripeAccount, requestWithdrawal, withdrawalHistory } from "@/api/earnings";
+import { getEarning, setupStripeAccount, getStripeAccount, removeStripeAccount, refreshStripeAccount, requestWithdrawal, withdrawalHistory, setupPayoneerAccount, getPayoneerAccountStatus, requestPayoneerWithdrawal, payoneerWithdrawalHistory } from "@/api/earnings";
 import { DollarSign, TrendingUp, Clock, CheckCircle, CreditCard, ArrowUpRight, Wallet, Plus, RefreshCw, Trash2 } from "lucide-react"
 import Loader from "@/components/Loader2";
 import toast from "react-hot-toast";
 
+type PaymentProvider = 'stripe' | 'payoneer' | null;
+
 export default function PayoutPage() {
+  const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>(null)
   const [isAccountConnected, setIsAccountConnected] = useState(false)
   const [isAccountPending, setIsAccountPending] = useState(false)
+  const [connectedProvider, setConnectedProvider] = useState<PaymentProvider>(null)
   const [earningsData, setEarningsData] = useState({
     available_for_withdrawal: 0,
     completed_withdrawals: 0,
@@ -44,11 +48,12 @@ export default function PayoutPage() {
   }, [])
 
   useEffect(() => {
-    const fetchStripeAccount = async () => {
+    const fetchPaymentAccounts = async () => {
       try {
-        const response = await getStripeAccount();
-        if (response?.status === 200 && response.data?.success) {
-          const account = response.data.account;
+        // Check Stripe account
+        const stripeResponse = await getStripeAccount();
+        if (stripeResponse?.status === 200 && stripeResponse.data?.success) {
+          const account = stripeResponse.data.account;
 
           if (
             account?.account_status === "active" &&
@@ -57,24 +62,46 @@ export default function PayoutPage() {
           ) {
             setIsAccountConnected(true)
             setIsAccountPending(false)
+            setConnectedProvider('stripe')
             setOnboardingUrl(null)
-          } else {
+            return;
+          } else if (account) {
             setIsAccountConnected(false)
-            setIsAccountPending(true) // pending or failed
+            setIsAccountPending(true)
+            setConnectedProvider('stripe')
+            setOnboardingUrl(null)
+            return;
+          }
+        }
+
+        // Check Payoneer account
+        const payoneerResponse = await getPayoneerAccountStatus();
+        if (payoneerResponse?.status === 200 && payoneerResponse.data?.success) {
+          const payoneerAccount = payoneerResponse.data.account;
+
+          if (payoneerAccount?.account_status === "active") {
+            setIsAccountConnected(true)
+            setIsAccountPending(false)
+            setConnectedProvider('payoneer')
+            setOnboardingUrl(null)
+          } else if (payoneerAccount) {
+            setIsAccountConnected(false)
+            setIsAccountPending(true)
+            setConnectedProvider('payoneer')
             setOnboardingUrl(null)
           }
         }
       } catch (error) {
-        console.error("Error fetching Stripe account:", error);
+        console.error("Error fetching payment accounts:", error);
       }
     };
 
-    fetchStripeAccount();
+    fetchPaymentAccounts();
   }, []);
 
   useEffect(() => {
     fetchWithdrawalHistory();
-  }, [])
+  }, [connectedProvider])
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -84,11 +111,20 @@ export default function PayoutPage() {
 
   const fetchWithdrawalHistory = async () => {
     try {
-      const response = await withdrawalHistory();
-      if (response?.status === 200 && response.data?.success) {
-        setWithdrawals(response.data.withdrawals || []);
-      } else {
-        setWithdrawals([]);
+      if (connectedProvider === 'stripe') {
+        const response = await withdrawalHistory();
+        if (response?.status === 200 && response.data?.success) {
+          setWithdrawals(response.data.withdrawals || []);
+        } else {
+          setWithdrawals([]);
+        }
+      } else if (connectedProvider === 'payoneer') {
+        const response = await payoneerWithdrawalHistory();
+        if (response?.status === 200 && response.data?.success) {
+          setWithdrawals(response.data.withdrawals || []);
+        } else {
+          setWithdrawals([]);
+        }
       }
     } catch (error) {
       console.error("Error Fetching withdrawal history.");
@@ -106,19 +142,30 @@ export default function PayoutPage() {
     }).format(amount)
   }
 
-  const handleConnectAccount = async () => {
+  const handleConnectAccount = async (provider: PaymentProvider) => {
     try {
-      const response = await setupStripeAccount()
-      if (response?.status === 200) {
-        setOnboardingUrl(response.data.onboarding_url)
-        setIsAccountConnected(false)
-        setIsAccountPending(false)
+      if (provider === 'stripe') {
+        const response = await setupStripeAccount()
+        if (response?.status === 200) {
+          setOnboardingUrl(response.data.onboarding_url)
+          setIsAccountConnected(false)
+          setIsAccountPending(false)
+          setConnectedProvider('stripe')
+        } else {
+          console.error("Stripe Setup Failed:", response?.data)
+        }
+      } else if (provider === 'payoneer') {
+        const response = await setupPayoneerAccount()
+        if (response?.status === 200) {
+          setOnboardingUrl(response.data.onboarding_url)
+          setIsAccountConnected(false)
+          setIsAccountPending(false)
+          setConnectedProvider('payoneer')
+        } else {
+          console.error("Payoneer Setup Failed:", response?.data)
+        }
       }
-      else {
-        console.error("Stripe Setup Failed:", response?.data)
-      }
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error connecting account:", error)
     }
   }
@@ -126,28 +173,45 @@ export default function PayoutPage() {
   const handleRefreshAccount = async () => {
     setIsRefreshing(true)
     try {
-      const response = await refreshStripeAccount()
-      if (response.status === 200 && response.data?.success) {
-        const account = response.data.account;
-        if (account?.account_status === "active" && account?.charges_enabled && account?.payouts_enabled) {
-          setIsAccountConnected(true);
-          setIsAccountPending(false);
-          setShowVerifyAgain(false);
+      if (connectedProvider === 'stripe') {
+        const response = await refreshStripeAccount()
+        if (response.status === 200 && response.data?.success) {
+          const account = response.data.account;
+          if (account?.account_status === "active" && account?.charges_enabled && account?.payouts_enabled) {
+            setIsAccountConnected(true);
+            setIsAccountPending(false);
+            setShowVerifyAgain(false);
+          } else {
+            setIsAccountConnected(false)
+            setIsAccountPending(true)
+            setShowVerifyAgain(true)
+          }
+        } else {
+          setIsAccountConnected(false);
+          setIsAccountPending(true);
+          setShowVerifyAgain(true);
         }
-        else {
-          setIsAccountConnected(false)
-          setIsAccountPending(true)
-          setShowVerifyAgain(true)
-
+      } else if (connectedProvider === 'payoneer') {
+        const response = await getPayoneerAccountStatus()
+        if (response.status === 200 && response.data?.success) {
+          const account = response.data.account;
+          if (account?.account_status === "active") {
+            setIsAccountConnected(true);
+            setIsAccountPending(false);
+            setShowVerifyAgain(false);
+          } else {
+            setIsAccountConnected(false)
+            setIsAccountPending(true)
+            setShowVerifyAgain(true)
+          }
+        } else {
+          setIsAccountConnected(false);
+          setIsAccountPending(true);
+          setShowVerifyAgain(true);
         }
-      }
-      else {
-        setIsAccountConnected(false);
-        setIsAccountPending(true);
-        setShowVerifyAgain(true);
       }
     } catch (error) {
-      console.error("Error Refreshing Stripe acciunt:", error)
+      console.error("Error Refreshing account:", error)
     } finally {
       setIsRefreshing(false)
     }
@@ -155,12 +219,22 @@ export default function PayoutPage() {
 
   const handleVerifyAgain = async () => {
     try {
-      const response = await setupStripeAccount();
-      if (response?.status === 200) {
-        setOnboardingUrl(response.data.onboarding_url);
-        setIsAccountConnected(false);
-        setIsAccountPending(true);
-        setShowVerifyAgain(false);
+      if (connectedProvider === 'stripe') {
+        const response = await setupStripeAccount();
+        if (response?.status === 200) {
+          setOnboardingUrl(response.data.onboarding_url);
+          setIsAccountConnected(false);
+          setIsAccountPending(true);
+          setShowVerifyAgain(false);
+        }
+      } else if (connectedProvider === 'payoneer') {
+        const response = await setupPayoneerAccount();
+        if (response?.status === 200) {
+          setOnboardingUrl(response.data.onboarding_url);
+          setIsAccountConnected(false);
+          setIsAccountPending(true);
+          setShowVerifyAgain(false);
+        }
       }
     } catch (error) {
       console.error("Error verifying account again", error)
@@ -169,23 +243,34 @@ export default function PayoutPage() {
 
   const handleRemoveAccount = async () => {
     try {
-      const response = await removeStripeAccount()
-      if (response?.status === 200 && response.data?.success) {
+      if (connectedProvider === 'stripe') {
+        const response = await removeStripeAccount()
+        if (response?.status === 200 && response.data?.success) {
+          setIsAccountConnected(false);
+          setIsAccountPending(false);
+          setConnectedProvider(null);
+          setOnboardingUrl(null);
+          console.log("Stripe account removed successfully")
+        } else {
+          console.error("Failed to remove Stripe account:", response?.data)
+        }
+      } else if (connectedProvider === 'payoneer') {
+        // Implement remove Payoneer account if API exists
         setIsAccountConnected(false);
         setIsAccountPending(false);
+        setConnectedProvider(null);
         setOnboardingUrl(null);
-        console.log("Stripe account removed successfully")
-      } else {
-        console.error("Failed to remove Stripe account:", response?.data)
+        console.log("Payoneer account removed successfully")
       }
     } catch (error) {
-      console.error("Error removing Stripe account:", error);
+      console.error("Error removing account:", error);
     }
   }
 
   const handleWithdraw = async () => {
     if (!isAccountConnected) {
       toast.error("No connected account found.")
+      return;
     }
 
     if (!withdrawAmount || withdrawAmount <= 0) {
@@ -199,7 +284,13 @@ export default function PayoutPage() {
     setIsWithdrawing(true);
 
     try {
-      const response = await requestWithdrawal(Number(withdrawAmount));
+      let response;
+      if (connectedProvider === 'stripe') {
+        response = await requestWithdrawal(Number(withdrawAmount));
+      } else if (connectedProvider === 'payoneer') {
+        response = await requestPayoneerWithdrawal();
+      }
+
       if (response?.status === 200 && response.data?.success) {
         toast.success(`Withdrawal of $${withdrawAmount} requested successfully 🎉`);
         setWithdrawAmount("");
@@ -207,8 +298,7 @@ export default function PayoutPage() {
         setEarningsData(refreshEarnings.data);
 
         await fetchWithdrawalHistory();
-      }
-      else {
+      } else {
         toast.error(response?.data?.error);
       }
     } catch (error) {
@@ -308,7 +398,7 @@ export default function PayoutPage() {
                   <div className="text-center space-y-4">
                     <CheckCircle className="h-10 w-10 text-green-600 mx-auto" />
                     <p className="text-gray-700 font-medium">
-                      Your account is connected 🎉
+                      Your {connectedProvider === 'stripe' ? 'Stripe' : 'Payoneer'} account is connected 🎉
                     </p>
                     <button
                       onClick={handleRemoveAccount}
@@ -321,22 +411,71 @@ export default function PayoutPage() {
                 )}
 
                 {!isAccountConnected && !isAccountPending && !onboardingUrl && (
+                  <div>
+                    <div className="text-center mb-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Choose Payment Method</h3>
+                      <p className="text-gray-600 mb-6">
+                        Select your preferred payment provider to start receiving withdrawals
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {/* Stripe Option */}
+                      <div
+                        onClick={() => handleConnectAccount('stripe')}
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
+                      >
+                        <div className="flex flex-col items-center">
+                          <div className="p-3 bg-blue-100 rounded-full mb-4">
+                            <CreditCard className="h-8 w-8 text-blue-600" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Stripe</h3>
+                          <p className="text-gray-600 text-sm mb-4">
+                            Fast payouts to your bank account
+                          </p>
+                          <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                            Connect Stripe
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Payoneer Option */}
+                      <div
+                        onClick={() => handleConnectAccount('payoneer')}
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-all"
+                      >
+                        <div className="flex flex-col items-center">
+                          <div className="p-3 bg-orange-100 rounded-full mb-4">
+                            <Wallet className="h-8 w-8 text-orange-600" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Payoneer</h3>
+                          <p className="text-gray-600 text-sm mb-4">
+                            Global payment solution
+                          </p>
+                          <div className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm">
+                            Connect Payoneer
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* PayPal Option just UI integrate backend later*/}
                   <div
-                    onClick={handleConnectAccount}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                    onClick={() => handleConnectAccount('payoneer')}
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 hover:bg-blue-50 transition-all"
                   >
                     <div className="flex flex-col items-center">
-                      <div className="p-3 bg-gray-100 rounded-full mb-4">
-                        <Plus className="h-8 w-8 text-gray-400" />
+                      <div className="p-3 bg-green-100 rounded-full mb-4">
+                        <CreditCard className="h-8 w-8 text-green-700" />
                       </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Connect Account</h3>
-                      <p className="text-gray-600 mb-4">
-                        Add your bank account or payment method to start receiving withdrawals
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">PayPal</h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        Trusted worldwide payment platform
                       </p>
-                      <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Connect Now
+                      <div className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
+                        Connect PayPal
                       </div>
+                    </div>
+                  </div>
                     </div>
                   </div>
                 )}
@@ -344,15 +483,15 @@ export default function PayoutPage() {
                 {!isAccountConnected && onboardingUrl && (
                   <div className="space-y-4 text-center">
                     <p className="text-gray-700">
-                      Please complete your Stripe onboarding to start receiving payouts.
+                      Please complete your {connectedProvider === 'stripe' ? 'Stripe' : 'Payoneer'} onboarding to start receiving payouts.
                     </p>
                     <a
                       href={onboardingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="inline-flex items-center text-blue-600 hover:underline"
                     >
-                      {"Complete Onboarding →"}
+                      Complete Onboarding →
                     </a>
                   </div>
                 )}
@@ -363,7 +502,7 @@ export default function PayoutPage() {
                       <>
                         <p className="text-gray-700 font-medium">
                           <span className="text-xl font-bold text-red-600 p-1">!!!</span>
-                          Your account status is pending.
+                          Your {connectedProvider === 'stripe' ? 'Stripe' : 'Payoneer'} account status is pending.
                         </p>
                         <div className="flex justify-center gap-4">
                           <button
@@ -411,7 +550,6 @@ export default function PayoutPage() {
                       </>
                     )}
                   </div>
-
                 )}
               </div>
             </div>
@@ -437,12 +575,18 @@ export default function PayoutPage() {
 
               <button
                 onClick={handleWithdraw}
-                disabled={isWithdrawing}
-                className={`px-4 py-2 rounded-lg cursor-pointer text-white transition-colors ${isWithdrawing ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+                disabled={isWithdrawing || !isAccountConnected}
+                className={`px-4 py-2 rounded-lg text-white transition-colors ${isWithdrawing || !isAccountConnected ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
                   }`}
               >
                 {isWithdrawing ? "Processing..." : "Request Withdrawal"}
               </button>
+
+              {!isAccountConnected && (
+                <p className="text-xs text-red-600 text-center">
+                  Please connect an account first
+                </p>
+              )}
             </div>
           </div>
 
@@ -489,7 +633,7 @@ export default function PayoutPage() {
                               {formatCurrency(w.amount)}
                             </td>
                             <td className="px-4 py-2 text-sm text-gray-500">
-                              {w.failure_reason === null ? "Null" : formatFailureReason(w.failure_reason)}
+                              {w.failure_reason === null ? "—" : formatFailureReason(w.failure_reason)}
                             </td>
                             <td className="px-4 py-2 text-sm text-gray-500">
                               {formatDateTime(w.requested_at)}
@@ -528,7 +672,7 @@ export default function PayoutPage() {
                       disabled={currentPage === 1}
                       className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer rounded disabled:opacity-50"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="15 18 9 12 15 6" />
                       </svg>
                     </button>
@@ -537,7 +681,7 @@ export default function PayoutPage() {
                       disabled={currentPage === totalPages}
                       className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer rounded disabled:opacity-50"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </button>

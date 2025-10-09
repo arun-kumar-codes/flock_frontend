@@ -102,3 +102,44 @@ export const withdrawalHistory = async () => {
     return error.response;
   }
 }
+
+
+export const setupPayoneerAccount = async () => {
+  try {
+    const response = await axiosInstance.post('/payoneer/setup-payoneer-account');
+    return response;
+  } catch (error: any) {
+    console.error("Error setting up Payoneer account:", error);
+    return error.response;
+  }
+};
+
+export const getPayoneerAccountStatus = async () => {
+  try {
+    const response = await axiosInstance.get('/payoneer/payoneer-account-status');
+    return response;
+  } catch (error: any) {
+    console.error("Error fetching Payoneer account status:", error);
+    return error.response;
+  }
+};
+
+export const requestPayoneerWithdrawal = async () => {
+  try {
+    const response = await axiosInstance.post('/payoneer/request-payoneer-withdrawal');
+    return response;
+  } catch (error: any) {
+    console.error("Error requesting Payoneer withdrawal:", error);
+    return error.response;
+  }
+};
+
+export const payoneerWithdrawalHistory = async () => {
+  try {
+    const response = await axiosInstance.get('/payoneer/payoneer-withdrawal-history');
+    return response;
+  } catch (error: any) {
+    console.error("Error fetching Payoneer withdrawal history:", error);
+    return error.response;
+  }
+};
