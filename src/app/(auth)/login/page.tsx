@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { EyeIcon, EyeOffIcon, LockIcon, ShieldCheckIcon } from "lucide-react";
 import SocialLogIn from "@/components/SocialLogIn";
@@ -182,10 +183,11 @@ export default function Login() {
                       onFocus={() => setFocusedField("username_or_email")}
                       onBlur={() => setFocusedField(null)}
                       placeholder="Enter your email or username"
-                      className={`w-full rounded-full border-2 px-4 py-3 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${errors.username_or_email
-                        ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                        : "border-slate-200"
-                        }`}
+                      className={`w-full rounded-full border-2 px-4 py-3 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
+                        errors.username_or_email
+                          ? "border-red-400 focus:border-red-500 focus:ring-red-100"
+                          : "border-slate-200"
+                      }`}
                     />
                     {errors.username_or_email && (
                       <p className="text-xs text-red-600 flex items-center font-medium">
@@ -197,20 +199,22 @@ export default function Login() {
 
                   {/* Password Field */}
                   <div className="space-y-1">
-
                     <div className="relative">
                       <input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={formData.password}
-                        onChange={(e) => handleChange("password", e.target.value)}
+                        onChange={(e) =>
+                          handleChange("password", e.target.value)
+                        }
                         onFocus={() => setFocusedField("password")}
                         onBlur={() => setFocusedField(null)}
                         placeholder="Enter your password"
-                        className={`w-full rounded-full border-2 px-4 py-3 pr-10 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${errors.password
-                          ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                          : "border-slate-200"
-                          }`}
+                        className={`w-full rounded-full border-2 px-4 py-3 pr-10 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
+                          errors.password
+                            ? "border-red-400 focus:border-red-500 focus:ring-red-100"
+                            : "border-slate-200"
+                        }`}
                       />
 
                       {/* Show Eye Icon only if password field has value */}
@@ -247,39 +251,56 @@ export default function Login() {
             </div> */}
 
                   {/* Sign In Button and reCAPTCHA in same line */}
-                  <div className="flex flex-row items-center justify-left gap-4">
-                    {/* Sign In Button */}
-                    <div className="flex justify-center">
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="rounded-full cursor-pointer bg-[#C14C42] px-20 py-3 font-bold text-sm sm:text-base text-white uppercase tracking-wide transition-all duration-200 hover:bg-[#A63E36] focus:outline-none focus:ring-2 focus:ring-[#C14C42] focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
-                      >
-                        {isSubmitting ? (
-                          <div className="flex items-center justify-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span className="text-sm sm:text-base">Signing In...</span>
-                          </div>
-                        ) : (
-                          <span className={`${poppins.className} text-base font-light text-white`}>
-                            Sign In
-                          </span>
-                        )}
-                      </button>
-                    </div>
+                  <div className="flex flex-col lg:flex-row items-center lg:items-center justify-start gap-6 w-full">
+  {/* Sign In Button */}
+  <div className="flex justify-center lg:justify-start w-auto">
+    <button
+      type="submit"
+      disabled={isSubmitting}
+      className="rounded-full cursor-pointer bg-[#C14C42] px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-2 sm:py-2.5 md:py-3 font-bold text-xs sm:text-sm md:text-base text-white uppercase tracking-wide transition-all duration-200 hover:bg-[#A63E36] focus:outline-none focus:ring-2 focus:ring-[#C14C42] focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap w-full sm:w-auto max-w-xs sm:max-w-none"
+    >
+      {isSubmitting ? (
+        <div className="flex items-center justify-center space-x-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          <span className="text-xs sm:text-sm md:text-base">
+            Signing In...
+          </span>
+        </div>
+      ) : (
+        <span
+          className={`${poppins.className} text-xs sm:text-sm md:text-base font-light text-white`}
+        >
+          Sign In
+        </span>
+      )}
+    </button>
+  </div>
 
-                    {/* reCAPTCHA */}
-                    <div className="flex justify-center" style={{ transform: "scale(0.8)", transformOrigin: "0 0" }}>
-                      <ReCAPTCHA
-                        ref={recaptchaRef}
-                        sitekey={RECAPTCHA_SITE_KEY || ""}
-                        onChange={handleRecaptchaChange}
-                        theme="light"
-                        size="normal"
-                      />
-                    </div>
+  {/* reCAPTCHA */}
+  <div className="flex justify-center lg:justify-start w-auto">
+    <div
+      className="flex justify-center lg:justify-start transition-transform duration-200"
+      style={{
+        transform: "scale(0.6)",
+        transformOrigin: "center",
+      }}
+    >
+      <div
+        className="sm:scale-110 md:scale-125 lg:scale-140 xl:scale-150"
+        style={{ transformOrigin: "center" }}
+      >
+        <ReCAPTCHA
+          ref={recaptchaRef}
+          sitekey={RECAPTCHA_SITE_KEY || ""}
+          onChange={handleRecaptchaChange}
+          theme="light"
+          size="normal"
+        />
+      </div>
+    </div>
+  </div>
+</div>
 
-                  </div>
 
                   {/* reCAPTCHA Error */}
                   {errors.recaptcha && (
@@ -306,12 +327,12 @@ export default function Login() {
                 <div className="mt-4 text-start">
                   <p className="text-slate-700 font-medium text-sm">
                     Don't have an account?{" "}
-                    <a
+                    <Link
                       href="/signup"
                       className="font-bold text-[#b84238] hover:underline"
                     >
                       Create Account
-                    </a>
+                    </Link>
                   </p>
                 </div>
               </div>

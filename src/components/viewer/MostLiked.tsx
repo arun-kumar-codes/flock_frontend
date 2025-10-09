@@ -4,7 +4,6 @@ import { Heart, Loader2, User, PlayIcon, ThumbsUpIcon, BookOpenIcon, ArrowRightI
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
 import { getMostLiked, toggleVideoLike, toggleBlogLike } from "@/api/content"
-import { VideoModal } from "./video-modal"
 import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
 
@@ -121,8 +120,6 @@ export default function MostLikedTab() {
   const [content, setContent] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedVideo, setSelectedVideo] = useState<VideoPost | null>(null)
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
   const [isBlogModalOpen, setIsBlogModalOpen] = useState(false)
   const router = useRouter()
@@ -195,14 +192,8 @@ export default function MostLikedTab() {
     loadMostLikedContent();
   }
 
-  const openVideoModal = (video: VideoPost) => {
-    setSelectedVideo(video)
-    setIsVideoModalOpen(true)
-  }
-
-  const closeVideoModal = () => {
-    setSelectedVideo(null)
-    setIsVideoModalOpen(false)
+  const handleVideoClick = (video: VideoPost) => {
+    router.push(`/viewer/video/${video.id}`)
   }
 
   const openBlogModal = (blog: Blog) => {
@@ -412,7 +403,7 @@ export default function MostLikedTab() {
                 className="group cursor-pointer h-full"
                 onClick={() => {
                   if (item.type === "video") {
-                    openVideoModal(item)
+                    handleVideoClick(item)
                   } else {
                     openBlogModal(item)
                   }
@@ -608,14 +599,6 @@ export default function MostLikedTab() {
         )}
       </div>
 
-      {isVideoModalOpen && selectedVideo && (
-        <VideoModal
-          video={selectedVideo}
-          onClose={closeVideoModal}
-          onToggleLike={handleToggleVideoLike}
-          onRefreshVideos={handleRefreshContent}
-        />
-      )}
 
       {isBlogModalOpen && selectedBlog && (
         <BlogModal

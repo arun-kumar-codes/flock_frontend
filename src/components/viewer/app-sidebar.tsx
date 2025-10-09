@@ -12,6 +12,7 @@ import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
 import Logo from "@/assets/logo.svg"
 import Exit from '@/assets/Exit.svg'
+import Login from '@/assets/Login.svg'
 
 const menuItems = [
   {
@@ -85,7 +86,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
 
   return (
     <div
-      className={`fixed left-0 top-0 h-full transition-all duration-300 ease-in-out z-40 ${sidebarWidth}`}
+      className={`fixed left-0 top-0 mb-2 h-full transition-all duration-300 ease-in-out z-40 ${sidebarWidth}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -97,7 +98,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
               <Image src={Logo} alt="logo" className="w-10 h-10 text-white" />
             </div>
             <div className={`transition-opacity duration-300 ${textVisibility} ${isExpanded ? "" : "hidden"}`}>
-              <div className="font-bold text-[#2C50A2]">FLOCK</div>
+              <div className="font-bold text-xl text-[#2C50A2] whitespace-nowrap">FLOCK</div>
             </div>
           </div>
         </div>
@@ -113,7 +114,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
                   onClick={() => router.push(item.url)}
                   className={`w-full flex items-center hover:bg-gray-300 space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                     isActive
-                    ? " text-[#0F0A0F]"
+                    ? "bg-blue-200 text-[#0F0A0F]"
                     : "text-[#424242] hover:theme-bg-hover hover:text-gray-600"
                   }`}
                   title={!isExpanded ? item.title : undefined}
@@ -151,7 +152,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
                 onClick={() => router.push(item.url)}
                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                   isActive
-                    ? " text-[#0F0A0F]"
+                    ? "bg-blue-200 text-[#0F0A0F]"
                     : "text-[#424242] hover:theme-bg-hover hover:text-blue-600"
                   }`}
                 title={!isExpanded ? item.title : undefined}
@@ -210,17 +211,17 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
       ) : (
         // Logged-out state → Sign In
         <div
-  className={`absolute bottom-0 left-0 right-0 theme-border-t transition-all duration-300 ${
+  className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${
     isExpanded ? "p-4" : "px-2 py-3"
   }`}
 >
 
           <button
             onClick={() => router.push("/login")}
-            className="w-full flex items-center space-x-3 cursor-pointer  px-3 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
+            className="w-full flex items-center space-x-3 cursor-pointer  px-4 py-2.5 rounded-lg text-black hover:bg-gray-300 transition-all duration-200"
             title={!isExpanded ? "Sign In" : undefined}
           >
-            <UserIcon className="w-5 h-5 flex-shrink-0 " />
+            <Image src={Login} alt="Login" className="w-8 h-8 flex-shrink-0 " />
             <span
               className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
                 isExpanded ? "" : "hidden"

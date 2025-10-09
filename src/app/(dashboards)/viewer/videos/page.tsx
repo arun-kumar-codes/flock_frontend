@@ -14,7 +14,6 @@ import Image from "next/image";
 import SearchIcon from "@/assets/Search_Icon.svg";
 import VideoIcon from "@/assets/Video_Icon.svg";
 import Loader from "@/components/Loader";
-import { VideoModal } from "@/components/viewer/video-modal";
 import {
   getAllVideo,
   toggleVideoLike,
@@ -146,8 +145,6 @@ export default function VideoPage() {
   // UI states
   const [searchTerm, setSearchTerm] = useState("");
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [likeAnimation, setLikeAnimation] = useState<{
     [key: number]: boolean;
   }>({});
@@ -224,14 +221,6 @@ export default function VideoPage() {
           }));
         setVideos(videosWithUIFields);
 
-        if (selectedVideo) {
-          const updatedSelectedVideo = videosWithUIFields.find(
-            (video: any) => video.id === selectedVideo.id
-          );
-          if (updatedSelectedVideo) {
-            setSelectedVideo(updatedSelectedVideo);
-          }
-        }
       } else {
         setFetchError("Failed to fetch videos - unexpected response structure");
       }
@@ -331,8 +320,7 @@ export default function VideoPage() {
   };
 
   const handleVideoClick = async (video: Video) => {
-    setSelectedVideo(video);
-    setShowVideoModal(true);
+    router.push(`/viewer/video/${video.id}`);
     setShowContentMenu(null);
   };
 
@@ -383,12 +371,12 @@ export default function VideoPage() {
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-      <div className="lg:px-3 py-3">
+      <div className="lg:px-3 py-6">
         {/* Search and Filter */}
-        <div className="mb-4 md:mb-4 theme-border">
+        <div className="mb-4 md:mb-4 theme-border ml-2">
           <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-1 max-w-[60%]">
-              {/* CHANGE: Changed left positioning to right positioning */}
+            {/* Search Bar */}
+            <div className="relative w-full md:w-[60%]">
               <Image
                 src={SearchIcon}
                 alt="Search"
@@ -399,12 +387,12 @@ export default function VideoPage() {
                 placeholder="Search videos by title, author, or content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                // CHANGE: Changed padding-left (pl-6, md:pl-12) to padding-right (pr-6, md:pr-12)
                 className="w-full pl-4 pr-6 md:pl-4 md:pr-12 py-3 border-1 border-[#CDCDCD] rounded-4xl theme-text-primary placeholder-gray-500 focus:ring-1 focus:ring-gray-400 focus:border-transparent transition-all text-xs md:text-base font-poppins"
               />
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4 items-center w-full md:w-auto">
               <div className="relative inline-block">
                 {/* Left Icon */}
                 <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 dark:text-gray-400" />
@@ -418,7 +406,6 @@ export default function VideoPage() {
                   <option value="all">
                     {user.isLogin ? "All Following" : "All Creators"}
                   </option>
-
                   {followings.length > 0 ? (
                     followings.map((following) => (
                       <option key={following.id} value={following.username}>
@@ -452,6 +439,7 @@ export default function VideoPage() {
             </div>
           </div>
         </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {currentVideos.length > 0 ? (
             currentVideos.map((video) => {
@@ -464,7 +452,7 @@ export default function VideoPage() {
                   className="group cursor-pointer h-full"
                   onClick={() => handleVideoClick(video)}
                 >
-                  <div className="theme-bg-card rounded-xl shadow-sm hover:shadow-md theme-border overflow-hidden transition-all duration-300 h-full flex flex-col">
+                  <div className="theme-bg-card rounded-4xl shadow-sm hover:shadow-md theme-border overflow-hidden transition-all duration-300 h-full flex flex-col ml-2">
                     <div className="relative aspect-video overflow-hidden rounded-t-xl flex-shrink-0">
                       <img
                         src={
@@ -627,7 +615,7 @@ export default function VideoPage() {
             <button
               onClick={prevPage}
               disabled={currentPage === 0}
-              className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ArrowLeftIcon className="w-5 h-5 theme-text-secondary" />
             </button>
@@ -643,20 +631,11 @@ export default function VideoPage() {
               disabled={currentPage === totalPages - 1}
               className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ArrowRightIcon className="w-5 h-5 theme-text-secondary" />
+              <ArrowRightIcon className="w-5 h-5 theme-text-secondary cursor-pointer" />
             </button>
           </div>
         )}
 
-        {/* Video Modal */}
-        {showVideoModal && selectedVideo && (
-          <VideoModal
-            video={selectedVideo}
-            onClose={() => setShowVideoModal(false)}
-            onToggleLike={toggleLike}
-            onRefreshVideos={fetchVideos}
-          />
-        )}
       </div>
     </div>
   );

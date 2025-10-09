@@ -7,14 +7,14 @@ import {
   RefreshCwIcon,
   BookOpenIcon,
   FilterIcon,
+  UserIcon,
 } from "lucide-react";
 import SearchIcon from "@/assets/Search_Icon.svg";
 import VideoIcon from "@/assets/Video_Icon.svg";
 import Logo from "@/assets/logo.svg";
-
+import BlogIcon from "@/assets/BlogSvg.png";
 import Image from "next/image";
 import Loader from "@/components/Loader";
-import { VideoModal } from "@/components/viewer/video-modal";
 import { BlogModal } from "@/components/viewer/blog-modal";
 import {
   getDashboardContent,
@@ -203,8 +203,6 @@ export default function DashboardPage() {
   // UI states
   const [searchTerm, setSearchTerm] = useState("");
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [showBlogModal, setShowBlogModal] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
   const [likeAnimation, setLikeAnimation] = useState<{
@@ -340,7 +338,9 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error("Error fetching most viewed content:", error);
-      setMostViewedError("Failed to fetch most viewed content. Please try again.");
+      setMostViewedError(
+        "Failed to fetch most viewed content. Please try again."
+      );
     } finally {
       setIsLoadingMostViewed(false);
     }
@@ -387,7 +387,9 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error("Error fetching most liked content:", error);
-      setMostLikedError("Failed to fetch most liked content. Please try again.");
+      setMostLikedError(
+        "Failed to fetch most liked content. Please try again."
+      );
     } finally {
       setIsLoadingMostLiked(false);
     }
@@ -491,19 +493,8 @@ export default function DashboardPage() {
           comments_count: video.comments_count || video.comments?.length || 0,
         }));
         mixedContent.push(...videosWithUIFields);
-        console.log(selectedVideo);
         console.log("VIDEO WITH FIELDS : ");
         console.log(videosWithUIFields);
-        if (selectedVideo) {
-          videosWithUIFields.forEach((video: any) => {
-            if (video.id == 60) {
-              console.log(video);
-            }
-            if (selectedVideo.id === video.id) {
-              setSelectedVideo(video);
-            }
-          });
-        }
       }
 
       // Process blogs
@@ -539,16 +530,6 @@ export default function DashboardPage() {
 
       setContent(mixedContent);
 
-      // Update selected items if they exist
-      if (selectedVideo) {
-        const updatedSelectedVideo = mixedContent.find(
-          (item): item is Video =>
-            item.type === "video" && item.id === selectedVideo.id
-        );
-        if (updatedSelectedVideo) {
-          setSelectedVideo(updatedSelectedVideo);
-        }
-      }
 
       if (selectedBlog) {
         const updatedSelectedBlog = mixedContent.find(
@@ -571,7 +552,6 @@ export default function DashboardPage() {
     fetchContent();
     console.log("Fetching content on mount");
   }, [selectedFollowing, contentTypeFilter]);
-
 
   useEffect(() => {
     fetchFollowingData();
@@ -658,7 +638,6 @@ export default function DashboardPage() {
   const filteredMostViewedContent = filterContent(mostViewedContent);
   const filteredMostLikedContent = filterContent(mostLikedContent);
 
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -677,9 +656,7 @@ export default function DashboardPage() {
   };
 
   const handleVideoClick = async (video: Video) => {
-    setSelectedVideo(video);
-    setShowVideoModal(true);
-    setShowContentMenu(null);
+    router.push(`/viewer/video/${video.id}`);
   };
 
   const handleBlogClick = (blog: Blog) => {
@@ -965,12 +942,11 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-      <div className="lg:px-2 py-2">
+      <div className="lg:px-2 py-4">
         {/* Search and Filter */}
-        <div className="mb-4 md:mb-4 theme-border">
+        <div className="mb-4 md:mb-4 theme-border ml-2">
           <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-1 max-w-[60%]">
-              {/* CHANGE: Changed left positioning to right positioning */}
+            <div className="relative w-full md:w-[60%]">
               <Image
                 src={SearchIcon}
                 alt="Search"
@@ -981,12 +957,11 @@ export default function DashboardPage() {
                 placeholder="Search videos and articles by title, author, or content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                // CHANGE: Changed padding-left (pl-6, md:pl-12) to padding-right (pr-6, md:pr-12)
                 className="w-full pl-4 pr-6 md:pl-4 md:pr-12 py-3 border-1 border-[#CDCDCD] rounded-4xl theme-text-primary placeholder-gray-500 focus:ring-1 focus:ring-gray-400 focus:border-transparent transition-all text-xs md:text-base font-poppins"
               />
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-wrap gap-4 items-center w-full md:w-auto">
               {/* <div className="relative">
                 <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-500 dark:text-gray-400" />
                 <select
@@ -1150,15 +1125,15 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Trending Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black">
+            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
               Trending
             </h2>
-            <button
+            {/* <button
               onClick={handleViewAllTrending}
               className="text-black hover:text-gray-700 transition-colors duration-200 font-medium"
             >
               View All &gt;
-            </button>
+            </button> */}
           </div>
 
           {/* Trending Content Carousel */}
@@ -1195,106 +1170,111 @@ export default function DashboardPage() {
                 onTouchEnd={handleTouchEnd}
                 onScroll={(e) => setScrollLeft(e.currentTarget.scrollLeft)}
               >
-                {filteredTrendingContent.length > 0
-                  ? filteredTrendingContent.map((item, index) => (
-                      <div
-                        key={`trending-${item.type}-${item.id}`}
-                        className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                        onClick={() => handleTrendingCardClick(item)}
-                      >
-                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                          <div className="aspect-[4/3] relative overflow-hidden">
-                            {item.type === "video" ? (
-                              <img
-                                src={
-                                  item.thumbnail && item.thumbnail !== ""
-                                    ? item.thumbnail
-                                    : `/placeholder.svg?height=200&width=320&text=${encodeURIComponent(
-                                        item.title
-                                      )}&query=Professional video thumbnail`
-                                }
-                                alt={item.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <Image
-                                src={item.image || "/placeholder.svg"}
-                                alt={item.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            )}
+                {filteredTrendingContent.length > 0 ? (
+                  filteredTrendingContent.map((item, index) => (
+                    <div
+                      key={`trending-${item.type}-${item.id}`}
+                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
+                      onClick={() => handleTrendingCardClick(item)}
+                    >
+                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          {item.type === "video" ? (
+                            <img
+                              src={
+                                item.thumbnail && item.thumbnail !== ""
+                                  ? item.thumbnail
+                                  : `/placeholder.svg?height=200&width=320&text=${encodeURIComponent(
+                                      item.title
+                                    )}&query=Professional video thumbnail`
+                              }
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Image
+                              src={item.image || "/placeholder.svg"}
+                              alt={item.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          )}
 
-                            {/* Play Button Overlay */}
-                            <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
-                              <div className={`w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-                                item.type === "video" ? "scale-100" : "scale-0 group-hover:scale-100"
-                              }`}>
-                                {item.type === "video" ? (
-                                  <Image
-                                    src={VideoIcon}
-                                    alt="Video"
-                                    className="w-18 h-18 text-gray-900 ml-0.5"
-                                  />
+                          {/* Play Button Overlay */}
+                          <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
+                            <div className="w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 scale-100">
+                              {item.type === "video" ? (
+                                <Image
+                                  src={VideoIcon}
+                                  alt="Video"
+                                  className="w-18 h-18 text-gray-900 ml-0.5"
+                                />
+                              ) : (
+                                <Image
+                                  src={BlogIcon}
+                                  alt="Blog"
+                                  className="w-18 h-18 text-gray-900"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : // Show message when no trending content matches filters
+                trendingContent.length > 0 &&
+                  filteredTrendingContent.length === 0 ? (
+                  <div className="flex-shrink-0 w-full text-center py-8">
+                    <div className="bg-white rounded-4xl shadow-sm p-8">
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Image
+                            src={SearchIcon}
+                            alt="Search"
+                            className="w-8 h-8"
+                          />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                          No trending content found
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          Try adjusting your search or filter criteria
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Fallback cards when no trending content is available
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={`fallback-${index}`}
+                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
+                    >
+                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                {index === 0 ? (
+                                  <PlayIcon className="w-8 h-8 text-gray-500" />
+                                ) : index === 1 ? (
+                                  <BookOpenIcon className="w-8 h-8 text-gray-500" />
                                 ) : (
-                                  <BookOpenIcon className="w-7 h-7 text-gray-900" />
+                                  <PlayIcon className="w-8 h-8 text-gray-500" />
                                 )}
                               </div>
+                              <p className="text-sm text-gray-500">
+                                No trending content available
+                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))
-                  : // Show message when no trending content matches filters
-                    (trendingContent.length > 0 && filteredTrendingContent.length === 0) ? (
-                      <div className="flex-shrink-0 w-full text-center py-8">
-                        <div className="bg-white rounded-4xl shadow-sm p-8">
-                          <div className="text-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Image
-                                src={SearchIcon}
-                                alt="Search"
-                                className="w-8 h-8"
-                              />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-700 mb-2">No trending content found</h3>
-                            <p className="text-gray-500 text-sm">
-                              Try adjusting your search or filter criteria
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // Fallback cards when no trending content is available
-                      Array.from({ length: 3 }).map((_, index) => (
-                      <div
-                        key={`fallback-${index}`}
-                        className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                      >
-                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                          <div className="aspect-[4/3] relative overflow-hidden">
-                            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                  {index === 0 ? (
-                                    <PlayIcon className="w-8 h-8 text-gray-500" />
-                                  ) : index === 1 ? (
-                                    <BookOpenIcon className="w-8 h-8 text-gray-500" />
-                                  ) : (
-                                    <PlayIcon className="w-8 h-8 text-gray-500" />
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-500">
-                                  No trending content available
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                    )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -1304,10 +1284,10 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Most Viewed Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black">
+            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
               Most Viewed
             </h2>
-            <button
+            {/* <button
               onClick={() => {
                 // Navigate to most viewed page or show all most viewed content
                 console.log("View all most viewed content");
@@ -1316,14 +1296,17 @@ export default function DashboardPage() {
               className="text-black hover:text-gray-700 transition-colors duration-200 font-medium"
             >
               View All &gt;
-            </button>
+            </button> */}
           </div>
 
           {/* Most Viewed Content Carousel */}
           {isLoadingMostViewed ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div key={`loading-most-viewed-${index}`} className="animate-pulse">
+                <div
+                  key={`loading-most-viewed-${index}`}
+                  className="animate-pulse"
+                >
                   <div className="bg-gray-200 rounded-4xl min-h-[400px]"></div>
                 </div>
               ))}
@@ -1351,108 +1334,115 @@ export default function DashboardPage() {
                 onTouchStart={handleMostViewedTouchStart}
                 onTouchMove={handleMostViewedTouchMove}
                 onTouchEnd={handleMostViewedTouchEnd}
-                onScroll={(e) => setScrollLeftMostViewed(e.currentTarget.scrollLeft)}
+                onScroll={(e) =>
+                  setScrollLeftMostViewed(e.currentTarget.scrollLeft)
+                }
               >
-                {filteredMostViewedContent.length > 0
-                  ? filteredMostViewedContent.map((item, index) => (
-                      <div
-                        key={`most-viewed-${item.type}-${item.id}`}
-                        className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                        onClick={() => handleTrendingCardClick(item)}
-                      >
-                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                          <div className="aspect-[4/3] relative overflow-hidden">
-                            {item.type === "video" ? (
-                              <img
-                                src={
-                                  item.thumbnail && item.thumbnail !== ""
-                                    ? item.thumbnail
-                                    : `/placeholder.svg?height=200&width=320&text=${encodeURIComponent(
-                                        item.title
-                                      )}&query=Professional video thumbnail`
-                                }
-                                alt={item.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <Image
-                                src={item.image || "/placeholder.svg"}
-                                alt={item.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            )}
+                {filteredMostViewedContent.length > 0 ? (
+                  filteredMostViewedContent.map((item, index) => (
+                    <div
+                      key={`most-viewed-${item.type}-${item.id}`}
+                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
+                      onClick={() => handleTrendingCardClick(item)}
+                    >
+                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          {item.type === "video" ? (
+                            <img
+                              src={
+                                item.thumbnail && item.thumbnail !== ""
+                                  ? item.thumbnail
+                                  : `/placeholder.svg?height=200&width=320&text=${encodeURIComponent(
+                                      item.title
+                                    )}&query=Professional video thumbnail`
+                              }
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Image
+                              src={item.image || "/placeholder.svg"}
+                              alt={item.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          )}
 
-                            {/* Play Button Overlay */}
-                            <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
-                              <div className={`w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-                                item.type === "video" ? "scale-100" : "scale-0 group-hover:scale-100"
-                              }`}>
-                                {item.type === "video" ? (
-                                  <Image
-                                    src={VideoIcon}
-                                    alt="Video"
-                                    className="w-18 h-18 text-gray-900 ml-0.5"
-                                  />
+                          {/* Play Button Overlay */}
+                          <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
+                            <div className="w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg scale-100">
+                              {item.type === "video" ? (
+                                <Image
+                                  src={VideoIcon}
+                                  alt="Video"
+                                  className="w-18 h-18 text-gray-900 ml-0.5"
+                                />
+                              ) : (
+                                <Image
+                                  src={BlogIcon}
+                                  alt="Blog"
+                                  className="w-18 h-18 text-gray-900"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : // Show message when no most viewed content matches filters
+                mostViewedContent.length > 0 &&
+                  filteredMostViewedContent.length === 0 ? (
+                  <div className="flex-shrink-0 w-full text-center py-8">
+                    <div className="bg-white rounded-4xl shadow-sm p-8">
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Image
+                            src={SearchIcon}
+                            alt="Search"
+                            className="w-8 h-8"
+                          />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                          No most viewed content found
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          Try adjusting your search or filter criteria
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Fallback cards when no most viewed content is available
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={`fallback-most-viewed-${index}`}
+                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
+                    >
+                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                {index === 0 ? (
+                                  <PlayIcon className="w-8 h-8 text-gray-500" />
+                                ) : index === 1 ? (
+                                  <BookOpenIcon className="w-8 h-8 text-gray-500" />
                                 ) : (
-                                  <BookOpenIcon className="w-7 h-7 text-gray-900" />
+                                  <PlayIcon className="w-8 h-8 text-gray-500" />
                                 )}
                               </div>
+                              <p className="text-sm text-gray-500">
+                                No most viewed content available
+                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))
-                  : // Show message when no most viewed content matches filters
-                    (mostViewedContent.length > 0 && filteredMostViewedContent.length === 0) ? (
-                      <div className="flex-shrink-0 w-full text-center py-8">
-                        <div className="bg-white rounded-4xl shadow-sm p-8">
-                          <div className="text-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Image
-                                src={SearchIcon}
-                                alt="Search"
-                                className="w-8 h-8"
-                              />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-700 mb-2">No most viewed content found</h3>
-                            <p className="text-gray-500 text-sm">
-                              Try adjusting your search or filter criteria
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // Fallback cards when no most viewed content is available
-                      Array.from({ length: 3 }).map((_, index) => (
-                        <div
-                          key={`fallback-most-viewed-${index}`}
-                          className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                        >
-                          <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                            <div className="aspect-[4/3] relative overflow-hidden">
-                              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                <div className="text-center">
-                                  <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                    {index === 0 ? (
-                                      <PlayIcon className="w-8 h-8 text-gray-500" />
-                                    ) : index === 1 ? (
-                                      <BookOpenIcon className="w-8 h-8 text-gray-500" />
-                                    ) : (
-                                      <PlayIcon className="w-8 h-8 text-gray-500" />
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-gray-500">
-                                    No most viewed content available
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -1462,10 +1452,10 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Most Liked Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black">
+            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
               Most Liked
             </h2>
-            <button
+            {/* <button
               onClick={() => {
                 // Navigate to most liked page or show all most liked content
                 console.log("View all most liked content");
@@ -1474,14 +1464,17 @@ export default function DashboardPage() {
               className="text-black hover:text-gray-700 transition-colors duration-200 font-medium"
             >
               View All &gt;
-            </button>
+            </button> */}
           </div>
 
           {/* Most Liked Content Carousel */}
           {isLoadingMostLiked ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div key={`loading-most-liked-${index}`} className="animate-pulse">
+                <div
+                  key={`loading-most-liked-${index}`}
+                  className="animate-pulse"
+                >
                   <div className="bg-gray-200 rounded-4xl min-h-[400px]"></div>
                 </div>
               ))}
@@ -1509,108 +1502,115 @@ export default function DashboardPage() {
                 onTouchStart={handleMostLikedTouchStart}
                 onTouchMove={handleMostLikedTouchMove}
                 onTouchEnd={handleMostLikedTouchEnd}
-                onScroll={(e) => setScrollLeftMostLiked(e.currentTarget.scrollLeft)}
+                onScroll={(e) =>
+                  setScrollLeftMostLiked(e.currentTarget.scrollLeft)
+                }
               >
-                {filteredMostLikedContent.length > 0
-                  ? filteredMostLikedContent.map((item, index) => (
-                      <div
-                        key={`most-liked-${item.type}-${item.id}`}
-                        className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                        onClick={() => handleTrendingCardClick(item)}
-                      >
-                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                          <div className="aspect-[4/3] relative overflow-hidden">
-                            {item.type === "video" ? (
-                              <img
-                                src={
-                                  item.thumbnail && item.thumbnail !== ""
-                                    ? item.thumbnail
-                                    : `/placeholder.svg?height=200&width=320&text=${encodeURIComponent(
-                                        item.title
-                                      )}&query=Professional video thumbnail`
-                                }
-                                alt={item.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <Image
-                                src={item.image || "/placeholder.svg"}
-                                alt={item.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            )}
+                {filteredMostLikedContent.length > 0 ? (
+                  filteredMostLikedContent.map((item, index) => (
+                    <div
+                      key={`most-liked-${item.type}-${item.id}`}
+                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
+                      onClick={() => handleTrendingCardClick(item)}
+                    >
+                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          {item.type === "video" ? (
+                            <img
+                              src={
+                                item.thumbnail && item.thumbnail !== ""
+                                  ? item.thumbnail
+                                  : `/placeholder.svg?height=200&width=320&text=${encodeURIComponent(
+                                      item.title
+                                    )}&query=Professional video thumbnail`
+                              }
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Image
+                              src={item.image || "/placeholder.svg"}
+                              alt={item.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          )}
 
-                            {/* Play Button Overlay */}
-                            <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
-                              <div className={`w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-                                item.type === "video" ? "scale-100" : "scale-0 group-hover:scale-100"
-                              }`}>
-                                {item.type === "video" ? (
-                                  <Image
-                                    src={VideoIcon}
-                                    alt="Video"
-                                    className="w-18 h-18 text-gray-900 ml-0.5"
-                                  />
+                          {/* Play Button Overlay */}
+                          <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
+                            <div className="w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg scale-100">
+                              {item.type === "video" ? (
+                                <Image
+                                  src={VideoIcon}
+                                  alt="Video"
+                                  className="w-18 h-18 text-gray-900 ml-0.5"
+                                />
+                              ) : (
+                                <Image
+                                  src={BlogIcon}
+                                  alt="Blog"
+                                  className="w-18 h-18 text-gray-900"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : // Show message when no most liked content matches filters
+                mostLikedContent.length > 0 &&
+                  filteredMostLikedContent.length === 0 ? (
+                  <div className="flex-shrink-0 w-full text-center py-8">
+                    <div className="bg-white rounded-4xl shadow-sm p-8">
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Image
+                            src={SearchIcon}
+                            alt="Search"
+                            className="w-8 h-8"
+                          />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                          No most liked content found
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          Try adjusting your search or filter criteria
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Fallback cards when no most liked content is available
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={`fallback-most-liked-${index}`}
+                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
+                    >
+                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                {index === 0 ? (
+                                  <PlayIcon className="w-8 h-8 text-gray-500" />
+                                ) : index === 1 ? (
+                                  <BookOpenIcon className="w-8 h-8 text-gray-500" />
                                 ) : (
-                                  <BookOpenIcon className="w-7 h-7 text-gray-900" />
+                                  <PlayIcon className="w-8 h-8 text-gray-500" />
                                 )}
                               </div>
+                              <p className="text-sm text-gray-500">
+                                No most liked content available
+                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))
-                  : // Show message when no most liked content matches filters
-                    (mostLikedContent.length > 0 && filteredMostLikedContent.length === 0) ? (
-                      <div className="flex-shrink-0 w-full text-center py-8">
-                        <div className="bg-white rounded-4xl shadow-sm p-8">
-                          <div className="text-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Image
-                                src={SearchIcon}
-                                alt="Search"
-                                className="w-8 h-8"
-                              />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-700 mb-2">No most liked content found</h3>
-                            <p className="text-gray-500 text-sm">
-                              Try adjusting your search or filter criteria
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // Fallback cards when no most liked content is available
-                      Array.from({ length: 3 }).map((_, index) => (
-                        <div
-                          key={`fallback-most-liked-${index}`}
-                          className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                        >
-                          <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                            <div className="aspect-[4/3] relative overflow-hidden">
-                              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                <div className="text-center">
-                                  <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                    {index === 0 ? (
-                                      <PlayIcon className="w-8 h-8 text-gray-500" />
-                                    ) : index === 1 ? (
-                                      <BookOpenIcon className="w-8 h-8 text-gray-500" />
-                                    ) : (
-                                      <PlayIcon className="w-8 h-8 text-gray-500" />
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-gray-500">
-                                    No most liked content available
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -1620,15 +1620,15 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Creators Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black">
+            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
               All Creators
             </h2>
-            <button
+            {/* <button
               onClick={() => router.push("/viewer/creators")}
               className="text-black hover:text-gray-700 transition-colors duration-200 font-medium"
             >
               View All &gt;
-            </button>
+            </button> */}
           </div>
 
           {isLoadingCreators ? (
@@ -1678,27 +1678,40 @@ export default function DashboardPage() {
                           router.push(`/viewer/creator/${creator.id}`)
                         }
                       >
-                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
                           <div className="aspect-[3/4] relative overflow-hidden">
-                            <Image
-                              src={
-                                creator.profile_picture ||
-                                "/placeholder-profile.png"
-                              }
-                              alt={creator.username || creator.email}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-
-                            {/* Creator Name Overlay - Only on Hover */}
-                            <div className="absolute inset-0 bg-black/0 transition-all duration-300 flex items-end mb-2 px-2">
-                              <div className="w-full bg-white/20 px-4 py-3 text-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
-                                <h3 className="text-white font-semibold text-base truncate">
-                                  {creator.username ||
-                                    creator.email.split("@")[0]}
-                                </h3>
+                            {creator.profile_picture ? (
+                              <Image
+                                src={creator.profile_picture}
+                                alt={creator.username || creator.email}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <UserIcon className="w-10 h-10 text-gray-500" />
+                                  </div>
+                                  <p className="text-sm text-gray-500 font-medium">
+                                    {creator.username ||
+                                      creator.email.split("@")[0]}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
+                            )}
+
+                            {/* Creator Name Overlay - Only on Hover and when profile picture exists */}
+                            {creator.profile_picture && (
+                              <div className="absolute inset-0 bg-black/0 transition-all duration-300 flex items-end mb-2 px-2">
+                                <div className="w-full bg-white/20 px-4 py-3 text-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
+                                  <h3 className="text-white font-semibold text-base truncate">
+                                    {creator.username ||
+                                      creator.email.split("@")[0]}
+                                  </h3>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1863,16 +1876,6 @@ export default function DashboardPage() {
           )}
         </div> */}
 
-
-        {/* Video Modal */}
-        {showVideoModal && selectedVideo && (
-          <VideoModal
-            video={selectedVideo}
-            onClose={() => setShowVideoModal(false)}
-            onToggleLike={handleToggleVideoLike}
-            onRefreshVideos={fetchContent}
-          />
-        )}
 
         {showBlogModal && selectedBlog && (
           <BlogModal

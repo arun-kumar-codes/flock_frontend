@@ -167,7 +167,7 @@ export default function CreatorDashboard() {
     <div className="min-h-screen p-2 md:p-4">
       <div className="max-w-full mx-auto">
         {/* Hero Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl mb-8">
+        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-4xl mb-8">
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="relative px-6 py-12 md:py-16">
             <div className="max-w-3xl">
@@ -185,14 +185,14 @@ export default function CreatorDashboard() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => router.push("/dashboard/blogs")}
-                  className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
                 >
                   <FileTextIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Blog
                 </button>
                 <button
                   onClick={() => router.push("/dashboard/videos")}
-                  className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
                 >
                   <VideoIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Video
@@ -201,7 +201,7 @@ export default function CreatorDashboard() {
                   onClick={() => {
                     router.push("/dashboard/analytics")
                   }}
-                  className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm text-sm md:text-base"
                 >
                   <BarChart3Icon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   View Analytics
@@ -290,7 +290,7 @@ export default function CreatorDashboard() {
               {contentTypes.map((type) => (
                 <div
                   key={type.title}
-                  className="group bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer"
+                  className="group bg-white rounded-4xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer"
                   onClick={() => router.push(type.href)}
                 >
                   <div className="flex flex-row gap-2 items-center">
@@ -326,7 +326,7 @@ export default function CreatorDashboard() {
             </div>
 
             {/* Additional Stats Section */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8">
+            <div className="bg-white rounded-4xl p-6 shadow-sm border border-slate-200 mb-8">
               <h3 className="text-lg font-semibold text-slate-800 mb-4">Content Status Overview</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Blog Status */}

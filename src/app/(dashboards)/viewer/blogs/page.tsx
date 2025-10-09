@@ -385,69 +385,69 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-      <div className="lg:px-3 py-3">
+      <div className="lg:px-3 py-6">
         {/* Search and Filter */}
-        <div className="mb-4 md:mb-4 theme-border">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-1 max-w-[60%]">
-              {/* CHANGE: Changed left positioning to right positioning */}
-              <Image
-                src={SearchIcon}
-                alt="Search"
-                className="absolute right-1.5 md:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-6 md:h-6"
-              />
-              <input
-                type="text"
-                placeholder="Search articles by title, author, or content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                // CHANGE: Changed padding-left (pl-6, md:pl-12) to padding-right (pr-6, md:pr-12)
-                className="w-full pl-4 pr-6 md:pl-4 md:pr-12 py-3 border-1 border-[#CDCDCD] rounded-4xl theme-text-primary placeholder-gray-500 focus:ring-1 focus:ring-gray-400 focus:border-transparent transition-all text-xs md:text-base font-poppins"
-              />
-            </div>
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="relative inline-block">
-                {/* Left Icon */}
-                <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 dark:text-gray-400" />
+        <div className="mb-4 md:mb-4 theme-border ml-2">
+  <div className="flex flex-col lg:flex-row gap-4">
+    {/* Search Bar */}
+    <div className="relative w-full md:w-[60%]">
+      <Image
+        src={SearchIcon}
+        alt="Search"
+        className="absolute right-1.5 md:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-6 md:h-6"
+      />
+      <input
+        type="text"
+        placeholder="Search articles by title, author, or content..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full pl-4 pr-6 md:pl-4 md:pr-12 py-3 border-1 border-[#CDCDCD] rounded-4xl theme-text-primary placeholder-gray-500 focus:ring-1 focus:ring-gray-400 focus:border-transparent transition-all text-xs md:text-base font-poppins"
+      />
+    </div>
 
-                <select
-                  value={selectedFollowing}
-                  onChange={(e) => setSelectedFollowing(e.target.value)}
-                  disabled={isLoadingFollowing}
-                  className="pl-10 pr-8 py-2 md:py-3 bg-[#EAEEF6] cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
-                >
-                  <option value="all">
-                    {user.isLogin ? "All Following" : "All Creators"}
-                  </option>
-                  {followings.map((following) => (
-                    <option key={following.id} value={following.username}>
-                      {following.username}
-                    </option>
-                  ))}
-                </select>
+    {/* Filters */}
+    <div className="flex flex-wrap gap-4 items-center w-full md:w-auto">
+      <div className="relative inline-block">
+        {/* Left Icon */}
+        <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 dark:text-gray-400" />
 
-                {/* Right caret (custom dropdown arrow) */}
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                  <svg
-                    className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span>
-              </div>
+        <select
+          value={selectedFollowing}
+          onChange={(e) => setSelectedFollowing(e.target.value)}
+          disabled={isLoadingFollowing}
+          className="pl-10 pr-8 py-2 md:py-3 bg-[#EAEEF6] cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
+        >
+          <option value="all">
+            {user.isLogin ? "All Following" : "All Creators"}
+          </option>
+          {followings.map((following) => (
+            <option key={following.id} value={following.username}>
+              {following.username}
+            </option>
+          ))}
+        </select>
 
-              
-            </div>
-          </div>
-        </div>
+        {/* Right caret (custom dropdown arrow) */}
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+          <svg
+            className="w-4 h-4 text-gray-500 dark:text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
 
         {/* Mixed Blog Grid Layout */}
         {currentBlogs.length > 0 ? (
@@ -458,7 +458,7 @@ export default function BlogPage() {
                 className="lg:col-span-2 lg:row-span-2 group cursor-pointer"
                 onClick={() => handleBlogClick(currentBlogs[0])}
               >
-                <div className="theme-bg-card rounded-2xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300">
+                <div className="theme-bg-card rounded-4xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300 ml-2">
                   <div className="aspect-[16/10] relative overflow-hidden">
                     {currentBlogs[0].image ? (
                       <Image
@@ -545,7 +545,7 @@ export default function BlogPage() {
                 className="lg:col-span-1 group cursor-pointer"
                 onClick={() => handleBlogClick(blog)}
               >
-                <div className="theme-bg-card rounded-2xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300 ">
+                <div className="theme-bg-card rounded-4xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300 ml-2">
                   <div className="aspect-[16/9] relative overflow-hidden">
                     {blog.image ? (
                       <Image
@@ -656,7 +656,7 @@ export default function BlogPage() {
             <button
               onClick={prevPage}
               disabled={currentPage === 0}
-              className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ArrowLeftIcon className="w-5 h-5 theme-text-secondary" />
             </button>
@@ -672,7 +672,7 @@ export default function BlogPage() {
               disabled={currentPage === totalPages - 1}
               className="p-3 rounded-full theme-button-secondary hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ArrowRightIcon className="w-5 h-5 theme-text-secondary" />
+              <ArrowRightIcon className="w-5 h-5 theme-text-secondary cursor-pointer" />
             </button>
           </div>
         )}

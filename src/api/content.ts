@@ -407,6 +407,15 @@ export async function getVideoById(videoId: any) {
   }
 }
 
+export async function getBlogById(blogId: any) {
+  try {
+    const response = await axiosInstance.get(`/blog/${blogId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error fetching blog by ID:", error);    
+  }
+}
+
 
 export async function getAllVideo() {
   try {

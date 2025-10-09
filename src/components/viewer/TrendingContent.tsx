@@ -14,7 +14,6 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getAllTrendingContent, toggleVideoLike, toggleBlogLike } from "@/api/content"
-import { VideoModal } from "./video-modal"
 import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -150,8 +149,6 @@ export default function TrendingContentTab() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState<ContentItem[]>([])
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [isBlogModalOpen, setIsBlogModalOpen] = useState(false)
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
   const router = useRouter()
@@ -214,14 +211,8 @@ export default function TrendingContentTab() {
     loadTrendingContent()
   }
 
-  const openVideoModal = (video: Video) => {
-    setSelectedVideo(video)
-    setIsVideoModalOpen(true)
-  }
-
-  const closeVideoModal = () => {
-    setSelectedVideo(null)
-    setIsVideoModalOpen(false)
+  const handleVideoClick = (video: Video) => {
+    router.push(`/viewer/video/${video.id}`)
   }
 
   const openBlogModal = (blog: Blog) => {
@@ -550,7 +541,7 @@ export default function TrendingContentTab() {
                 className="group cursor-pointer h-full"
                 onClick={() => {
                   if (item.type === "video") {
-                    openVideoModal(item)
+                    handleVideoClick(item)
                   } else {
                     openBlogModal(item)
                   }
@@ -812,14 +803,6 @@ export default function TrendingContentTab() {
         )}
       </div>
 
-      {isVideoModalOpen && selectedVideo && (
-        <VideoModal
-          video={selectedVideo}
-          onClose={closeVideoModal}
-          onToggleLike={handleToggleVideoLike}
-          onRefreshVideos={handleRefreshContent}
-        />
-      )}
 
       {isBlogModalOpen && selectedBlog && (
         <BlogModal

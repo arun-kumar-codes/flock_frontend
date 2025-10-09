@@ -1414,7 +1414,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto p-1 md:px-6 lg:px-8 md:py-8">
+      <main className="max-w-full mx-auto p-1 md:px-2 lg:px-2 md:py-4">
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
@@ -1510,7 +1510,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
             <div className="flex flex-col md:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <h3 className="text-lg lg:text-xl font-semibold text-slate-800">Your Videos</h3>
               <button
-                className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm lg:text-base"
+                className="inline-flex cursor-pointer items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm lg:text-base"
                 onClick={() => setShowCreateModal(true)}
               >
                 <PlusIcon className="w-4 h-4 mr-2" />
@@ -1529,7 +1529,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                 className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "active" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
                   }`}
               >
-                <div className="flex items-center justify-center space-x-1 lg:space-x-2">
+                <div className="flex items-center justify-center space-x-1 cursor-pointer lg:space-x-2">
                   <VideoIcon className="w-3 h-3 lg:w-4 lg:h-4" />
                   <span className="hidden sm:inline">Active Videos</span>
                   <span className="sm:hidden">Active</span>
@@ -1546,7 +1546,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                 className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "archived" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
                   }`}
               >
-                <div className="flex items-center justify-center space-x-1 lg:space-x-2">
+                <div className="flex items-center justify-center cursor-pointer space-x-1 lg:space-x-2">
                   <ArchiveIcon className="w-3 h-3 lg:w-4 lg:h-4" />
                   <span className="hidden sm:inline">Archived</span>
                   <span className="sm:hidden">Archive</span>
@@ -1563,7 +1563,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                 className={`flex-1 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-md transition-colors ${activeTab === "rejected" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
                   }`}
               >
-                <div className="flex items-center justify-center space-x-1 lg:space-x-2">
+                <div className="flex items-center justify-center cursor-pointer space-x-1 lg:space-x-2">
                   <XIcon className="w-3 h-3 lg:w-4 lg:h-4" />
                   <span className="hidden sm:inline">Rejected</span>
                   <span className="sm:hidden">Reject</span>
@@ -1590,7 +1590,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-3 lg:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm lg:text-base min-w-0 sm:min-w-[140px]"
+                  className="px-3 lg:px-4 py-2 border cursor-pointer border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm lg:text-base min-w-0 sm:min-w-[140px]"
                 >
                   <option value="all">All Status</option>
                   <option value="published">Published</option>
@@ -1984,7 +1984,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                 </p>
                 {!searchTerm && activeTab === "active" && filterStatus === "all" && (
                   <button
-                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    className="inline-flex cursor-pointer items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <PlusIcon className="w-4 h-4 mr-2" />

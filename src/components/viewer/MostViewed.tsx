@@ -3,7 +3,6 @@
 import { VideoIcon, Loader2, User, PlayIcon, BookOpenIcon, ThumbsUpIcon, ArrowRightIcon, ArrowLeftIcon, LucideArrowRight as PaginationArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getMostViewed, toggleVideoLike, toggleBlogLike } from "@/api/content"
-import { VideoModal } from "./video-modal"
 import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
 
@@ -136,8 +135,6 @@ export default function MostViewedContentTab() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState<ContentItem[]>([])
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [isBlogModalOpen, setIsBlogModalOpen] = useState(false)
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
   const [likeAnimation, setLikeAnimation] = useState<{[key: string]: boolean}>({})
@@ -199,14 +196,8 @@ export default function MostViewedContentTab() {
     loadTrendingContent();
   }
 
-  const openVideoModal = (video: Video) => {
-    setSelectedVideo(video)
-    setIsVideoModalOpen(true)
-  }
-
-  const closeVideoModal = () => {
-    setSelectedVideo(null)
-    setIsVideoModalOpen(false)
+  const handleVideoClick = (video: Video) => {
+    router.push(`/viewer/video/${video.id}`)
   }
 
   const openBlogModal = (blog: Blog) => {
@@ -515,7 +506,7 @@ export default function MostViewedContentTab() {
                   className="group cursor-pointer h-full"
                   onClick={() => {
                     if (item.type === "video") {
-                      openVideoModal(item)
+                      handleVideoClick(item)
                     } else {
                       openBlogModal(item)
                     }
@@ -729,14 +720,6 @@ export default function MostViewedContentTab() {
         )}
       </div>
 
-      {isVideoModalOpen && selectedVideo && (
-        <VideoModal
-          video={selectedVideo}
-          onClose={closeVideoModal}
-          onToggleLike={handleToggleVideoLike}
-          onRefreshVideos={handleRefreshContent}
-        />
-      )}
 
       {isBlogModalOpen && selectedBlog && (
         <BlogModal

@@ -242,7 +242,7 @@ export default function PayoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 md:p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-full mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Creator Earnings</h1>
@@ -438,7 +438,7 @@ export default function PayoutPage() {
               <button
                 onClick={handleWithdraw}
                 disabled={isWithdrawing}
-                className={`px-4 py-2 rounded-lg text-white transition-colors ${isWithdrawing ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+                className={`px-4 py-2 rounded-lg cursor-pointer text-white transition-colors ${isWithdrawing ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
                   }`}
               >
                 {isWithdrawing ? "Processing..." : "Request Withdrawal"}

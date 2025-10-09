@@ -1,28 +1,25 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef } from "react"
-import { signUp } from "@/api/auth"
-import { useRouter } from "next/navigation"
-import SocialLogin from "@/components/SocialLogIn"
-import ReCAPTCHA from "react-google-recaptcha"
-import { toast } from "react-hot-toast"
-import {
-  UserPlusIcon,
-  MailIcon,
-  LockIcon,
-  UserIcon,
-  CheckCircleIcon,
-  ShieldCheckIcon,
-  EyeIcon,
-  EyeOffIcon,
-  SparklesIcon,
-  StarIcon,
-  VideoIcon,
-  BarChart3Icon,
-  HeartIcon,
-  ZapIcon,
-} from "lucide-react"
+import { useState, useRef, useEffect } from "react";
+import { EyeIcon, EyeOffIcon, LockIcon, ShieldCheckIcon } from "lucide-react";
+import SocialLogIn from "@/components/SocialLogIn";
+import { signUp } from "@/api/auth";
+import { useRouter } from "next/navigation";
+import ReCAPTCHA from "react-google-recaptcha";
+import { toast } from "react-hot-toast";
+import Loader from "@/components/Loader";
+import AutoScrollCarousel from "@/components/AutoScrollCarousel";
+import Image from "next/image";
+import { Poppins } from "next/font/google";
+import loginBg from "@/assets/auth-bg.jpg";
+import logo from "@/assets/logo.svg";
+import img1 from "@/assets/Image1.png";
+import img2 from "@/assets/Image2.png";
+import img3 from "@/assets/Image3.png";
+import img4 from "@/assets/Image4.png";
+import Link from "next/link";
+
+const poppins = Poppins({ subsets: ["latin"], weight: "400" });
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -30,275 +27,203 @@ export default function Signup() {
     username: "",
     password: "",
     recaptchaToken: "",
-  })
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const router = useRouter()
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [focusedField, setFocusedField] = useState<string | null>(null)
-  const recaptchaRef = useRef<ReCAPTCHA>(null)
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
-  const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+  const platformFeatures = [
+    {
+      title: "CREATE & SHARE",
+      description: "Upload and share amazing content",
+      image: img1,
+    },
+    {
+      title: "DISCOVER & ENGAGE",
+      description: "Explore & Connect with Creators",
+      image: img2,
+    },
+    {
+      title: "ANALYTICS & INSIGHTS",
+      description: "Track performance and Growth",
+      image: img3,
+    },
+    {
+      title: "MONETIZE & GROW",
+      description: "Turn passion into profit",
+      image: img4,
+    },
+  ];
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+  const handleChange = (name: string, value: string) => {
+    if (name === "username") {
+      const hasSpecialChars = /[^a-zA-Z0-9_]/.test(value);
+      if (hasSpecialChars) {
+        setErrors((prev) => ({ ...prev, username: "Username must not contain special characters" }));
+        return; // prevent updating formData if invalid
+      }
+    }
+    if (name === "email") {
+      value = value.toLowerCase();
+    }
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    setErrors({
+      ...errors,
+      [name]: "",
+    });
+    setErrorMessage("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const newErrors: Record<string, string> = {};
+
     if (!formData.email) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email"
+      newErrors.email = "Please enter a valid email";
     }
 
     if (!formData.username) {
-      newErrors.username = "Username is required"
+      newErrors.username = "Username is required";
     } else if (formData.username.length < 3) {
-      newErrors.username = "Username must be at least 3 characters"
+      newErrors.username = "Username must be at least 3 characters";
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = "Confirm password is required"
+      newErrors.confirmPassword = "Confirm password is required";
     } else if (formData.password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     if (!formData.recaptchaToken) {
-      newErrors.recaptcha = "Please complete the reCAPTCHA verification"
+      newErrors.recaptcha = "Please complete the reCAPTCHA verification";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsSubmitting(false);
+      return;
+    }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateForm()) return
-
-    setIsSubmitting(true)
     try {
-      const response = await signUp(formData)
+      const response = await signUp(formData);
+
       if (response.status === 201) {
-        toast.success("Account created successfully!")
-        router.push("/login")
+        toast.success("Account created successfully!");
+        router.push("/login");
       } else {
-        toast.error(response?.data?.error||"Error creating account. Please try again.");
+        setErrorMessage(
+          response?.data?.error || "Error creating account. Please try again."
+        );
       }
-    } catch (error) {
-      console.error("Sign up error:", error)
-      toast.error("An error occurred while creating your account. Please try again later.")
+    } catch (error: any) {
+      setErrorMessage("An error occurred. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
+      setIsLoading(false);
       if (recaptchaRef.current) {
-        recaptchaRef.current.reset()
-        setFormData((prev) => ({ ...prev, recaptchaToken: "" }))
+        recaptchaRef.current.reset();
       }
-    }
-  }
-
-const handleChange = (field: string, value: string) => {
-  if (field === "username") {
-    const hasSpecialChars = /[^a-zA-Z0-9_]/.test(value);
-    if (hasSpecialChars) {
-      setErrors((prev) => ({ ...prev, username: "Username must not contain special characters" }));
-      return; // prevent updating formData if invalid
-    }
-  }
-  if (field === "email") {
-    value = value.toLowerCase();
-  }
-
-  setFormData((prev) => ({ ...prev, [field]: value }));
-
-  if (errors[field]) {
-    setErrors((prev) => ({ ...prev, [field]: "" }));
   }
 };
 
   const handleConfirmPasswordChange = (value: string) => {
-    setConfirmPassword(value)
+    setConfirmPassword(value);
     if (errors.confirmPassword) {
-      setErrors((prev) => ({ ...prev, confirmPassword: "" }))
+      setErrors((prev) => ({ ...prev, confirmPassword: "" }));
     }
-  }
+  };
 
   const handleRecaptchaChange = (token: string | null) => {
-    setFormData((prev) => ({ ...prev, recaptchaToken: token || "" }))
+    setFormData((prev) => ({ ...prev, recaptchaToken: token || "" }));
     if (token && errors.recaptcha) {
-      setErrors((prev) => ({ ...prev, recaptcha: "" }))
+      setErrors((prev) => ({ ...prev, recaptcha: "" }));
     }
+  };
+
+  if (isLoading) {
+    return <Loader />;
   }
-
-  const getPasswordStrength = (password: string) => {
-    if (password.length === 0) return { strength: 0, text: "", color: "" }
-    if (password.length < 6) return { strength: 1, text: "Weak", color: "text-red-500" }
-    if (password.length < 8) return { strength: 2, text: "Fair", color: "text-amber-500" }
-    if (password.length >= 8 && /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      return { strength: 4, text: "Strong", color: "text-emerald-500" }
-    }
-    return { strength: 3, text: "Good", color: "text-blue-500" }
-  }
-
-  const passwordStrength = getPasswordStrength(formData.password)
-
-  const platformFeatures = [
-    {
-      icon: VideoIcon,
-      title: "Create & Share",
-      description: "Upload and share amazing content",
-      gradient: "from-rose-500 to-pink-500",
-    },
-    {
-      icon: HeartIcon,
-      title: "Discover & Engage",
-      description: "Explore and connect with creators",
-      gradient: "from-violet-500 to-purple-500",
-    },
-    {
-      icon: BarChart3Icon,
-      title: "Analytics & Insights",
-      description: "Track performance and growth",
-      gradient: "from-blue-500 to-cyan-500",
-    },
-    {
-      icon: ZapIcon,
-      title: "Monetize & Grow",
-      description: "Turn passion into profit",
-      gradient: "from-amber-500 to-orange-500",
-    },
-  ]
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
-      {/* Left Side - Platform Showcase */}
-      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden ">
-        {/* Background with mesh gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
-
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-white/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+    <div className="min-h-screen relative">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <Image src={loginBg} alt="bg" fill className="object-top" />
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-12 py-8 text-white h-full mx-auto">
-          <div className="max-w-lg mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-xl">
-                  <SparklesIcon className="h-6 w-6 text-white" />
+      <div className="relative z-10 max-w-8xl mx-auto min-h-screen flex items-center justify-center px-8">
+        <div className="flex flex-col lg:flex-row items-stretch gap-4 w-full">
+          {/* Left translucent panel */}
+          <div className="w-full lg:w-1/2 flex items-center justify-center mt-2 mb-2">
+            <div className="w-full h-full rounded-3xl bg-gradient-to-br from-white/50 to-white/0 backdrop-blur-sm p-6 sm:p-8 md:p-10 shadow-xl flex items-center justify-center">
+              <div className="w-full max-w-xl mx-auto">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-20 h-20 flex items-center justify-center">
+                    <Image src={logo} alt="logo" className="h-20 w-20" />
                 </div>
-                <div className="ml-3">
-                  <h1 className="text-xl font-bold text-white">Flock</h1>
-                  <p className="text-white/70 text-xs">Your Creative Universe</p>
-                </div>
-              </div>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
-                Where Stories Come to Life
-              </h2>
-              <p className="text-lg text-white/90 leading-relaxed font-light">
-                Join millions of creators, viewers, and innovators in the ultimate digital experience.
-              </p>
-            </div>
-
-            {/* Features Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-8">
-              {platformFeatures.map((feature, index) => (
-                <div
-                  key={index}
-                  className="group p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105"
-                >
-                  <div
-                    className={`w-8 h-8 bg-gradient-to-r ${feature.gradient} rounded-lg flex items-center justify-center mb-3 shadow-lg`}
-                  >
-                    <feature.icon className="h-4 w-4 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-white mb-1 text-sm">{feature.title}</h3>
-                  <p className="text-xs text-white/80 leading-relaxed">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Stats */}
-            {/* <div className="flex justify-between items-center p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
-              <div className="text-center">
-                <div className="text-xl font-bold text-white mb-1">50M+</div>
-                <div className="text-xs text-white/80 uppercase tracking-wide">Users</div>
-              </div>
-              <div className="w-px h-8 bg-white/20"></div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-white mb-1">$100M+</div>
-                <div className="text-xs text-white/80 uppercase tracking-wide">Earnings</div>
-              </div>
-              <div className="w-px h-8 bg-white/20"></div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-white mb-1">4.9</div>
-                <div className="flex items-center justify-center mt-1">
-                  {[...Array(5)].map((_, i) => (
-                    <StarIcon key={i} className="h-3 w-3 text-amber-300 fill-current" />
-                  ))}
-                </div>
-              </div>
-            </div> */}
-          </div>
+                  <div>
+                    <h3 className="text-4xl font-bold text-[#2C50A2]">FLOCK</h3>
         </div>
       </div>
 
-      {/* Right Side - Signup Form (Full Section) */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-16 py-4 lg:py-8 bg-white">
-        <div className="w-full max-w-lg mx-auto">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <div className="mx-auto mb-4 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-xl">
-              <UserPlusIcon className="h-7 w-7 text-white" />
-            </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2">Join Flock</h1>
-            <p className="text-slate-600 font-medium text-sm">Create your account and start your journey</p>
-          </div>
+                <h2
+                  className="text-2xl md:text-4xl font-medium text-[#C14C42] leading-[1] mb-4"
+                  style={{ fontFamily: '"Cera Pro", sans-serif' }}
+                >
+                  Join Your Creative Journey Today
+                </h2>
+                <p
+                  className={`${poppins.className} text-slate-700 font-normal text-sm md:text-lg leading-[1.5] tracking-normal mb-6`}
+                >
+                  Create your account and start sharing, discovering, & connecting with your
+                  community. Your creative universe awaits.
+                </p>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div className="space-y-1">
-              <label htmlFor="email" className="flex items-center text-sm font-semibold text-slate-700">
-                <div
-                  className={`w-4 h-4 rounded-lg flex items-center justify-center mr-2 transition-all duration-200 ${
-                    focusedField === "email" ? "bg-indigo-100 shadow-sm" : "bg-slate-100"
-                  }`}
-                >
-                  <MailIcon
-                    className={`h-2.5 w-2.5 transition-colors duration-200 ${
-                      focusedField === "email" ? "text-indigo-600" : "text-slate-500"
-                    }`}
-                  />
-                </div>
-                Email Address
-              </label>
               <input
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value.toLocaleLowerCase())}
+                      onChange={(e) =>
+                        handleChange(
+                          "email",
+                          e.target.value.toLocaleLowerCase()
+                        )
+                      }
                 onFocus={() => setFocusedField("email")}
                 onBlur={() => setFocusedField(null)}
                 placeholder="Enter your email address"
-                className={`w-full rounded-lg border-2 px-3 py-2.5 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
-                  errors.email ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
+                      className={`w-full rounded-full border-2 px-4 py-3 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${errors.email
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-100"
+                        : "border-slate-200"
                 }`}
-                style={{ textTransform: "lowercase" }}
               />
               {errors.email && (
                 <p className="text-xs text-red-600 flex items-center font-medium">
-                  <div className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></div>
+                        <span className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
                   {errors.email}
                 </p>
               )}
@@ -306,20 +231,6 @@ const handleChange = (field: string, value: string) => {
 
             {/* Username Field */}
             <div className="space-y-1">
-              <label htmlFor="username" className="flex items-center text-sm font-semibold text-slate-700">
-                <div
-                  className={`w-4 h-4 rounded-lg flex items-center justify-center mr-2 transition-all duration-200 ${
-                    focusedField === "username" ? "bg-indigo-100 shadow-sm" : "bg-slate-100"
-                  }`}
-                >
-                  <UserIcon
-                    className={`h-2.5 w-2.5 transition-colors duration-200 ${
-                      focusedField === "username" ? "text-indigo-600" : "text-slate-500"
-                    }`}
-                  />
-                </div>
-                Username
-              </label>
               <input
                 id="username"
                 type="text"
@@ -328,36 +239,21 @@ const handleChange = (field: string, value: string) => {
                 onFocus={() => setFocusedField("username")}
                 onBlur={() => setFocusedField(null)}
                 placeholder="Choose your unique username"
-                className={`w-full rounded-lg border-2 px-3 py-2.5 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
-                  errors.username ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
+                      className={`w-full rounded-full border-2 px-4 py-3 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${errors.username
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-100"
+                        : "border-slate-200"
                 }`}
               />
               {errors.username && (
                 <p className="text-xs text-red-600 flex items-center font-medium">
-                  <div className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></div>
+                        <span className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
                   {errors.username}
                 </p>
               )}
             </div>
 
-            {/* Password Fields Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Password Field */}
               <div className="space-y-1">
-                <label htmlFor="password" className="flex items-center text-sm font-semibold text-slate-700">
-                  <div
-                    className={`w-4 h-4 rounded-lg flex items-center justify-center mr-2 transition-all duration-200 ${
-                      focusedField === "password" ? "bg-indigo-100 shadow-sm" : "bg-slate-100"
-                    }`}
-                  >
-                    <LockIcon
-                      className={`h-2.5 w-2.5 transition-colors duration-200 ${
-                        focusedField === "password" ? "text-indigo-600" : "text-slate-500"
-                      }`}
-                    />
-                  </div>
-                  Password
-                </label>
                 <div className="relative">
                   <input
                     id="password"
@@ -366,18 +262,27 @@ const handleChange = (field: string, value: string) => {
                     onChange={(e) => handleChange("password", e.target.value)}
                     onFocus={() => setFocusedField("password")}
                     onBlur={() => setFocusedField(null)}
-                    placeholder="Create password"
-                    className={`w-full rounded-lg border-2 px-3 py-2.5 pr-10 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
-                      errors.password ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-200"
+                        placeholder="Create your password"
+                        className={`w-full rounded-full border-2 px-4 py-3 pr-10 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${errors.password
+                          ? "border-red-400 focus:border-red-500 focus:ring-red-100"
+                          : "border-slate-200"
                     }`}
                   />
+
+                      {/* Show Eye Icon only if password field has value */}
+                      {formData.password.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 cursor-pointer transform -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors duration-200"
-                  >
-                    {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                          className="absolute right-3 top-1/2 cursor-pointer transform -translate-y-1/2 text-slate-800 hover:text-indigo-600 transition-colors duration-200"
+                        >
+                          {showPassword ? (
+                            <EyeOffIcon className="h-5 w-5" />
+                          ) : (
+                            <EyeIcon className="h-5 w-5" />
+                          )}
                   </button>
+                      )}
                 </div>
                 {errors.password && (
                   <p className="text-xs text-red-600 flex items-center font-medium">
@@ -389,20 +294,6 @@ const handleChange = (field: string, value: string) => {
 
               {/* Confirm Password Field */}
               <div className="space-y-1">
-                <label htmlFor="confirmPassword" className="flex items-center text-sm font-semibold text-slate-700">
-                  <div
-                    className={`w-4 h-4 rounded-lg flex items-center justify-center mr-2 transition-all duration-200 ${
-                      focusedField === "confirmPassword" ? "bg-indigo-100 shadow-sm" : "bg-slate-100"
-                    }`}
-                  >
-                    <CheckCircleIcon
-                      className={`h-2.5 w-2.5 transition-colors duration-200 ${
-                        focusedField === "confirmPassword" ? "text-indigo-600" : "text-slate-500"
-                      }`}
-                    />
-                  </div>
-                  Confirm Password
-                </label>
                 <div className="relative">
                   <input
                     id="confirmPassword"
@@ -411,22 +302,29 @@ const handleChange = (field: string, value: string) => {
                     onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                     onFocus={() => setFocusedField("confirmPassword")}
                     onBlur={() => setFocusedField(null)}
-                    placeholder="Confirm password"
-                    className={`w-full rounded-lg border-2 px-3 py-2.5 pr-10 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
-                      errors.confirmPassword
+                        placeholder="Confirm your password"
+                        className={`w-full rounded-full border-2 px-4 py-3 pr-10 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${errors.confirmPassword
                         ? "border-red-400 focus:border-red-500 focus:ring-red-100"
                         : confirmPassword && formData.password === confirmPassword
                           ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-100"
                           : "border-slate-200"
                     }`}
                   />
+
+                      {/* Show Eye Icon only if confirm password field has value */}
+                      {confirmPassword.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 cursor-pointer transform -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors duration-200"
-                  >
-                    {showConfirmPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                          className="absolute right-3 top-1/2 cursor-pointer transform -translate-y-1/2 text-slate-800 hover:text-indigo-600 transition-colors duration-200"
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOffIcon className="h-5 w-5" />
+                          ) : (
+                            <EyeIcon className="h-5 w-5" />
+                          )}
                   </button>
+                      )}
                 </div>
                 {errors.confirmPassword && (
                   <p className="text-xs text-red-600 flex items-center font-medium">
@@ -435,47 +333,54 @@ const handleChange = (field: string, value: string) => {
                   </p>
                 )}
               </div>
-            </div>
-
-            {/* Password Strength Indicator */}
-            {formData.password && (
-              <div className="flex items-center space-x-3">
-                <div className="flex-1 bg-slate-200 rounded-full h-1.5">
-                  <div
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                      passwordStrength.strength === 1
-                        ? "w-1/4 bg-red-500"
-                        : passwordStrength.strength === 2
-                          ? "w-2/4 bg-amber-500"
-                          : passwordStrength.strength === 3
-                            ? "w-3/4 bg-blue-500"
-                            : passwordStrength.strength === 4
-                              ? "w-full bg-emerald-500"
-                              : "w-0"
-                    }`}
-                  ></div>
-                </div>
-                <span className={`text-xs font-semibold ${passwordStrength.color}`}>{passwordStrength.text}</span>
-              </div>
-            )}
 
             {/* Password Match Indicator */}
             {confirmPassword && formData.password === confirmPassword && !errors.confirmPassword && (
               <p className="text-xs text-emerald-600 flex items-center font-medium">
-                <CheckCircleIcon className="w-3 h-3 mr-1.5" />
+                      <span className="w-1 h-1 bg-emerald-600 rounded-full mr-1.5"></span>
                 Passwords match perfectly
               </p>
             )}
 
+                  {/* Sign Up Button and reCAPTCHA */}
+                  <div className="flex flex-col xl:flex-row items-center justify-center xl:justify-between gap-1 xl:gap-2">
+                    {/* Sign Up Button */}
+                    <div className="flex justify-center w-full xl:w-auto">
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="rounded-full cursor-pointer bg-[#C14C42] px-6  md:px-10 lg:px-14 xl:px-18 py-2 sm:py-2.5 md:py-3 font-bold text-xs sm:text-sm md:text-base text-white uppercase tracking-wide transition-all duration-200 hover:bg-[#A63E36] focus:outline-none focus:ring-2 focus:ring-[#C14C42] focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap w-full sm:w-auto max-w-xs sm:max-w-none"
+                      >
+                        {isSubmitting ? (
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span className="text-xs sm:text-sm md:text-base">
+                              Creating Account...
+                            </span>
+                          </div>
+                        ) : (
+                          <span
+                            className={`${poppins.className} text-xs sm:text-sm md:text-base font-light text-white`}
+                          >
+                            Create Account
+                          </span>
+                        )}
+                      </button>
+                    </div>
+
             {/* reCAPTCHA */}
-            <div className="space-y-2">
-              <label className="flex items-center text-sm font-semibold text-slate-700">
-                <div className="w-4 h-4 bg-slate-100 rounded-lg flex items-center justify-center mr-2">
-                  <ShieldCheckIcon className="h-2.5 w-2.5 text-slate-500" />
-                </div>
-                Security Verification
-              </label>
-              <div className="flex justify-center p-3">
+                    <div className="flex justify-center w-full xl:w-auto">
+                      <div
+                        className="transform transition-transform duration-200"
+                        style={{
+                          transform: "scale(0.6)",
+                          transformOrigin: "center",
+                        }}
+                      >
+                        <div
+                          className="sm:scale-100 md:scale-110 lg:scale-120 xl:scale-150"
+                          style={{ transformOrigin: "center" }}
+                        >
                 <ReCAPTCHA
                   ref={recaptchaRef}
                   sitekey={RECAPTCHA_SITE_KEY || ""}
@@ -484,55 +389,87 @@ const handleChange = (field: string, value: string) => {
                   size="normal"
                 />
               </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+
+
+                  {/* reCAPTCHA Error */}
               {errors.recaptcha && (
-                <p className="text-xs text-red-600 flex items-center justify-center font-medium">
+                    <p className="text-xs text-red-600 flex items-center justify-center font-medium mt-2">
                   <div className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></div>
                   {errors.recaptcha}
                 </p>
               )}
-            </div>
 
-            {/* Submit Button */}
-            <div className="pt-1">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full rounded-lg cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 font-bold text-white shadow-xl transition-all duration-200 hover:from-indigo-700 hover:to-purple-700 hover:shadow-2xl hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:scale-100"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span className="text-sm">Creating Your Account...</span>
+                  {/* Error Message */}
+                  {errorMessage && (
+                    <div className="p-3 bg-red-50 border-2 border-red-200 rounded-lg mb-4">
+                      <div className="text-sm text-red-700 flex items-center font-medium">
+                        <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                        {errorMessage}
                   </div>
-                ) : (
-                  <div className="flex items-center justify-center space-x-2">
-                    <UserPlusIcon className="h-4 w-4" />
-                    <span className="text-sm">Create Account</span>
                   </div>
                 )}
-              </button>
-            </div>
 
-            <div className="pt-1">
-              <SocialLogin />
-            </div>
+                  {/* Social Login Buttons */}
+                  <SocialLogIn />
           </form>
 
-          {/* Footer */}
-          <div className="mt-4 text-center">
-            <p className="text-slate-600 font-medium text-sm">
+                <div className="mt-4 text-start">
+                  <p className="text-slate-700 font-medium text-sm">
               Already have an account?{" "}
-              <a
+                    <Link
                 href="/login"
-                className="font-bold text-indigo-600 hover:text-indigo-700 transition-colors duration-200 hover:underline"
+                      className="font-bold text-[#b84238] hover:underline"
               >
-                Sign in here
-              </a>
+                      Sign In
+                    </Link>
             </p>
           </div>
         </div>
       </div>
+            </div>
 
+          {/* Right panel - Feature showcase */}
+          <div className="w-full lg:w-1/2 hidden lg:flex flex-col">
+            <div className="relative w-full h-full min-h-[600px] rounded-3xl overflow-hidden">
+              {/* Gradient background */}
+              <div className="absolute inset-0">
+                <div className="relative z-10 h-full flex flex-col justify-between items-center px-4 pb-9 pt-24">
+                  {/* Logo and title */}
+                  <div className="flex flex-col items-center gap-3 mb-4">
+                    <div className="w-40 h-40 flex items-center justify-center mt-12">
+                      <Image src={logo} alt="logo" className="h-40 w-40" />
+                      <h3 className="text-6xl font-bold text-[#2C50A2] tracking-wider">
+                        FLOCK
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Create & Share section */}
+                  <div
+                    className="w-full text-left relative z-20 mt-14"
+                    style={{ fontFamily: '"Cera Pro", sans-serif' }}
+                  >
+                    <h2 className="text-xl font-bold text-white">
+                      Create & Share
+                    </h2>
+                    <p className="text-white text-md">
+                      Upload and share amazing content
+                    </p>
+            </div>
+
+                  {/* Auto Scroll Carousel */}
+                  <AutoScrollCarousel platformFeatures={platformFeatures} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
