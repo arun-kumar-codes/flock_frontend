@@ -191,13 +191,24 @@
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
+.theme-bg-hover {
+  background-color: var(--theme-bg-secondary);
+}
+.theme-bg-hover:hover {
+  background-color: var(--theme-bg-card);
+}
+
 .theme-text-primary {
-  color: var(--theme-text-primary);
+  color: var(--theme-text-primary) !important;
 }
 .theme-text-secondary {
   color: var(--theme-text-secondary);
 }
 .theme-text-muted {
+  color: var(--theme-text-muted);
+}
+
+.theme-placeholder {
   color: var(--theme-text-muted);
 }
 
@@ -379,6 +390,36 @@ html[data-theme="light"] {
 
 .animate-pop-pink {
   animation: pop-pink 0.6s ease-out;
+}
+
+/* Custom animation classes for video modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes videoGlow {
+  0% {
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.1), 0 0 200px rgba(0, 0, 0, 0.05);
+  }
+  100% {
+    box-shadow: 0 0 150px rgba(0, 0, 0, 0.15), 0 0 300px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-out;
+}
+
+/* Gradient radial utility */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
 }
 
 

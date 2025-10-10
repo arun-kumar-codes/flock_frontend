@@ -19,7 +19,7 @@ const Video = ({ videoId }: any) => {
         src={videoId}
         onLoadedData={() => setLoading(false)}
         onPlaying={() => setLoading(false)}
-        className="w-full h-auto"
+        className="w-full h-auto p-0 stream-wrapper"
       />
     </div>
   );

@@ -129,7 +129,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
 
   return (
     <header
-      className={`fixed top-0 right-0 z-30 h-16 transition-all duration-300 bg-white mb-2 ${
+      className={`fixed top-0 right-0 z-30 h-16 transition-all duration-300 theme-bg-primary mb-2 ${
         isSidebarExpanded ? "left-64" : "left-16"
       }`}
     >
@@ -166,13 +166,13 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full mb-2 hover:bg-gray-50 transition-all  duration-300 group cursor-pointer flex items-center justify-center"
+            className="p-2 rounded-full mb-2 theme-bg-hover transition-all  duration-300 group cursor-pointer flex items-center justify-center"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDark ? (
-              <Sun className="w-5 h-5 text-gray-600 group-hover:rotate-180 transition-transform duration-500" />
+              <Sun className="w-5 h-5 theme-text-primary group-hover:rotate-180 transition-transform duration-500" />
             ) : (
-              <Moon className="w-5 h-5 text-gray-600 group-hover:rotate-12 transition-transform duration-300" />
+              <Moon className="w-5 h-5 theme-text-primary group-hover:rotate-12 transition-transform duration-300" />
             )}
           </button>
 
@@ -180,12 +180,12 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
             <div className="flex items-center space-x-3">
               {/* Switch Role Button - Toggle Effect */}
               <button
-  onClick={handleSwitchRole}
-  className="w-12 h-6 flex items-center justify-center rounded-full p-1 transition-all duration-300 cursor-pointer mb-2"
-  title="Switch Role"
->
-  <CirclePower className="w-6 h-6 text-current transition-transform duration-300" />
-</button>
+                onClick={handleSwitchRole}
+                className="w-12 h-6 flex items-center justify-center rounded-full p-1 transition-all duration-300 cursor-pointer mb-2 "
+                title="Switch To Creator Mode"
+              >
+                <CirclePower className="w-6 h-6 theme-text-primary transition-transform duration-300" />
+              </button>
 
               {/* Profile Picture */}
               <button
@@ -193,7 +193,7 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
                 className="relative"
                 title="View Profile"
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden transition-all duration-300 cursor-pointer mb-2">
+                <div className="w-10 h-10 rounded-full overflow-hidden transition-all duration-300 cursor-pointer mb-2 theme-bg-secondary border-2 theme-border">
                   <Image
                     src={user.profileImage || "/placeholder-profile.png"}
                     alt="Profile"

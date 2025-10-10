@@ -144,7 +144,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300 md:p-6 lg:p-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-6 md:mb-8 text-center">
           <h1 className="text-2xl md:text-4xl font-bold theme-text-primary mb-2">Profile Settings</h1>
@@ -152,7 +152,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Main Profile Card */}
-        <div className="theme-bg-card backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden theme-border">
+        <div className="theme-bg-card backdrop-blur-sm rounded-4xl shadow-2xl overflow-hidden theme-border">
           {/* Hero Section */}
           <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
@@ -245,7 +245,7 @@ export default function ProfilePage() {
 
               {/* Right Side - Edit Form */}
               <div className="lg:w-2/3">
-                <div className="theme-bg-secondary rounded-2xl p-4 md:p-8 shadow-lg theme-border">
+                <div className="theme-bg-secondary rounded-4xl p-4 md:p-8 shadow-lg theme-border">
                   <div className="mb-8">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-2">

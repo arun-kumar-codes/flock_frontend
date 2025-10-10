@@ -3,7 +3,6 @@
 import { FlameIcon as FireIcon, ArrowRightIcon, Loader2, Heart, Eye, MessageCircle, Calendar, User } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getTrendingBlog, toggleBlogLike } from "@/api/content"
-import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
 
 interface BlogPost {
@@ -39,8 +38,6 @@ export default function TrendingBlogsTab() {
   const [blogs, setBlogs] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const router = useRouter()
 
@@ -50,9 +47,6 @@ export default function TrendingBlogsTab() {
       const response = await getTrendingBlog()
       const data = response.data.blogs
       setBlogs(data)
-      if(selectedBlog){
-        setSelectedBlog(data.find((blog:any) => blog.id === selectedBlog.id) || null)
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch trending blogs")
     } finally {
@@ -68,14 +62,8 @@ export default function TrendingBlogsTab() {
     loadTrendingBlogs()
   }
 
-  const openBlogModal = (blog: BlogPost) => {
-    setSelectedBlog(blog)
-    setIsModalOpen(true)
-  }
-
-  const closeBlogModal = () => {
-    setSelectedBlog(null)
-    setIsModalOpen(false)
+  const handleBlogClick = (blog: BlogPost) => {
+    router.push(`/viewer/blog/${blog.id}`)
   }
 
   const handleToggleLike = async (blogId: number) => {
@@ -93,18 +81,6 @@ export default function TrendingBlogsTab() {
             : blog,
         ),
       )
-      // Update selected blog if it's the one being liked
-      if (selectedBlog && selectedBlog.id === blogId) {
-        setSelectedBlog((prev) =>
-          prev
-            ? {
-                ...prev,
-                is_liked: !prev.is_liked,
-                likes: prev.is_liked ? prev.likes - 1 : prev.likes + 1,
-              }
-            : null,
-        )
-      }
     } catch (error) {
       console.error("Error toggling like:", error)
     }
@@ -227,7 +203,7 @@ export default function TrendingBlogsTab() {
             {blogs.map((blog, index) => (
               <div
                 key={blog.id}
-                onClick={() => openBlogModal(blog)}
+                onClick={() => handleBlogClick(blog)}
                 className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:border-orange-300 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
               >
            
@@ -314,15 +290,6 @@ export default function TrendingBlogsTab() {
         )}
       </div>
 
-      {/* Use the existing BlogModal component */}
-      {isModalOpen && selectedBlog && (
-        <BlogModal
-          blog={selectedBlog}
-          onClose={closeBlogModal}
-          onToggleLike={handleToggleLike}
-          onRefreshBlogs={handleRefreshBlogs}
-        />
-      )}
     </>
   )
 }

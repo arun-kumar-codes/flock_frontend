@@ -460,7 +460,7 @@ export default function Signup() {
                     <p className="text-white text-md">
                       Upload and share amazing content
                     </p>
-            </div>
+      </div>
 
                   {/* Auto Scroll Carousel */}
                   <AutoScrollCarousel platformFeatures={platformFeatures} />

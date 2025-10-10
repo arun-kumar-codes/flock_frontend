@@ -14,7 +14,6 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getAllTrendingContent, toggleVideoLike, toggleBlogLike } from "@/api/content"
-import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 
@@ -149,8 +148,6 @@ export default function TrendingContentTab() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState<ContentItem[]>([])
-  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false)
-  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
   const router = useRouter()
 
   const [searchTerm, setSearchTerm] = useState("")
@@ -215,14 +212,8 @@ export default function TrendingContentTab() {
     router.push(`/viewer/video/${video.id}`)
   }
 
-  const openBlogModal = (blog: Blog) => {
-    setSelectedBlog(blog)
-    setIsBlogModalOpen(true)
-  }
-
-  const closeBlogModal = () => {
-    setSelectedBlog(null)
-    setIsBlogModalOpen(false)
+  const handleBlogClick = (blog: Blog) => {
+    router.push(`/viewer/blog/${blog.id}`)
   }
 
   const handleToggleVideoLike = async (videoId: number) => {
@@ -278,17 +269,6 @@ export default function TrendingContentTab() {
       setTimeout(() => {
         setLikeAnimation(prev => ({...prev, [`blog-${blogId}`]: false}))
       }, 500)
-      if (selectedBlog && selectedBlog.id === blogId) {
-        setSelectedBlog((prev) =>
-          prev
-            ? {
-              ...prev,
-              is_liked: !prev.is_liked,
-              likes: prev.is_liked ? prev.likes - 1 : prev.likes + 1,
-            }
-            : null,
-        )
-      }
       await toggleBlogLike(blogId)
     } catch (error) {
       console.error("Error toggling blog like:", error)
@@ -339,14 +319,6 @@ export default function TrendingContentTab() {
             comments_count: blog.comments_count || blog.comments?.length || 0,
           }))
 
-          if(selectedBlog){
-        blogsWithUIFields.forEach((blog:any)=>{
-            if(selectedBlog.id===blog.id){
-                    setSelectedBlog(blog);
-                    console.log("BLog",blog)               
-            }
-        })
-          }    
         mixedContent.push(...blogsWithUIFields)
       }
 
@@ -522,7 +494,7 @@ export default function TrendingContentTab() {
                   if (item.type === "video") {
                     handleVideoClick(item)
                   } else {
-                    openBlogModal(item)
+                    handleBlogClick(item)
                   }
                 }}
               >
@@ -783,14 +755,6 @@ export default function TrendingContentTab() {
       </div>
 
 
-      {isBlogModalOpen && selectedBlog && (
-        <BlogModal
-          blog={selectedBlog}
-          onClose={closeBlogModal}
-          onToggleLike={handleToggleBlogLike}
-          onRefreshBlogs={handleRefreshContent}
-        />
-      )}
     </div>
   )
 }

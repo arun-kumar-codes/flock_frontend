@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
 import {
-  getVideoById,
-  addView,
-  toggleVideoLike,
-  addCommentToVideo,
-  deleteVideoComment,
-  editVideoComment,
-  addWatchTime,
+  getBlogById,
+  addComment,
+  editComments,
+  deleteComment,
+  viewBLog,
+  toggleBlogLike,
+  addFollowing,
+  removeFollowing,
 } from "@/api/content";
 import {
   ArrowLeft,
@@ -24,31 +25,31 @@ import {
   Edit,
   Trash2,
   Send,
+  UserPlus,
+  UserCheck,
+  Calendar,
 } from "lucide-react";
 import Loader from "@/components/Loader";
+import TipTapContentDisplay from "@/components/tiptap-content-display";
 
-interface Video {
-  video: {
-    video: string;
-    thumbnail: string;
-    duration: number;
-    duration_formatted: string;
-    views: number;
-    likes: number;
-    is_liked: boolean;
-    created_at: string;
-    description: string;
+interface Blog {
+  blog: {
+    id: number;
     title: string;
-    creator: {
+    content: string;
+    author: {
       id: number;
       username: string;
       email: string;
       profile_picture?: string;
     };
+    created_at: string;
+    created_by: number;
     comments: Array<{
       id: number;
       comment: string;
       commented_at: string;
+      commented_by: number;
       commenter: {
         id: number;
         username: string;
@@ -57,93 +58,77 @@ interface Video {
       };
     }>;
     comments_count: number;
+    liked_by: number[];
+    likes: number;
+    image?: string;
+    archived: boolean;
+    status: string;
+    is_liked: boolean;
+    is_following_author?: boolean;
+    views?: number;
+    readTime?: string;
+    excerpt?: string;
+    age_restricted?: boolean;
+    paid_promotion?: boolean;
+    show_comments?: boolean;
+    is_draft?: boolean;
+    is_scheduled?: boolean;
     keywords?: string[];
     locations?: string[];
     brand_tags?: string[];
-    age_restricted?: boolean;
-    paid_promotion?: boolean;
-    status?: string;
-    show_comments?: boolean;
   };
 }
 
-export default function VideoDetailPage() {
+export default function BlogDetailPage() {
   const params = useParams();
   const router = useRouter();
   const user = useSelector((state: any) => state.user);
 
-  const [video, setVideo] = useState<Video | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isLiked, setIsLiked] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
   const [isEditingComment, setIsEditingComment] = useState(false);
-  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(
-    null
-  );
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null);
+  const [isFollowingLoading, setIsFollowingLoading] = useState(false);
 
-  const [watchTime, setWatchTime] = useState(0);
-  const [lastWatchTimeUpdate, setLastWatchTimeUpdate] = useState(0);
-  console.log("window url",videoUrl)
   useEffect(() => {
-    const fetchVideo = async () => {
+    const fetchBlog = async () => {
       try {
         setLoading(true);
 
-        // Get video data
-        const videoResponse = await getVideoById(params.id);
-        console.log("Video API Response:", videoResponse);
+        // Get blog data
+        const blogResponse = await getBlogById(params.id);
+        console.log("Blog API Response:", blogResponse);
 
-        if (videoResponse?.data) {
-          console.log("Video data:", videoResponse.data);
-          console.log("Video URL:", videoResponse.data.video);
-          console.log(
-            "Video object structure:",
-            Object.keys(videoResponse.data)
-          );
-
-          // Check if video is an object and extract the URL
-          let extractedVideoUrl = videoResponse.data.video;
-          if (
-            typeof extractedVideoUrl === "object" &&
-            extractedVideoUrl !== null
-          ) {
-            // The video URL is nested inside the video object as video.video
-            extractedVideoUrl =
-              extractedVideoUrl.video ||
-              extractedVideoUrl.url ||
-              extractedVideoUrl.src ||
-              extractedVideoUrl.file ||
-              extractedVideoUrl.path ||
-              extractedVideoUrl.video_url;
-            console.log("Extracted video URL:", extractedVideoUrl);
-          }
-
-          setVideo(videoResponse.data);
-          setVideoUrl(extractedVideoUrl || "");
-          setIsLiked(videoResponse.data.video?.is_liked || false);
+        if (blogResponse?.data) {
+          console.log("Blog data:", blogResponse.data);
+          setBlog(blogResponse.data);
+          setIsLiked(blogResponse.data.blog?.is_liked || false);
+          setIsFollowing(blogResponse.data.blog?.is_following_author || false);
 
           // Increment view count
-          await addView(params.id);
+          await viewBLog(params.id);
         } else {
-          console.error("No video data received");
-          setError("Video not found");
+          console.error("No blog data received");
+          setError("Blog not found");
         }
       } catch (err) {
-        console.error("Error fetching video:", err);
-        setError("Failed to load video");
+        console.error("Error fetching blog:", err);
+        setError("Failed to load blog");
       } finally {
         setLoading(false);
       }
     };
 
     if (params.id) {
-      fetchVideo();
+      fetchBlog();
     }
   }, [params.id]);
 
@@ -163,22 +148,38 @@ export default function VideoDetailPage() {
     };
   }, []);
 
-  // Note: Watch time tracking is disabled for iframe videos due to CORS restrictions
-  // Cloudflare Stream handles analytics on their end
-
   const handleLike = async () => {
     try {
-      const response = await toggleVideoLike(params.id);
+      const response = await toggleBlogLike(params.id);
       if (response?.status === 200 || response?.success === true) {
         setIsLiked(!isLiked);
-        // Refresh video data to get updated like count
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data to get updated like count
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
       console.error("Error toggling like:", err);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (isFollowingLoading) return;
+    
+    setIsFollowingLoading(true);
+    try {
+      const response = isFollowing 
+        ? await removeFollowing(String(blog?.blog?.author?.id))
+        : await addFollowing(String(blog?.blog?.author?.id));
+      
+      if (response?.status === 200 || response?.success === true) {
+        setIsFollowing(!isFollowing);
+      }
+    } catch (err) {
+      console.error("Error toggling follow:", err);
+    } finally {
+      setIsFollowingLoading(false);
     }
   };
 
@@ -187,13 +188,13 @@ export default function VideoDetailPage() {
 
     setIsAddingComment(true);
     try {
-      const response = await addCommentToVideo(params.id, newComment.trim());
+      const response = await addComment(params.id, newComment.trim());
       if (response?.status === 201 || response?.success === true) {
         setNewComment("");
-        // Refresh video data to get updated comments
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data to get updated comments
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
@@ -208,17 +209,14 @@ export default function VideoDetailPage() {
 
     setIsEditingComment(true);
     try {
-      const response = await editVideoComment(
-        editingCommentId,
-        editCommentText.trim()
-      );
+      const response = await editComments(editingCommentId, editCommentText.trim());
       if (response?.status === 200 || response?.success === true) {
         setEditingCommentId(null);
         setEditCommentText("");
-        // Refresh video data
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
@@ -231,12 +229,12 @@ export default function VideoDetailPage() {
   const handleDeleteComment = async (commentId: number) => {
     setDeletingCommentId(commentId);
     try {
-      const response = await deleteVideoComment(commentId);
+      const response = await deleteComment(commentId);
       if (response?.status === 200 || response?.success === true) {
-        // Refresh video data
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
@@ -270,21 +268,11 @@ export default function VideoDetailPage() {
     }
   };
 
-  const formatDuration = (seconds: number) => {
-    if (!seconds || isNaN(seconds) || seconds < 0) {
-      return "0:00";
-    }
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  const calculateReadTime = (content: string): string => {
+    const wordsPerMinute = 200;
+    const wordCount = content.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readTime} min read`;
   };
 
   if (loading) return <Loader />;
@@ -303,15 +291,15 @@ export default function VideoDetailPage() {
         </div>
       </div>
     );
-  if (!video)
+  if (!blog)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Video Not Found
+            Blog Not Found
           </h2>
           <p className="text-gray-600 mb-4">
-            The video you're looking for doesn't exist.
+            The blog you're looking for doesn't exist.
           </p>
           <button
             onClick={() => router.back()}
@@ -338,94 +326,173 @@ export default function VideoDetailPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 xl:gap-8">
-          {/* Main Video Content */}
+          {/* Main Blog Content */}
           <div className="xl:col-span-2">
-            {/* Video Player */}
-            <div className="bg-white rounded-lg overflow-hidden mb-6 flex">
-              <div
-                className="flex-1 relative "
-                style={{ paddingTop: "56.25%" }}
-              >
-                <iframe
-                  src={videoUrl}
-                  className="absolute top-0 left-0 w-full h-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="Cloudflare Video"
-                  style={{
-                    display: "block",
-                    border: "0",
-                    margin: 0,
-                    padding: 0,
-                  }}
+            {/* Blog Image */}
+            {blog.blog?.image && (
+              <div className="bg-white rounded-lg overflow-hidden mb-6">
+                <Image
+                  src={blog.blog.image}
+                  alt={blog.blog?.title || "Blog"}
+                  width={800}
+                  height={600}
+                  className="w-full h-64 sm:h-72 md:h-80 lg:h-96 xl:h-[28rem] 2xl:h-[32rem] object-cover"
                 />
               </div>
-            </div>
+            )}
 
-            {/* Video Info */}
+            {/* Blog Info */}
             <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                {video.video?.title || "Untitled Video"}
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {blog.blog?.title || "Untitled Blog"}
               </h1>
 
-              {/* Video Stats */}
-              <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
+              {/* Blog Stats */}
+              <div className="flex items-center gap-6 mb-6 text-sm text-gray-600">
                 <span className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
-                  {(video.video?.views || 0).toLocaleString()} views
+                  {blog.blog?.views || 0} views
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {formatDuration(video.video?.duration || 0)}
+                  {calculateReadTime(blog.blog?.content || "")}
                 </span>
-                <span>{formatDate(video.video?.created_at || "")}</span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  {formatDate(blog.blog?.created_at || "")}
+                </span>
               </div>
 
-              {/* Creator Info */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                  {video.video?.creator?.profile_picture ? (
-                    <Image
-                      src={video.video.creator.profile_picture}
-                      alt={video.video?.creator?.username || "Creator"}
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User className="w-5 h-5 text-white" />
+              {/* Author Info */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {blog.blog?.author?.profile_picture ? (
+                      <Image
+                        src={blog.blog.author.profile_picture}
+                        alt={blog.blog?.author?.username || "Author"}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {blog.blog?.author?.username || "Unknown Author"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {blog.blog?.author?.email || "No email available"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Follow Button */}
+                {blog.blog?.author?.id !== user?.id && (
+                  <div className="flex justify-end sm:justify-start">
+                    <button
+                      onClick={handleFollow}
+                      disabled={isFollowingLoading}
+                      className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer text-sm sm:text-base ${
+                        isFollowing
+                          ? "bg-green-400 text-gray-700 hover:bg-green-500"
+                          : "bg-blue-600 text-white hover:bg-blue-700"
+                      } disabled:opacity-50`}
+                    >
+                      {isFollowingLoading ? (
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : isFollowing ? (
+                        <>
+                          <UserCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span>Following</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span>Follow</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Blog Content */}
+              <div className="mb-6">
+                <div className="prose prose-lg max-w-none">
+                  <TipTapContentDisplay content={blog.blog?.content || ""} />
+                </div>
+              </div>
+
+              {/* Blog Metadata Badges */}
+              <div className="mb-6">
+                <div className="flex flex-wrap gap-2">
+                  {/* Age Restricted Badge */}
+                  {blog.blog?.age_restricted && (
+                    <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full border border-red-200">
+                      🔞 18+ Restricted
+                    </span>
+                  )}
+
+                  {/* Paid Promotion Badge */}
+                  {blog.blog?.paid_promotion && (
+                    <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full border border-yellow-200">
+                      💰 Paid Promotion
+                    </span>
+                  )}
+
+                  {/* Status Badge */}
+                  {blog.blog?.status && (
+                    <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
+                      blog.blog.status === 'published' 
+                        ? 'bg-green-100 text-green-800 border-green-200'
+                        : blog.blog.status === 'draft'
+                        ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                        : 'bg-gray-100 text-gray-800 border-gray-200'
+                    }`}>
+                      {blog.blog.status === 'published' ? '✅ Published' : 
+                       blog.blog.status === 'draft' ? '📝 Draft' : 
+                       blog.blog.status}
+                    </span>
+                  )}
+
+                  {/* Comments Status */}
+                  {blog.blog?.show_comments !== undefined && (
+                    <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
+                      blog.blog.show_comments 
+                        ? 'bg-blue-100 text-blue-800 border-blue-200'
+                        : 'bg-gray-100 text-gray-800 border-gray-200'
+                    }`}>
+                      {blog.blog.show_comments ? '💬 Comments Enabled' : '🚫 Comments Disabled'}
+                    </span>
+                  )}
+
+                  {/* Draft Status */}
+                  {blog.blog?.is_draft && (
+                    <span className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full border border-orange-200">
+                      📄 Draft
+                    </span>
+                  )}
+
+                  {/* Scheduled Status */}
+                  {blog.blog?.is_scheduled && (
+                    <span className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full border border-purple-200">
+                      ⏰ Scheduled
+                    </span>
                   )}
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {video.video?.creator?.username || "Unknown Creator"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {video.video?.creator?.email || "No email available"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="mb-6">
-                <div
-                  className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      video.video?.description || "No description available",
-                  }}
-                />
               </div>
 
               {/* Keywords */}
-              {video.video?.keywords && video.video.keywords.length > 0 && (
+              {blog.blog?.keywords && blog.blog.keywords.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-2">
                     Keywords
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {video.video?.keywords.map((keyword, index) => (
+                    {blog.blog?.keywords.map((keyword, index) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
@@ -438,13 +505,13 @@ export default function VideoDetailPage() {
               )}
 
               {/* Locations */}
-              {video.video?.locations && video.video.locations.length > 0 && (
+              {blog.blog?.locations && blog.blog.locations.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-2">
                     Locations
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {video.video?.locations.map((location, index) => (
+                    {blog.blog?.locations.map((location, index) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full flex items-center gap-1"
@@ -457,13 +524,13 @@ export default function VideoDetailPage() {
               )}
 
               {/* Brand Tags */}
-              {video.video?.brand_tags && video.video.brand_tags.length > 0 && (
+              {blog.blog?.brand_tags && blog.blog.brand_tags.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-2">
                     Brand Tags
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {video.video?.brand_tags.map((tag, index) => (
+                    {blog.blog?.brand_tags.map((tag, index) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full"
@@ -474,59 +541,6 @@ export default function VideoDetailPage() {
                   </div>
                 </div>
               )}
-
-              {/* Video Metadata Badges */}
-              <div className="mb-6">
-                <div className="flex flex-wrap gap-2">
-                  {/* Age Restricted Badge */}
-                  {video.video?.age_restricted && (
-                    <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full border border-red-200">
-                      🔞 18+ Restricted
-                    </span>
-                  )}
-
-                  {/* Paid Promotion Badge */}
-                  {video.video?.paid_promotion && (
-                    <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full border border-yellow-200">
-                      💰 Paid Promotion
-                    </span>
-                  )}
-
-                  {/* Status Badge */}
-                  {video.video?.status && (
-                    <span
-                      className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                        video.video.status === "published"
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : video.video.status === "draft"
-                          ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                          : "bg-gray-100 text-gray-800 border-gray-200"
-                      }`}
-                    >
-                      {video.video.status === "published"
-                        ? "✅ Published"
-                        : video.video.status === "draft"
-                        ? "📝 Draft"
-                        : video.video.status}
-                    </span>
-                  )}
-
-                  {/* Comments Status */}
-                  {video.video?.show_comments !== undefined && (
-                    <span
-                      className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                        video.video.show_comments
-                          ? "bg-blue-100 text-blue-800 border-blue-200"
-                          : "bg-gray-100 text-gray-800 border-gray-200"
-                      }`}
-                    >
-                      {video.video.show_comments
-                        ? "💬 Comments Enabled"
-                        : "🚫 Comments Disabled"}
-                    </span>
-                  )}
-                </div>
-              </div>
 
               {/* Action Buttons */}
               <div className="flex items-center gap-4">
@@ -541,71 +555,83 @@ export default function VideoDetailPage() {
                   <Heart
                     className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
                   />
-                  <span>{video.video?.likes || 0} likes</span>
+                  <span>{blog.blog?.likes || 0} likes</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* Comments Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1">
             <div className="bg-white rounded-lg shadow-sm">
               {/* Comments Header */}
               <div className="p-4 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
-                  Comments ({video.video?.comments_count || 0})
+                  Comments ({blog.blog?.comments_count || 0})
                 </h3>
               </div>
 
-              {/* Add Comment */}
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 bg-gray-100rounded-full flex items-center justify-center flex-shrink-0">
-                    {user.profileImage ? (
-                      <Image
-                        src={user.profileImage}
-                        alt="Profile"
-                        width={32}
-                        height={32}
-                        className="w-full h-full rounded-full object-cover"
+              {/* Add Comment - Only show if comments are enabled */}
+              {blog.blog?.show_comments !== false && (
+                <div className="p-4 border-b border-gray-200">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      {user.profileImage ? (
+                        <Image
+                          src={user.profileImage}
+                          alt="Profile"
+                          width={32}
+                          height={32}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Add a comment..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        rows={3}
+                        disabled={isAddingComment}
                       />
-                    ) : (
-                      <User className="w-4 h-4 text-white" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Add a comment..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      rows={3}
-                      disabled={isAddingComment}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <button
-                        onClick={handleAddComment}
-                        disabled={!newComment.trim() || isAddingComment}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isAddingComment ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                        <span>Post</span>
-                      </button>
+                      <div className="flex justify-end mt-2">
+                        <button
+                          onClick={handleAddComment}
+                          disabled={!newComment.trim() || isAddingComment}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 cursor-pointer text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isAddingComment ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin " />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
+                          <span>Post</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Comments List */}
               <div className="max-h-96 overflow-y-auto">
-                {video.video?.comments && video.video.comments.length > 0 ? (
+                {blog.blog?.show_comments === false ? (
+                  <div className="p-8 text-center">
+                    <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Comments are disabled
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      The author has disabled comments for this blog.
+                    </p>
+                  </div>
+                ) : blog.blog?.comments && blog.blog.comments.length > 0 ? (
                   <div className="p-4 space-y-4">
-                    {video.video?.comments
+                    {blog.blog?.comments
                       .sort((a, b) => {
                         // Show user's comments first
                         const aIsUser = a.commenter?.id === user?.id;
@@ -615,8 +641,7 @@ export default function VideoDetailPage() {
                         return 0;
                       })
                       .map((comment) => {
-                        const isUserComment =
-                          comment.commenter?.id === user?.id;
+                        const isUserComment = comment.commenter?.id === user?.id;
                         const isEditing = editingCommentId === comment.id;
 
                         return (
@@ -625,9 +650,7 @@ export default function VideoDetailPage() {
                               {comment.commenter?.profile_picture ? (
                                 <Image
                                   src={comment.commenter.profile_picture}
-                                  alt={
-                                    comment.commenter?.username || "Commenter"
-                                  }
+                                  alt={comment.commenter?.username || "Commenter"}
                                   width={32}
                                   height={32}
                                   className="w-full h-full rounded-full object-cover"
@@ -688,10 +711,8 @@ export default function VideoDetailPage() {
                                             handleDeleteComment(comment.id);
                                             setShowCommentMenu(null);
                                           }}
-                                          disabled={
-                                            deletingCommentId === comment.id
-                                          }
-                                          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors disabled:opacity-50 cursor-pointer"
+                                          disabled={deletingCommentId === comment.id}
+                                          className="flex items-center space-x-2 w-full px-2 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors disabled:opacity-50 cursor-pointer"
                                         >
                                           {deletingCommentId === comment.id ? (
                                             <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
@@ -760,7 +781,7 @@ export default function VideoDetailPage() {
                       No comments yet
                     </h4>
                     <p className="text-gray-600 text-sm">
-                      Be the first to comment on this video.
+                      Be the first to comment on this blog.
                     </p>
                   </div>
                 )}

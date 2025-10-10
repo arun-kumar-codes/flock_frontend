@@ -4,7 +4,6 @@ import { Heart, Loader2, User, PlayIcon, ThumbsUpIcon, BookOpenIcon, ArrowRightI
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
 import { getMostLiked, toggleVideoLike, toggleBlogLike } from "@/api/content"
-import { BlogModal } from "./blog-modal"
 import { useRouter } from "next/navigation"
 
 interface Creator {
@@ -120,8 +119,6 @@ export default function MostLikedTab() {
   const [content, setContent] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
-  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false)
   const router = useRouter()
   const [likeAnimation, setLikeAnimation] = useState<{ [key: string]: boolean }>({})
   const [currentPage, setCurrentPage] = useState(0)
@@ -166,10 +163,6 @@ export default function MostLikedTab() {
       mixedContent.sort((a, b) => (b.likes || 0) - (a.likes || 0))
       setContent(mixedContent)
 
-      if (selectedBlog) {
-        const updatedSelected = mixedContent.find((item) => item.type === "blog" && item.id === selectedBlog.id) as Blog
-        setSelectedBlog(updatedSelected || null)
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch most liked content")
     } finally {
@@ -190,14 +183,8 @@ export default function MostLikedTab() {
     router.push(`/viewer/video/${video.id}`)
   }
 
-  const openBlogModal = (blog: Blog) => {
-    setSelectedBlog(blog)
-    setIsBlogModalOpen(true)
-  }
-
-  const closeBlogModal = () => {
-    setSelectedBlog(null)
-    setIsBlogModalOpen(false)
+  const handleBlogClick = (blog: Blog) => {
+    router.push(`/viewer/blog/${blog.id}`)
   }
 
   const handleToggleVideoLike = async (videoId: number) => {
@@ -240,17 +227,6 @@ export default function MostLikedTab() {
       setTimeout(() => {
         setLikeAnimation(prev => ({ ...prev, [`blog-${blogId}`]: false }))
       }, 500)
-      if (selectedBlog && selectedBlog.id === blogId) {
-        setSelectedBlog((prev) =>
-          prev
-            ? {
-              ...prev,
-              is_liked: !prev.is_liked,
-              likes: prev.is_liked ? prev.likes - 1 : prev.likes + 1,
-            }
-            : null,
-        )
-      }
       await toggleBlogLike(blogId)
     } catch (error) {
       console.error("Error toggling blog like:", error)
@@ -388,7 +364,7 @@ export default function MostLikedTab() {
                   if (item.type === "video") {
                     handleVideoClick(item)
                   } else {
-                    openBlogModal(item)
+                    handleBlogClick(item)
                   }
                 }}
               >
@@ -583,14 +559,6 @@ export default function MostLikedTab() {
       </div>
 
 
-      {isBlogModalOpen && selectedBlog && (
-        <BlogModal
-          blog={selectedBlog}
-          onClose={closeBlogModal}
-          onToggleLike={handleToggleBlogLike}
-          onRefreshBlogs={handleRefreshContent}
-        />
-      )}
     </div>
   )
 }

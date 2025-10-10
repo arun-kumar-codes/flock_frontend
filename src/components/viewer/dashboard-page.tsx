@@ -15,7 +15,6 @@ import Logo from "@/assets/logo.svg";
 import BlogIcon from "@/assets/BlogSvg.png";
 import Image from "next/image";
 import Loader from "@/components/Loader";
-import { BlogModal } from "@/components/viewer/blog-modal";
 import {
   getDashboardContent,
   getFollowings,
@@ -203,8 +202,6 @@ export default function DashboardPage() {
   // UI states
   const [searchTerm, setSearchTerm] = useState("");
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null);
-  const [showBlogModal, setShowBlogModal] = useState(false);
-  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
   const [likeAnimation, setLikeAnimation] = useState<{
     [key: string]: boolean;
   }>({});
@@ -250,6 +247,9 @@ export default function DashboardPage() {
   const [startXBlogs, setStartXBlogs] = useState(0);
   const [scrollLeftBlogs, setScrollLeftBlogs] = useState(0);
 
+  // Video overlay state
+  const [showVideoOverlay, setShowVideoOverlay] = useState(false);
+
   const fetchTrendingContent = async () => {
     setTrendingError("");
     try {
@@ -287,7 +287,11 @@ export default function DashboardPage() {
           mixedTrendingContent.push(...blogsWithUIFields);
         }
 
-        setTrendingContent(mixedTrendingContent);
+        // Shuffle the content to show videos and blogs in random order
+        const shuffledContent = mixedTrendingContent.sort(
+          () => Math.random() - 0.5
+        );
+        setTrendingContent(shuffledContent);
       }
     } catch (error) {
       console.error("Error fetching trending content:", error);
@@ -510,15 +514,6 @@ export default function DashboardPage() {
           comments_count: blog.comments_count || blog.comments?.length || 0,
         }));
 
-        if (selectedBlog) {
-          blogsWithUIFields.forEach((blog: any) => {
-            if (selectedBlog.id === blog.id) {
-              setSelectedBlog(blog);
-              console.log("BLog", blog);
-            }
-          });
-        }
-
         mixedContent.push(...blogsWithUIFields);
       }
 
@@ -529,17 +524,6 @@ export default function DashboardPage() {
       );
 
       setContent(mixedContent);
-
-
-      if (selectedBlog) {
-        const updatedSelectedBlog = mixedContent.find(
-          (item): item is Blog =>
-            item.type === "blog" && item.id === selectedBlog.id
-        );
-        if (updatedSelectedBlog) {
-          setSelectedBlog(updatedSelectedBlog);
-        }
-      }
     } catch (error) {
       console.error("Error fetching content:", error);
       setFetchError("Failed to fetch content. Please try again.");
@@ -660,8 +644,7 @@ export default function DashboardPage() {
   };
 
   const handleBlogClick = (blog: Blog) => {
-    setSelectedBlog(blog);
-    setShowBlogModal(true);
+    router.push(`/viewer/blog/${blog.id}`);
     setShowContentMenu(null);
   };
 
@@ -936,6 +919,22 @@ export default function DashboardPage() {
     setIsDraggingMostLiked(false);
   };
 
+  // Handle Flock video button click
+  const handleFlockVideoClick = () => {
+    setShowVideoOverlay(true);
+  };
+
+  // Handle video end - redirect to videos section
+  const handleVideoEnd = () => {
+    setShowVideoOverlay(false);
+    router.push("/viewer/videos");
+  };
+
+  // Handle video overlay close
+  const handleCloseVideoOverlay = () => {
+    setShowVideoOverlay(false);
+  };
+
   if (isLoading || isLoadingFollowing) {
     return <Loader />;
   }
@@ -957,7 +956,7 @@ export default function DashboardPage() {
                 placeholder="Search videos and articles by title, author, or content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-4 pr-6 md:pl-4 md:pr-12 py-3 border-1 border-[#CDCDCD] rounded-4xl theme-text-primary placeholder-gray-500 focus:ring-1 focus:ring-gray-400 focus:border-transparent transition-all text-xs md:text-base font-poppins"
+                className="w-full pl-4 pr-6 md:pl-4 md:pr-12 py-3 border-1 border-[#CDCDCD] rounded-4xl theme-text-primary theme-placeholder focus:ring-1 focus:ring-gray-400 focus:border-transparent transition-all text-xs md:text-base font-poppins"
               />
             </div>
 
@@ -977,7 +976,7 @@ export default function DashboardPage() {
 
               <div className="relative inline-block">
                 {/* Left Icon */}
-                <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 dark:text-gray-400" />
+                <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-secondary" />
 
                 <select
                   value={contentTypeFilter}
@@ -986,7 +985,7 @@ export default function DashboardPage() {
                       e.target.value as "all" | "videos" | "blogs"
                     )
                   }
-                  className="pl-10 pr-8 py-2 md:py-3 bg-[#EAEEF6] cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
+                  className="pl-10 pr-8 py-2 md:py-3 theme-bg-secondary cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
                 >
                   <option value="all">All Content</option>
                   <option value="videos">Videos Only</option>
@@ -996,7 +995,7 @@ export default function DashboardPage() {
                 {/* Right caret (custom dropdown arrow) */}
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
                   <svg
-                    className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                    className="w-4 h-4 theme-text-secondary"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1084,7 +1083,10 @@ export default function DashboardPage() {
             {/* Central Logo Element */}
             <div className="relative flex items-center justify-center">
               {/* SVG Button (centered on top) */}
-              <button className="absolute -top-[-2] bg-gray-400/40 rounded-full p-2 hover:bg-blur-drop transition shadow-md cursor-pointer">
+              <button
+                onClick={handleFlockVideoClick}
+                className="absolute -top-[-2] bg-gray-400/40 rounded-full p-2 hover:bg-gray-400/60 transition-transform duration-200 transform hover:scale-110 shadow-md cursor-pointer"
+              >
                 <svg
                   width="29"
                   height="28"
@@ -1116,7 +1118,7 @@ export default function DashboardPage() {
 
             {/* Right Text */}
             <span className="text-white text-xl md:text-2xl font-medium text-center md:text-right tracking-wide">
-              Viewed List is here
+              Viewed Video List is here
             </span>
           </div>
         </div>
@@ -1125,7 +1127,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Trending Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
+            <h2 className="text-xl md:text-2xl font-semibold theme-text-primary ml-2">
               Trending
             </h2>
             {/* <button
@@ -1284,7 +1286,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Most Viewed Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
+            <h2 className="text-xl md:text-2xl font-semibold theme-text-primary ml-2">
               Most Viewed
             </h2>
             {/* <button
@@ -1452,7 +1454,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Most Liked Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
+            <h2 className="text-xl md:text-2xl font-semibold theme-text-primary ml-2">
               Most Liked
             </h2>
             {/* <button
@@ -1620,7 +1622,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           {/* Creators Header */}
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-black ml-2">
+            <h2 className="text-xl md:text-2xl font-semibold theme-text-primary ml-2">
               All Creators
             </h2>
             {/* <button
@@ -1674,9 +1676,6 @@ export default function DashboardPage() {
                       <div
                         key={`creator-${creator.id}`}
                         className="group cursor-pointer flex-shrink-0 w-full md:w-64"
-                        onClick={() =>
-                          router.push(`/viewer/creator/${creator.id}`)
-                        }
                       >
                         <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
                           <div className="aspect-[3/4] relative overflow-hidden">
@@ -1876,15 +1875,68 @@ export default function DashboardPage() {
           )}
         </div> */}
 
+        {/* Fullscreen Animation Modal */}
+        {showVideoOverlay && (
+  <div className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden">
+    {/* Video container */}
+    <div className="relative w-full h-full flex items-center justify-center">
+      {/* Video element - no controls, no hover effects */}
+      <video
+        src="/Flock-Video.mp4"
+        className="w-full h-full pointer-events-none"
+        autoPlay
+        muted
+        playsInline
+        style={{
+          backgroundColor: "black",
+          border: "none",
+          display: "block",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          pointerEvents: "none",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          MozUserSelect: "none",
+          msUserSelect: "none",
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+        onMouseDown={(e) => e.preventDefault()}
+        onMouseUp={(e) => e.preventDefault()}
+        onMouseMove={(e) => e.preventDefault()}
+        onMouseEnter={(e) => e.preventDefault()}
+        onMouseLeave={(e) => e.preventDefault()}
+        onMouseOver={(e) => e.preventDefault()}
+        onMouseOut={(e) => e.preventDefault()}
+        onFocus={(e) => e.preventDefault()}
+        onBlur={(e) => e.preventDefault()}
+        onEnded={handleVideoEnd}
+        tabIndex={-1}
+      />
 
-        {showBlogModal && selectedBlog && (
-          <BlogModal
-            blog={selectedBlog}
-            onClose={() => setShowBlogModal(false)}
-            onToggleLike={handleToggleBlogLike}
-            onRefreshBlogs={fetchContent}
-          />
-        )}
+      {/* Optional fallback (hidden unless error) */}
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center text-gray-600"
+        style={{ display: "none" }}
+      >
+        <div className="text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Video Not Found</h3>
+          <p className="text-sm text-gray-400">Redirecting to videos section...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+)}
+
       </div>
     </div>
   );

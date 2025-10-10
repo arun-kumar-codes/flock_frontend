@@ -22,7 +22,6 @@ import {
 import { getAllCreators } from "@/api/user";
 import { useSelector } from "react-redux";
 import Loader from "@/components/Loader";
-import { BlogModal } from "@/components/viewer/blog-modal";
 
 interface Author {
   email: string;
@@ -97,8 +96,6 @@ export default function BlogPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [showContentMenu, setShowContentMenu] = useState<string | null>(null);
-  const [showBlogModal, setShowBlogModal] = useState(false);
-  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [likeAnimation, setLikeAnimation] = useState<{
     [key: number]: boolean;
@@ -170,8 +167,7 @@ export default function BlogPage() {
   };
 
   const handleBlogClick = (blog: Blog) => {
-    setSelectedBlog(blog);
-    setShowBlogModal(true);
+    router.push(`/viewer/blog/${blog.id}`);
     setShowContentMenu(null);
   };
 
@@ -202,14 +198,6 @@ export default function BlogPage() {
           publishedAt: blog.created_at,
         }));
         setBlogs(blogsWithUIFields);
-        if (selectedBlog) {
-          const updatedSelectedBlog = blogsWithUIFields.find(
-            (blog: Blog) => blog.id === selectedBlog.id
-          );
-          if (updatedSelectedBlog) {
-            setSelectedBlog(updatedSelectedBlog);
-          }
-        }
       } else {
         setFetchError("Failed to fetch blogs - unexpected response structure");
       }
@@ -260,14 +248,6 @@ export default function BlogPage() {
           publishedAt: blog.created_at,
         }));
         setBlogs(blogsWithUIFields);
-        if (selectedBlog) {
-          const updatedSelectedBlog = blogsWithUIFields.find(
-            (blog: Blog) => blog.id === selectedBlog.id
-          );
-          if (updatedSelectedBlog) {
-            setSelectedBlog(updatedSelectedBlog);
-          }
-        }
       } else {
         setFetchError("Failed to fetch blogs - unexpected response structure");
       }
@@ -677,16 +657,6 @@ export default function BlogPage() {
           </div>
         )}
 
-        {/* Blog Modal */}
-        {showBlogModal && selectedBlog && (
-          <BlogModal
-            blog={selectedBlog}
-            onClose={() => setShowBlogModal(false)}
-            onToggleLike={toggleLike}
-            onRefreshBlogs={fetchUpdatedBlogs}
-            // isDark={isDark}
-          />
-        )}
       </div>
     </div>
   );
