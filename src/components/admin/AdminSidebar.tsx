@@ -123,7 +123,7 @@ export default function AdminSidebar() {
           {/* Logout Button */}
         { isExpanded && <button
             onClick={handleLogout}
-            className={`flex items-center justify-center transition-colors duration-200 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-md ${isExpanded ? "w-8 h-8 ml-2" : "w-8 h-8"
+            className={`flex items-center justify-center transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700 hover:text-black dark:hover:text-black text-black dark:text-black rounded-md ${isExpanded ? "w-8 h-8 ml-2" : "w-8 h-8"
               }`}
             title="Logout"
           >

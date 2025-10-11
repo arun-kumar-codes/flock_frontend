@@ -1690,7 +1690,7 @@ export default function BlogsPage() {
         <div className="max-w-full mx-auto">
           <div className="mb-6 sm:mb-8 relative">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 rounded-2xl blur-3xl"></div>
-            <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
+            <div className="relative bg-white/80 backdrop-blur-sm rounded-4xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="text-center sm:text-left">
                   <h1 className="text-xl md:text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2 sm:mb-3">

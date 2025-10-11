@@ -1877,25 +1877,21 @@ export default function DashboardPage() {
 
         {/* Fullscreen Animation Modal */}
         {showVideoOverlay && (
-  <div className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden">
+  <div className="fixed inset-0 z-50 bg-white flex items-center justify-center overflow-hidden">
     {/* Video container */}
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div className="relative w-full h-full max-w-[100%] sm:max-w-full flex items-center justify-center">
       {/* Video element - no controls, no hover effects */}
       <video
         src="/Flock-Video.mp4"
-        className="w-full h-full pointer-events-none"
+        className="w-full h-auto sm:h-full pointer-events-none"
         autoPlay
         muted
         playsInline
         style={{
-          backgroundColor: "black",
-          border: "none",
-          display: "block",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
+          backgroundColor: "white",
+          display: "cover",
+          maxWidth: "100%",
+          maxHeight: "100%",
           objectFit: "cover",
           pointerEvents: "none",
           userSelect: "none",
@@ -1919,7 +1915,7 @@ export default function DashboardPage() {
 
       {/* Optional fallback (hidden unless error) */}
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center text-gray-600"
+        className="absolute inset-0 flex flex-col items-center justify-center "
         style={{ display: "none" }}
       >
         <div className="text-center">

@@ -15,6 +15,7 @@ const Video = ({ videoId }: any) => {
       <Stream
         controls
         autoplay={false}
+        loop={false}
         responsive
         src={videoId}
         onLoadedData={() => setLoading(false)}

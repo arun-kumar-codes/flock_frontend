@@ -195,12 +195,12 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
           </div> */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer  theme-text-primary hover:bg-gray-300 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer text-black dark:text-black hover:bg-gray-300 hover:text-black dark:hover:bg-gray-700 dark:hover:text-black transition-all duration-200"
             title={!isExpanded ? "Sign Out" : undefined}
           >
             <Image src={Exit} alt="exit" className="w-6 h-6 text-white" />
             <span
-              className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
+              className={`transition-opacity duration-300 whitespace-nowrap text-black dark:text-black font-medium ${textVisibility} ${
                 isExpanded ? "" : "hidden"
               }`}
             >

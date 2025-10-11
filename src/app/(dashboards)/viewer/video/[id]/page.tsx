@@ -89,7 +89,7 @@ export default function VideoDetailPage() {
 
   const [watchTime, setWatchTime] = useState(0);
   const [lastWatchTimeUpdate, setLastWatchTimeUpdate] = useState(0);
-  console.log("window url",videoUrl)
+  console.log("window url", videoUrl);
   useEffect(() => {
     const fetchVideo = async () => {
       try {
@@ -125,7 +125,26 @@ export default function VideoDetailPage() {
           }
 
           setVideo(videoResponse.data);
-          setVideoUrl(extractedVideoUrl || "");
+
+          // Modify the video URL to add custom styling parameters
+          let finalVideoUrl = extractedVideoUrl || "";
+
+          // If it's a Cloudflare Stream URL, convert it to iframe embed with custom params
+          if (
+            finalVideoUrl &&
+            (finalVideoUrl.includes("videodelivery.net") ||
+              finalVideoUrl.includes("cloudflarestream.com"))
+          ) {
+            // Extract video ID from various URL formats
+            const videoIdMatch = finalVideoUrl.match(/([a-f0-9]{32})/);
+            if (videoIdMatch) {
+              const videoId = videoIdMatch[1];
+              // Use iframe embed URL with no autoplay and no loop (using 0/1 instead of true/false)
+              finalVideoUrl = `https://customer-2134ee9mui3goprl.cloudflarestream.com/${videoId}/iframe?autoplay=0&loop=0&muted=0&preload=metadata&controls=true`;
+            }
+          }
+
+          setVideoUrl(finalVideoUrl);
           setIsLiked(videoResponse.data.video?.is_liked || false);
 
           // Increment view count
@@ -296,7 +315,7 @@ export default function VideoDetailPage() {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => router.back()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white border-2 rounded-lg hover:bg-blue-700"
           >
             Go Back
           </button>
@@ -324,13 +343,13 @@ export default function VideoDetailPage() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen theme-bg-primary transition-colors duration-300">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-all duration-200 mb-4 cursor-pointer bg-transparent hover:bg-gray-100 active:scale-95 rounded-4xl p-2 hover:shadow-md"
+            className="flex items-center gap-2 shadow-sm border border-slate-200 hover:shadow-md transition-shadow theme-text-secondary hover:theme-text-primary transition-all duration-200 mb-4 cursor-pointer bg-transparent theme-bg-hover active:scale-95 rounded-4xl p-2 hover:shadow-md"
           >
             <ArrowLeft className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" />
             <span>Back</span>
@@ -341,36 +360,27 @@ export default function VideoDetailPage() {
           {/* Main Video Content */}
           <div className="xl:col-span-2">
             {/* Video Player */}
-            <div className="bg-white rounded-lg overflow-hidden mb-6 flex">
-              <div
-                className="flex-1 relative "
-                style={{ paddingTop: "56.25%" }}
-              >
+            <div className="theme-bg-card rounded-md overflow-hidden mb-4 flex justify-center aspect-video video-player-container theme-border">
+              <div className="relative w-full max-w-5xl aspect-video">
                 <iframe
-                  src={videoUrl}
-                  className="absolute top-0 left-0 w-full h-full"
+                  src={videoUrl} // ensure videoUrl does NOT have autoplay=1 or loop=1
+                  className="absolute top-0 left-0 w-full h-full px-0 py-0"
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  title="Cloudflare Video"
-                  style={{
-                    display: "block",
-                    border: "0",
-                    margin: 0,
-                    padding: 0,
-                  }}
+                  title="Video"
                 />
               </div>
             </div>
 
             {/* Video Info */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="theme-bg-card rounded-lg p-6 shadow-sm theme-border">
+              <h1 className="text-2xl font-bold theme-text-primary mb-4">
                 {video.video?.title || "Untitled Video"}
               </h1>
 
               {/* Video Stats */}
-              <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
+              <div className="flex items-center gap-6 mb-4 text-sm theme-text-secondary">
                 <span className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
                   {(video.video?.views || 0).toLocaleString()} views
@@ -398,10 +408,10 @@ export default function VideoDetailPage() {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium theme-text-primary">
                     {video.video?.creator?.username || "Unknown Creator"}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm theme-text-secondary">
                     {video.video?.creator?.email || "No email available"}
                   </p>
                 </div>
@@ -410,7 +420,7 @@ export default function VideoDetailPage() {
               {/* Description */}
               <div className="mb-6">
                 <div
-                  className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                  className="theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words"
                   dangerouslySetInnerHTML={{
                     __html:
                       video.video?.description || "No description available",
@@ -421,14 +431,14 @@ export default function VideoDetailPage() {
               {/* Keywords */}
               {video.video?.keywords && video.video.keywords.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-2">
+                  <h3 className="text-sm font-medium theme-text-primary mb-2">
                     Keywords
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {video.video?.keywords.map((keyword, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                        className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm rounded-full"
                       >
                         #{keyword}
                       </span>
@@ -440,14 +450,14 @@ export default function VideoDetailPage() {
               {/* Locations */}
               {video.video?.locations && video.video.locations.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-2">
+                  <h3 className="text-sm font-medium theme-text-primary mb-2">
                     Locations
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {video.video?.locations.map((location, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full flex items-center gap-1"
+                        className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm rounded-full flex items-center gap-1"
                       >
                         📍 {location}
                       </span>
@@ -459,14 +469,14 @@ export default function VideoDetailPage() {
               {/* Brand Tags */}
               {video.video?.brand_tags && video.video.brand_tags.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-2">
+                  <h3 className="text-sm font-medium theme-text-primary mb-2">
                     Brand Tags
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {video.video?.brand_tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full"
+                        className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm rounded-full"
                       >
                         🏷️ {tag}
                       </span>
@@ -480,14 +490,14 @@ export default function VideoDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   {/* Age Restricted Badge */}
                   {video.video?.age_restricted && (
-                    <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full border border-red-200">
+                    <span className="inline-flex items-center px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-sm font-medium rounded-full border border-red-200 dark:border-red-700">
                       🔞 18+ Restricted
                     </span>
                   )}
 
                   {/* Paid Promotion Badge */}
                   {video.video?.paid_promotion && (
-                    <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full border border-yellow-200">
+                    <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-sm font-medium px-3 py-1 rounded-full border border-yellow-200 dark:border-yellow-700">
                       💰 Paid Promotion
                     </span>
                   )}
@@ -497,10 +507,10 @@ export default function VideoDetailPage() {
                     <span
                       className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
                         video.video.status === "published"
-                          ? "bg-green-100 text-green-800 border-green-200"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700"
                           : video.video.status === "draft"
-                          ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                          : "bg-gray-100 text-gray-800 border-gray-200"
+                          ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
                       }`}
                     >
                       {video.video.status === "published"
@@ -516,8 +526,8 @@ export default function VideoDetailPage() {
                     <span
                       className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
                         video.video.show_comments
-                          ? "bg-blue-100 text-blue-800 border-blue-200"
-                          : "bg-gray-100 text-gray-800 border-gray-200"
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
                       }`}
                     >
                       {video.video.show_comments
@@ -535,7 +545,7 @@ export default function VideoDetailPage() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
                     isLiked
                       ? "bg-red-500 text-white hover:bg-red-600"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      : "theme-bg-secondary theme-text-primary hover:opacity-80"
                   }`}
                 >
                   <Heart
@@ -549,17 +559,17 @@ export default function VideoDetailPage() {
 
           {/* Comments Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="theme-bg-card rounded-lg shadow-sm theme-border">
               {/* Comments Header */}
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <div className="p-4 border-b theme-border">
+                <h3 className="text-lg font-semibold theme-text-primary flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
                   Comments ({video.video?.comments_count || 0})
                 </h3>
               </div>
 
               {/* Add Comment */}
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b theme-border">
                 <div className="flex gap-3">
                   <div className="w-8 h-8 bg-gray-100rounded-full flex items-center justify-center flex-shrink-0">
                     {user.profileImage ? (
@@ -579,7 +589,7 @@ export default function VideoDetailPage() {
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Add a comment..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none theme-bg-card theme-text-primary placeholder:text-gray-400 dark:placeholder:text-gray-500"
                       rows={3}
                       disabled={isAddingComment}
                     />
@@ -639,7 +649,7 @@ export default function VideoDetailPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-medium text-gray-900 text-sm">
+                                  <span className="font-medium theme-text-primary text-sm">
                                     {comment.commenter?.username || "Anonymous"}
                                   </span>
                                   {isUserComment && (
@@ -647,7 +657,7 @@ export default function VideoDetailPage() {
                                       You
                                     </span>
                                   )}
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs theme-text-secondary">
                                     {formatDate(comment.commented_at)}
                                   </span>
                                 </div>
@@ -662,12 +672,12 @@ export default function VideoDetailPage() {
                                             : comment.id
                                         );
                                       }}
-                                      className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors cursor-pointer"
                                     >
-                                      <MoreVertical className="w-4 h-4 text-gray-500" />
+                                      <MoreVertical className="w-4 h-4 theme-text-secondary" />
                                     </button>
                                     {showCommentMenu === comment.id && (
-                                      <div className="absolute right-5 top-0  w-30 bg-white rounded-lg shadow-lg border border-gray-200  z-20">
+                                      <div className="absolute right-5 top-0  w-30 theme-bg-card rounded-lg shadow-lg border theme-border z-20">
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -677,7 +687,7 @@ export default function VideoDetailPage() {
                                             );
                                             setShowCommentMenu(null);
                                           }}
-                                          className="flex items-center space-x-2 w-full px-2 py-1 text-left text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+                                          className="flex items-center space-x-2 w-full px-2 py-1 text-left text-sm text-gray-900 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-900 transition-colors cursor-pointer"
                                         >
                                           <Edit className="w-4 h-4" />
                                           <span>Edit</span>
@@ -691,10 +701,10 @@ export default function VideoDetailPage() {
                                           disabled={
                                             deletingCommentId === comment.id
                                           }
-                                          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 transition-colors disabled:opacity-50 cursor-pointer"
+                                          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors disabled:opacity-50 cursor-pointer"
                                         >
                                           {deletingCommentId === comment.id ? (
-                                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                            <div className="w-4 h-4 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin" />
                                           ) : (
                                             <Trash2 className="w-4 h-4" />
                                           )}
@@ -717,7 +727,7 @@ export default function VideoDetailPage() {
                                     onChange={(e) =>
                                       setEditCommentText(e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm theme-bg-card theme-text-primary"
                                     rows={2}
                                     disabled={isEditingComment}
                                   />
@@ -743,7 +753,7 @@ export default function VideoDetailPage() {
                                 </div>
                               ) : (
                                 <div>
-                                  <p className="text-gray-700 text-sm leading-relaxed">
+                                  <p className="theme-text-secondary text-sm leading-relaxed">
                                     {comment.comment || "No comment text"}
                                   </p>
                                 </div>
