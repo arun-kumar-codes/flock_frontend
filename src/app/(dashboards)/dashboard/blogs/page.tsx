@@ -2864,6 +2864,32 @@ export default function BlogsPage() {
                       </div>
                     </div>
 
+                    {/* Age restriction button */}
+                    <div className="mt-4">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                        <input
+                          type="checkbox"
+                          name="age_restricted"
+                          checked={blogForm.age_restricted}
+                          onChange={(e) =>
+                            handleFormChange("age_restricted", e.target.checked)
+                          }
+                          className="
+                    w-5 h-5
+                    accent-indigo-600
+                    cursor-pointer
+                    rounded
+                    appearance-none
+                    border border-slate-300
+                    checked:bg-indigo-600
+                    checked:border-indigo-600
+                    relative
+                  "
+                        />
+                        Age Restricted (18+)
+                      </label>
+                    </div>
+
                     {/* Scheduler */}
                     <div className="mt-4">
                       <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
@@ -2878,14 +2904,14 @@ export default function BlogsPage() {
                             }
                           }}
                           className="
-        w-5 h-5 
-        accent-indigo-600 
-        cursor-pointer 
-        rounded 
+        w-5 h-5
+        accent-indigo-600
+        cursor-pointer
+        rounded
         appearance-none
-        border border-slate-300 
-        checked:bg-indigo-600 
-        checked:border-indigo-600 
+        border border-slate-300
+        checked:bg-indigo-600
+        checked:border-indigo-600
         relative
       "
                         />
@@ -2907,14 +2933,14 @@ export default function BlogsPage() {
                           name="is_draft"
                           checked={blogForm.is_draft}
                           className="
-                          w-5 h-5 
-                          accent-indigo-600 
-                          cursor-pointer 
-                          rounded 
+                          w-5 h-5
+                          accent-indigo-600
+                          cursor-pointer
+                          rounded
                           appearance-none
-                          border border-slate-300 
-                          checked:bg-indigo-600 
-                          checked:border-indigo-600 
+                          border border-slate-300
+                          checked:bg-indigo-600
+                          checked:border-indigo-600
                           relative
                         "
                           onChange={(e) =>
@@ -2922,31 +2948,6 @@ export default function BlogsPage() {
                           }
                         />
                         Save as Draft
-                      </label>
-                    </div>
-
-                    <div className="mt-4">
-                      <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
-                        <input
-                          type="checkbox"
-                          name="age_restricted"
-                          checked={blogForm.age_restricted}
-                          onChange={(e) =>
-                            handleFormChange("age_restricted", e.target.checked)
-                          }
-                          className="
-                    w-5 h-5 
-                    accent-indigo-600 
-                    cursor-pointer 
-                    rounded 
-                    appearance-none
-                    border border-slate-300 
-                    checked:bg-indigo-600 
-                    checked:border-indigo-600 
-                    relative
-                  "
-                        />
-                        Age Restricted (18+)
                       </label>
                     </div>
 

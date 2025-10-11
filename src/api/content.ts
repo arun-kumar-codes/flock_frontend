@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axiosInstance";
+import api from "@/lib/axiosInstance";
 
 export async function createBlog(data: any) {
 
@@ -282,11 +283,24 @@ export async function createVideo(data: any) {
   }
 }
 
+
+export const getTaskStatus = async (taskId: string) => {
+  console.log('Fetching task status for:', taskId)
+  try {
+    const response = await api.get(`/video/task-status/${taskId}`)
+    console.log('Task status response:', response.data)
+    return response
+  } catch (error) {
+    console.error('Error fetching task status:', error)
+    throw error
+  }
+}
+
 export async function updateVideo(videoId:any, formData: FormData) {
   try {
     const response = await axiosInstance.patch(`/video/${videoId}`, formData, {
       headers: {
-        "Content-Type": "multipart/form-data", 
+        "Content-Type": "multipart/form-data",
       },
     })
     return response
@@ -391,7 +405,7 @@ export async function deleteVideoComment(commentId: any) {
   try {
     const response = await axiosInstance.delete(`/video/comment/${commentId}`);
     return response;
-  } catch (error:any) {   
+  } catch (error:any) {
     console.error("Error deleting video comment:", error);
     return error.response;
   }
@@ -403,7 +417,7 @@ export async function getVideoById(videoId: any) {
     const response = await axiosInstance.get(`/video/${videoId}`);
     return response;
   } catch (error:any) {
-    console.error("Error fetching video by ID:", error);    
+    console.error("Error fetching video by ID:", error);
   }
 }
 
@@ -412,7 +426,7 @@ export async function getBlogById(blogId: any) {
     const response = await axiosInstance.get(`/blog/${blogId}`);
     return response;
   } catch (error:any) {
-    console.error("Error fetching blog by ID:", error);    
+    console.error("Error fetching blog by ID:", error);
   }
 }
 
@@ -458,7 +472,7 @@ export async function getVideoByStatus(status: any) {
   }
 }
 
-export async function toggleVideoLike(videoId: any) { 
+export async function toggleVideoLike(videoId: any) {
   try {
     const response = await axiosInstance.post(`/video/${videoId}/toggle-like`);
     return response;

@@ -6,7 +6,7 @@
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
   scrollbar-width: none;  /* Firefox */
 }
-.scrollbar-hide::-webkit-scrollbar { 
+.scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Safari and Chrome */
 }
 
@@ -317,17 +317,17 @@ html[data-theme="light"] {
 }
 
 @keyframes pop {
-  0% { 
-    transform: scale(1); 
-    color: blue; 
+  0% {
+    transform: scale(1);
+    color: blue;
   }
-  50% { 
-    transform: scale(1.4); 
-    color: blue; 
+  50% {
+    transform: scale(1.4);
+    color: blue;
   }
-  100% { 
-    transform: scale(1); 
-    color: blue; 
+  100% {
+    transform: scale(1);
+    color: blue;
   }
 }
 
@@ -336,17 +336,17 @@ html[data-theme="light"] {
 }
 
 @keyframes pop-purple {
-  0% { 
-    transform: scale(1); 
-    color: purple; 
+  0% {
+    transform: scale(1);
+    color: purple;
   }
-  50% { 
-    transform: scale(1.4); 
-    color: purple; 
+  50% {
+    transform: scale(1.4);
+    color: purple;
   }
-  100% { 
-    transform: scale(1); 
-    color: purple; 
+  100% {
+    transform: scale(1);
+    color: purple;
   }
 }
 
@@ -355,17 +355,17 @@ html[data-theme="light"] {
 }
 
 @keyframes pop-red {
-  0% { 
-    transform: scale(1); 
-    color: red; 
+  0% {
+    transform: scale(1);
+    color: red;
   }
-  50% { 
-    transform: scale(1.4); 
-    color: red; 
+  50% {
+    transform: scale(1.4);
+    color: red;
   }
-  100% { 
-    transform: scale(1); 
-    color: red; 
+  100% {
+    transform: scale(1);
+    color: red;
   }
 }
 
@@ -374,17 +374,17 @@ html[data-theme="light"] {
 }
 
 @keyframes pop-pink {
-  0% { 
-    transform: scale(1); 
-    color: rgb(233, 93, 116); 
+  0% {
+    transform: scale(1);
+    color: rgb(233, 93, 116);
   }
-  50% { 
-    transform: scale(1.4); 
-    color: rgb(233, 93, 116); 
+  50% {
+    transform: scale(1.4);
+    color: rgb(233, 93, 116);
   }
-  100% { 
-    transform: scale(1); 
-    color: rgb(233, 93, 116); 
+  100% {
+    transform: scale(1);
+    color: rgb(233, 93, 116);
   }
 }
 

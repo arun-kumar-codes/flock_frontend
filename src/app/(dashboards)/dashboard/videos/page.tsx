@@ -43,6 +43,7 @@ import {
   addCommentToVideo,
   editVideoComment,
   deleteVideoComment,
+  getTaskStatus,
 } from "@/api/content"
 import TipTapEditor from "@/components/tiptap-editor"
 import TipTapContentDisplay from "@/components/tiptap-content-display"
@@ -173,10 +174,23 @@ export default function VideoDashboard() {
   const [viewVideo, setViewVideo] = useState<VideoType | null>(null)
   const [isScheduled, setIsScheduled] = useState(false)
   const [scheduledAt, setScheduledAt] = useState<Date | null>(new Date(new Date().getTime() + 30 * 60 * 1000))
-  
+
   // Like state for view modal
   const [isLiked, setIsLiked] = useState(false)
-  
+
+  // Toast state
+  const [toasts, setToasts] = useState<Array<{
+    id: string;
+    type: 'success' | 'error' | 'info' | 'loading';
+    message: string;
+    description?: string;
+    duration?: number;
+  }>>([])
+
+  // Polling state
+  const [pollingTaskId, setPollingTaskId] = useState<string | null>(null)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   // Comment states for view modal
   const [newComment, setNewComment] = useState("")
   const [isAddingComment, setIsAddingComment] = useState(false)
@@ -210,7 +224,7 @@ export default function VideoDashboard() {
     is_draft: false,
     keywords: [],
     locations: [],
-    age_restricted: false,  
+    age_restricted: false,
     brand_tags: [],
     paid_promotion: false,
   })
@@ -228,7 +242,7 @@ export default function VideoDashboard() {
     is_draft: true,
     keywords: [],
     locations: [],
-    age_restricted: false, 
+    age_restricted: false,
     brand_tags: [],
     paid_promotion: false,
   })
@@ -246,10 +260,122 @@ export default function VideoDashboard() {
     is_draft: true,
     keywords: [],
     locations: [],
-    age_restricted: false, 
+    age_restricted: false,
     brand_tags: [],
     paid_promotion: false,
   })
+
+
+  // Toast helper functions
+const addToast = (toast: {
+  type: 'success' | 'error' | 'info' | 'loading';
+  message: string;
+  description?: string;
+  duration?: number;
+}) => {
+  const id = `toast-${Date.now()}-${Math.random()}`
+  console.log('🔔 Adding toast:', { id, ...toast })
+  setToasts((prev) => {
+    const newToasts = [...prev, { id, ...toast }]
+    console.log('Current toasts:', newToasts)
+    return newToasts
+  })
+  return id
+}
+
+const removeToast = (id: string) => {
+  console.log('🗑️ Removing toast:', id)
+  setToasts((prev) => prev.filter((toast) => toast.id !== id))
+}
+
+const updateToast = (id: string, updates: Partial<{
+  type: 'success' | 'error' | 'info' | 'loading';
+  message: string;
+  description?: string;
+}>) => {
+  console.log('✏️ Updating toast:', id, updates)
+  setToasts((prev) =>
+    prev.map((toast) => (toast.id === id ? { ...toast, ...updates } : toast))
+  )
+}
+
+// Polling function
+const pollTaskStatus = async (taskId: string, toastId: string) => {
+  try {
+    const response = await getTaskStatus(taskId)
+    const { state, status, result, error } = response.data
+
+    if (state === 'SUCCESS') {
+      // Stop polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      setPollingTaskId(null)
+
+      // Update toast to success
+      updateToast(toastId, {
+        type: 'success',
+        message: 'Upload Successful!',
+        description: result?.message || 'Your video has been uploaded successfully.'
+      })
+
+      // Refresh video list
+      await fetchUserVideos()
+
+      // Remove success toast after duration
+      setTimeout(() => removeToast(toastId), 5000)
+    } else if (state === 'FAILURE') {
+      // Stop polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      setPollingTaskId(null)
+
+      // Update toast to error
+      updateToast(toastId, {
+        type: 'error',
+        message: 'Upload Failed',
+        description: error || 'There was an error uploading your video.'
+      })
+
+      // Remove error toast after duration
+      setTimeout(() => removeToast(toastId), 7000)
+    } else if (state === 'STARTED') {
+      // Update loading message
+      updateToast(toastId, {
+        message: 'Uploading Video...',
+        description: status || 'Your video is being uploaded to the server.'
+      })
+    }
+  } catch (error) {
+    console.error('Error polling task status:', error)
+    // Stop polling on error
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+    setPollingTaskId(null)
+
+    updateToast(toastId, {
+      type: 'error',
+      message: 'Error Checking Status',
+      description: 'Could not check upload status. Please refresh the page.'
+    })
+
+    setTimeout(() => removeToast(toastId), 7000)
+  }
+}
+
+// Cleanup polling on unmount
+useEffect(() => {
+  return () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+  }
+}, [])
 
   // Comment states
 
@@ -549,7 +675,7 @@ useEffect(() => {
   if (typeof thumbnail === "string") {
     return thumbnail // backend URL
   }
-  return URL.createObjectURL(thumbnail) 
+  return URL.createObjectURL(thumbnail)
   }
 
 
@@ -631,7 +757,7 @@ useEffect(() => {
         status: video.status,
         views: video.views || 0,
       }))
-      
+
       setUserData((prev) => ({
         ...prev,
         videos: userVideos,
@@ -652,7 +778,7 @@ useEffect(() => {
     console.error("Error fetching user videos:", error)
     setFetchError("Failed to fetch your videos")
   }
-}, [viewVideo]) 
+}, [viewVideo])
 
   useEffect(() => {
     if (user) {
@@ -783,8 +909,8 @@ useEffect(() => {
       is_draft: video.status === "draft",
       keywords: video.keywords || [],
       locations: video.locations || [],
-      thumbnail: video.thumbnail || null,                  
-      age_restricted: video.age_restricted || false,  
+      thumbnail: video.thumbnail || null,
+      age_restricted: video.age_restricted || false,
       brand_tags: video.brand_tags || [],
       paid_promotion: video.paid_promotion || false,
     }
@@ -814,7 +940,7 @@ useEffect(() => {
 
     setIsLiked((prev) => !prev)
     try {
-    
+
       const response = await toggleVideoLike(viewVideo.id)
       if (response?.status === 200 || response?.success === true) {
         // Get updated video data from backend
@@ -828,7 +954,7 @@ useEffect(() => {
   // Handle add comment
   const handleAddComment = async () => {
     if (!viewVideo || !newComment.trim()) return
-    
+
     console.log("Adding comment:", newComment.trim())
     console.log("Current viewVideo comments before:", viewVideo.comments?.length || 0)
     setIsAddingComment(true)
@@ -852,7 +978,7 @@ useEffect(() => {
   // Handle edit comment
   const handleEditComment = async () => {
     if (!viewVideo || !editingCommentId || !editCommentText.trim()) return
-    
+
     setIsEditingComment(true)
     try {
       const response = await editVideoComment(editingCommentId, editCommentText.trim())
@@ -872,7 +998,7 @@ useEffect(() => {
   // Handle delete comment
   const handleDeleteComment = async (commentId: number) => {
     if (!viewVideo) return
-    
+
     setDeletingCommentId(commentId)
     try {
       const response = await deleteVideoComment(commentId)
@@ -1034,8 +1160,8 @@ useEffect(() => {
             existingVideoUrl: "",
             is_draft: true,
             keywords: [],
-            thumbnail: null,           
-            age_restricted: false, 
+            thumbnail: null,
+            age_restricted: false,
           })
           setOriginalEditData({
             id: 0,
@@ -1064,106 +1190,141 @@ useEffect(() => {
   }
 
   const handleCreateVideo = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setCreateError("")
-    setCreateSuccess("")
+  e.preventDefault()
+  setCreateError("")
+  setCreateSuccess("")
 
-    // Validation
-    if (!videoForm.title.trim()) {
-      setCreateError("Title is required")
-      return
-    }
-    if (!videoForm.description.trim()) {
-      setCreateError("Description is required")
-      return
-    }
-    if (videoForm.description.trim().length < 10) {
-      setCreateError("Description must be at least 10 characters long")
-      return
-    }
-    if (!videoForm.video) {
-      setCreateError("Video file is required")
-      return
-    }
-
-    if (
-      isScheduled &&
-      (!scheduledAt ||
-        scheduledAt < new Date(Date.now() + 5 * 60 * 1000) ||
-        scheduledAt > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
-    ) {
-      console.log("Invalid scheduled date:", scheduledAt)
-      setCreateError("Please select a valid future date and time for scheduling.")
-      return
-    }
-
-    setIsCreating(true)
-    try {
-      const formData = new FormData()
-      formData.append("title", videoForm.title.trim())
-      formData.append("description", videoForm.description.trim())
-      formData.append("is_draft", videoForm.is_draft ? "true" : "false")
-      formData.append("age_restricted", videoForm.age_restricted ? "true" : "false")
-      formData.append("paid_promotion", videoForm.paid_promotion ? "true" : "false")
-
-      if (videoForm.brand_tags && videoForm.brand_tags.length > 0) {
-        formData.append("brand_tags", JSON.stringify(videoForm.brand_tags))
-      }
-
-      formData.append("video", videoForm.video)
-      if (videoForm.keywords && videoForm.keywords.length > 0) {
-        formData.append("keywords", JSON.stringify(videoForm.keywords))
-      }
-
-      if (videoForm.locations && videoForm.locations.length > 0) {
-        formData.append("locations", JSON.stringify(videoForm.locations))
-      }
-
-      if (videoForm.thumbnail) {
-        formData.append("thumbnail", videoForm.thumbnail)
-      }
-
-      if (scheduledAt && isScheduled) {
-        formData.append("scheduled_at", scheduledAt.toISOString())
-      }
-
-      const response = await createVideo(formData)
-      //console.log("Create video response:", response)
-
-      if (response?.status === 200 || response?.status === 201 || response?.data) {
-        setCreateSuccess("Video created successfully!")
-
-        localStorage.removeItem("videoFormDraft")
-
-        setVideoForm({
-          title: "",
-          description: "",
-          video: null,
-          thumbnail: null,
-          is_draft: false,
-          keywords: [],
-          age_restricted: false,
-        })
-        setVideoPreview(null)
-        setVideoError("")
-        setKeywordInput("")
-        if (videoInputRef.current) {
-          videoInputRef.current.value = ""
-        }
-        await fetchUserVideos()
-          setShowCreateModal(false)
-          setCreateSuccess("")
- 
-      } else {
-        setCreateError("Failed to create video. Please try again.")
-      }
-    } catch (error: any) {
-      console.error("Error creating video:", error)
-      setCreateError(error?.response?.data?.message || "Failed to create video. Please try again.")
-    } finally {
-      setIsCreating(false)
-    }
+  // Validation
+  if (!videoForm.title.trim()) {
+    setCreateError("Title is required")
+    return
   }
+  if (!videoForm.description.trim()) {
+    setCreateError("Description is required")
+    return
+  }
+  if (videoForm.description.trim().length < 10) {
+    setCreateError("Description must be at least 10 characters long")
+    return
+  }
+  if (!videoForm.video) {
+    setCreateError("Video file is required")
+    return
+  }
+
+  if (
+    isScheduled &&
+    (!scheduledAt ||
+      scheduledAt < new Date(Date.now() + 5 * 60 * 1000) ||
+      scheduledAt > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
+  ) {
+    setCreateError("Please select a valid future date and time for scheduling.")
+    return
+  }
+
+  setIsCreating(true)
+  let uploadToastId: string | null = null
+
+  try {
+    const formData = new FormData()
+    formData.append("title", videoForm.title.trim())
+    formData.append("description", videoForm.description.trim())
+    formData.append("is_draft", videoForm.is_draft ? "true" : "false")
+    formData.append("age_restricted", videoForm.age_restricted ? "true" : "false")
+    formData.append("paid_promotion", videoForm.paid_promotion ? "true" : "false")
+
+    if (videoForm.brand_tags && videoForm.brand_tags.length > 0) {
+      formData.append("brand_tags", JSON.stringify(videoForm.brand_tags))
+    }
+
+    formData.append("video", videoForm.video)
+    if (videoForm.keywords && videoForm.keywords.length > 0) {
+      formData.append("keywords", JSON.stringify(videoForm.keywords))
+    }
+
+    if (videoForm.locations && videoForm.locations.length > 0) {
+      formData.append("locations", JSON.stringify(videoForm.locations))
+    }
+
+    if (videoForm.thumbnail) {
+      formData.append("thumbnail", videoForm.thumbnail)
+    }
+
+    if (scheduledAt && isScheduled) {
+      formData.append("scheduled_at", scheduledAt.toISOString())
+    }
+
+    const response = await createVideo(formData)
+
+    if (response?.status === 202 && response?.data?.task_id) {
+      // Create uploading toast
+      uploadToastId = addToast({
+        type: 'loading',
+        message: 'Starting Upload...',
+        description: 'Preparing your video for upload.',
+        duration: 0
+      })
+
+      // Start polling for task status
+      const taskId = response.data.task_id
+      setPollingTaskId(taskId)
+
+      // Poll every 2 seconds
+      pollingIntervalRef.current = setInterval(() => {
+        pollTaskStatus(taskId, uploadToastId!)
+      }, 2000)
+
+      // Initial poll
+      pollTaskStatus(taskId, uploadToastId)
+
+      // Reset form
+      localStorage.removeItem("videoFormDraft")
+      setVideoForm({
+        title: "",
+        description: "",
+        video: null,
+        thumbnail: null,
+        is_draft: false,
+        keywords: [],
+        locations: [],
+        age_restricted: false,
+        brand_tags: [],
+        paid_promotion: false,
+      })
+      setVideoPreview(null)
+      setVideoError("")
+      setKeywordInput("")
+      setLocationInput("")
+      setBrandTagInput("")
+      if (videoInputRef.current) {
+        videoInputRef.current.value = ""
+      }
+      if (thumbnailInputRef.current) {
+        thumbnailInputRef.current.value = ""
+      }
+
+      // Close modal
+      setShowCreateModal(false)
+    } else {
+      setCreateError("Failed to create video. Please try again.")
+    }
+  } catch (error: any) {
+    console.error("Error creating video:", error)
+    setCreateError(error?.response?.data?.message || "Failed to create video. Please try again.")
+
+    // Show error toast if upload toast was created
+    if (uploadToastId !== null)  {
+      updateToast(uploadToastId, {
+        type: 'error',
+        message: 'Upload Failed',
+        description: error?.response?.data?.message || 'Failed to start video upload.'
+      })
+      setTimeout(() => removeToast(uploadToastId!), 7000)
+    }
+  } finally {
+    setIsCreating(false)
+  }
+}
 
   const handleFormChange = (field: keyof CreateVideoData, value: string | boolean) => {
     setVideoForm((prev) => ({
@@ -1413,6 +1574,44 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+
+      <div className="fixed top-4 right-4 z-[100] max-w-md">
+        {toasts.length > 0 && <div className="text-xs text-gray-500 mb-2">Toasts: {toasts.length}</div>}
+        {toasts.map((toast) => {
+          console.log('Rendering toast:', toast.id, toast.message)
+          return (
+            <div
+              key={toast.id}
+              className={`flex items-start space-x-3 p-4 rounded-lg border shadow-lg mb-3 animate-slide-in-right ${
+                toast.type === 'success'
+                  ? 'bg-green-50 border-green-200'
+                  : toast.type === 'error'
+                  ? 'bg-red-50 border-red-200'
+                  : 'bg-blue-50 border-blue-200'
+              }`}
+            >
+              <div className="flex-shrink-0">
+                {toast.type === 'success' && <CheckCircleIcon className="w-5 h-5 text-green-600" />}
+                {toast.type === 'error' && <AlertCircleIcon className="w-5 h-5 text-red-600" />}
+                {toast.type === 'loading' && <LoaderIcon className="w-5 h-5 text-blue-600 animate-spin" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900">{toast.message}</p>
+                {toast.description && <p className="text-sm text-gray-600 mt-1">{toast.description}</p>}
+              </div>
+              {toast.type !== 'loading' && (
+                <button
+                  onClick={() => removeToast(toast.id)}
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <XIcon className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
       {/* Main Content */}
       <main className="max-w-full mx-auto p-1 md:px-2 lg:px-2 md:py-4">
         {/* Welcome Section */}
@@ -2179,8 +2378,8 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                           <img
                             src={thumbnailPreview}
                             alt="Thumbnail preview"
-                            className="w-full rounded-lg border border-slate-200 object-contain" 
-                            style={{ maxHeight: "500px" }} 
+                            className="w-full rounded-lg border border-slate-200 object-contain"
+                            style={{ maxHeight: "500px" }}
                           />
                           <button
                             type="button"
@@ -2209,7 +2408,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                       >
                         <div className="flex flex-col items-center space-y-4">
                           <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
-                            <ImageIcon className="w-8 h-8 text-slate-400" /> 
+                            <ImageIcon className="w-8 h-8 text-slate-400" />
                           </div>
                           <div>
                             <p className="text-lg text-slate-600 mb-2">
@@ -2440,6 +2639,29 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                 </div>
 
                 <div className="mt-4">
+              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  name="age_restricted"
+                  checked={videoForm.age_restricted || false}
+                  onChange={(e) => handleFormChange("age_restricted", e.target.checked)}
+                  className="
+                    w-5 h-5
+                    accent-indigo-600
+                    cursor-pointer
+                    rounded
+                    appearance-none
+                    border border-slate-300
+                    checked:bg-indigo-600
+                    checked:border-indigo-600
+                    relative
+                  "
+                />
+                Mark as Age Restricted (not for kids)
+              </label>
+            </div>
+
+                <div className="mt-4">
                   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
                     <input
                       type="checkbox"
@@ -2452,14 +2674,14 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                         }
                       }}
                       className="
-        w-5 h-5 
-        accent-indigo-600 
-        cursor-pointer 
-        rounded 
+        w-5 h-5
+        accent-indigo-600
+        cursor-pointer
+        rounded
         appearance-none
-        border border-slate-300 
-        checked:bg-indigo-600 
-        checked:border-indigo-600 
+        border border-slate-300
+        checked:bg-indigo-600
+        checked:border-indigo-600
         relative
       "
                     />
@@ -2475,14 +2697,14 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                       name="is_draft"
                       checked={videoForm.is_draft}
                       className="
-                      w-5 h-5 
-                      accent-indigo-600 
-                      cursor-pointer 
-                      rounded 
+                      w-5 h-5
+                      accent-indigo-600
+                      cursor-pointer
+                      rounded
                       appearance-none
-                      border border-slate-300 
-                      checked:bg-indigo-600 
-                      checked:border-indigo-600 
+                      border border-slate-300
+                      checked:bg-indigo-600
+                      checked:border-indigo-600
                       relative
                     "
                     onChange={(e) => handleFormChange("is_draft", e.target.checked)}
@@ -2491,28 +2713,6 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                   </label>
                 </div>
 
-                <div className="mt-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  name="age_restricted"
-                  checked={videoForm.age_restricted || false}
-                  onChange={(e) => handleFormChange("age_restricted", e.target.checked)}
-                  className="
-                    w-5 h-5 
-                    accent-indigo-600 
-                    cursor-pointer 
-                    rounded 
-                    appearance-none
-                    border border-slate-300 
-                    checked:bg-indigo-600 
-                    checked:border-indigo-600 
-                    relative
-                  "
-                />
-                Mark as Age Restricted (not for kids)
-              </label>
-            </div>
 
 
                 {/* Form Actions */}
@@ -2530,7 +2730,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                       if (videoInputRef.current) {
                         videoInputRef.current.value = ""
                       }
-                      if (thumbnailInputRef.current) {  
+                      if (thumbnailInputRef.current) {
                         thumbnailInputRef.current.value = ""
                       }
                     }}
@@ -2670,7 +2870,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                       </label>
                       <div className="mb-3">
                         {thumbnailPreview ? (
-                          
+
                           <img
                             src={thumbnailPreview}
                             alt="Thumbnail Preview"
@@ -2696,7 +2896,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                         if (file) {
                           setEditVideoForm((prev) => ({
                             ...prev,
-                            thumbnail: file, 
+                            thumbnail: file,
                           }))
                           setThumbnailPreview(URL.createObjectURL(file)) // preview URL
                         }
@@ -2724,7 +2924,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
           }
         }}
       disabled={isUpdating}
-      className="px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg 
+      className="px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg
                  hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
       Remove Thumbnail
@@ -3042,8 +3242,8 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
   <button
     onClick={handleToggleLike}
     className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
-      isLiked 
-        ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg' 
+      isLiked
+        ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg'
         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
     }`}
     title={isLiked ? "Unlike this video" : "Like this video"}
@@ -3065,8 +3265,8 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                   <button
                     onClick={handleToggleLike}
                     className={`flex items-center space-x-1 px-3 py-1 rounded-full transition-colors cursor-pointer ${
-                      isLiked 
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                      isLiked
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
@@ -3128,8 +3328,8 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                       <button
                         onClick={handleToggleLike}
                         className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors ${
-                          isLiked 
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                          isLiked
+                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                         title={isLiked ? "Unlike this video" : "Like this video"}
@@ -3272,7 +3472,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                       .map((comment) => {
                         const isCreator = comment.commenter?.id === user?.id
                         const isEditing = editingCommentId === comment.id
-                        
+
                         return (
                           <div key={comment.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                             <div className="flex items-start space-x-4">
@@ -3294,7 +3494,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                                   </span>
                                   <span className="text-xs text-gray-500">{formatDate(comment.commented_at)}</span>
                                 </div>
-                                
+
                                 {isEditing ? (
                                   <div className="space-y-3">
                                     <textarea
