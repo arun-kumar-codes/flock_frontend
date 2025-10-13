@@ -9,7 +9,9 @@ import {
   FilterIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  Share2,
 } from "lucide-react";
+import ShareButton from "@/components/viewer/ShareButton";
 import Image from "next/image";
 import SearchIcon from "@/assets/Search_Icon.svg";
 import VideoIcon from "@/assets/Video_Icon.svg";
@@ -574,6 +576,13 @@ export default function VideoPage() {
                               />
                               <span>{video.likes}</span>
                             </button>
+                            <ShareButton
+                                                kind="video"
+                                                id={video.id.toString()}
+                                                title={video.title}
+                                                summary={video.description || ""}
+                                                onCopied={(url) => console.log("Shared video URL:", url)}
+                                              />
                           </div>
                         </div>
                       </div>

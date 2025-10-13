@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
+import ShareButton from "@/components/viewer/ShareButton";
 import {
   getVideoById,
   addView,
@@ -539,21 +540,29 @@ export default function VideoDetailPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
-                    isLiked
-                      ? "bg-red-500 text-white hover:bg-red-600"
-                      : "theme-bg-secondary theme-text-primary hover:opacity-80"
-                  }`}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
-                  />
-                  <span>{video.video?.likes || 0} likes</span>
-                </button>
-              </div>
+<div className="flex items-center gap-4">
+  <button
+    onClick={handleLike}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+      isLiked
+        ? "bg-red-500 text-white hover:bg-red-600"
+        : "theme-bg-secondary theme-text-primary hover:opacity-80"
+    }`}
+  >
+    <Heart
+      className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
+    />
+    <span>{video.video?.likes || 0} likes</span>
+  </button>
+
+  <ShareButton
+    kind="video"
+    id={params.id}
+    title={video.video?.title || "Check out this video"}
+    summary={video.video?.description || ""}
+    onCopied={(url) => console.log("Shared URL:", url)}
+  />
+</div>
             </div>
           </div>
 

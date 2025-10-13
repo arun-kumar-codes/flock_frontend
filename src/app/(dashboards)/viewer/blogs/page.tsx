@@ -10,8 +10,10 @@ import {
   RefreshCwIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  Share2,
 } from "lucide-react";
 import Image from "next/image";
+import ShareButton from "@/components/viewer/ShareButton";
 import SearchIcon from "@/assets/Search_Icon.svg";
 import {
   getBlog,
@@ -512,6 +514,13 @@ export default function BlogPage() {
                           />
                           <span>{currentBlogs[0].likes}</span>
                         </button>
+                        <ShareButton
+                          kind="blog"
+                          id={currentBlogs[0].id.toString()}
+                          title={currentBlogs[0].title}
+                          summary={currentBlogs[0].excerpt || ""}
+                          onCopied={(url) => console.log("Shared blog URL:", url)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -566,33 +575,44 @@ export default function BlogPage() {
                     </p>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center gap-2">
-                        {blog.paid_promotion && (
-                          <span className="inline-flex items-center px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full text-[10px] font-medium border border-yellow-200 dark:border-yellow-800">
-                            💰 Paid
-                          </span>
-                        )}
-                      </div>
+  <div className="flex items-center gap-2">
+    {blog.paid_promotion && (
+      <span className="inline-flex items-center px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full text-[10px] font-medium border border-yellow-200 dark:border-yellow-800">
+        💰 Paid
+      </span>
+    )}
+  </div>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleLike(blog.id);
-                        }}
-                        className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors text-xs font-medium ${
-                          blog.is_liked
-                            ? "bg-blue-500/10 text-blue-500"
-                            : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
-                        }`}
-                      >
-                        <ThumbsUpIcon
-                          className={`w-3 h-3 ${
-                            blog.is_liked ? "fill-current" : ""
-                          } ${likeAnimation[blog.id] ? "animate-pop" : ""}`}
-                        />
-                        <span>{blog.likes}</span>
-                      </button>
-                    </div>
+  <div className="flex items-center gap-1 ml-auto">
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleLike(blog.id);
+      }}
+      className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors text-xs font-medium ${
+        blog.is_liked
+          ? "bg-blue-500/10 text-blue-500"
+          : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
+      }`}
+    >
+      <ThumbsUpIcon
+        className={`w-3 h-3 ${
+          blog.is_liked ? "fill-current" : ""
+        } ${likeAnimation[blog.id] ? "animate-pop" : ""}`}
+      />
+      <span>{blog.likes}</span>
+    </button>
+    <div className="flex items-center">
+      <ShareButton
+        kind="blog"
+        id={blog.id.toString()}
+        title={blog.title}
+        summary={blog.excerpt || ""}
+        onCopied={(url) => console.log("Shared blog URL:", url)}
+      />
+    </div>
+  </div>
+</div>
                   </div>
                 </div>
               </div>

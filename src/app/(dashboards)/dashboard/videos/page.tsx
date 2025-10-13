@@ -313,18 +313,19 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
       }
       setPollingTaskId(null)
 
-      // Update toast to success
+      // ✅ Update toast to success
       updateToast(toastId, {
         type: 'success',
         message: 'Upload Successful!',
         description: result?.message || 'Your video has been uploaded successfully.'
       })
 
+       // ✅ Remove success toast after duration
+      setTimeout(() => removeToast(toastId), 5000)
+
       // Refresh video list
       await fetchUserVideos()
 
-      // Remove success toast after duration
-      setTimeout(() => removeToast(toastId), 5000)
     } else if (state === 'FAILURE') {
       // Stop polling
       if (pollingIntervalRef.current) {
@@ -333,22 +334,35 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
       }
       setPollingTaskId(null)
 
-      // Update toast to error
+      // ✅ Update toast to error
       updateToast(toastId, {
         type: 'error',
         message: 'Upload Failed',
         description: error || 'There was an error uploading your video.'
       })
 
-      // Remove error toast after duration
       setTimeout(() => removeToast(toastId), 7000)
+
     } else if (state === 'STARTED') {
-      // Update loading message
+      // ✅ Update toast when upload actually starts
       updateToast(toastId, {
+        type: 'loading',
         message: 'Uploading Video...',
-        description: status || 'Your video is being uploaded to the server.'
+        description: status || 'Your video is being uploaded to the server.',
+      })
+
+    }
+    // 🔹 ADD THIS NEW CASE ↓↓↓
+    else if (state === 'PENDING') {
+      // This ensures the "Processing" toast updates properly while queued
+      updateToast(toastId, {
+        type: 'loading',
+        message: 'Processing video...',
+        description: 'Preparing your upload, please wait...',
       })
     }
+    // 🔹 END ADDITION
+
   } catch (error) {
     console.error('Error polling task status:', error)
     // Stop polling on error
@@ -1226,6 +1240,17 @@ useEffect(() => {
   let uploadToastId: string | null = null
 
   try {
+
+    setShowCreateModal(false)
+
+    // Show "Processing" toast immediately
+    if (uploadToastId) removeToast(uploadToastId);
+    uploadToastId = addToast({
+      type: 'loading',
+      message: 'Processing video...',
+      description: 'Please wait while we prepare your upload.',
+    })
+
     const formData = new FormData()
     formData.append("title", videoForm.title.trim())
     formData.append("description", videoForm.description.trim())
@@ -1258,11 +1283,10 @@ useEffect(() => {
 
     if (response?.status === 202 && response?.data?.task_id) {
       // Create uploading toast
-      uploadToastId = addToast({
+       updateToast(uploadToastId, {
         type: 'loading',
         message: 'Starting Upload...',
         description: 'Preparing your video for upload.',
-        duration: 0
       })
 
       // Start polling for task status
@@ -1303,8 +1327,6 @@ useEffect(() => {
         thumbnailInputRef.current.value = ""
       }
 
-      // Close modal
-      setShowCreateModal(false)
     } else {
       setCreateError("Failed to create video. Please try again.")
     }
@@ -1576,7 +1598,6 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
 
       <div className="fixed top-4 right-4 z-[100] max-w-md">
-        {toasts.length > 0 && <div className="text-xs text-gray-500 mb-2">Toasts: {toasts.length}</div>}
         {toasts.map((toast) => {
           console.log('Rendering toast:', toast.id, toast.message)
           return (

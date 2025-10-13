@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
+import ShareButton from "@/components/viewer/ShareButton";
 import {
   getBlogById,
   addComment,
@@ -166,13 +167,13 @@ export default function BlogDetailPage() {
 
   const handleFollow = async () => {
     if (isFollowingLoading) return;
-    
+
     setIsFollowingLoading(true);
     try {
-      const response = isFollowing 
+      const response = isFollowing
         ? await removeFollowing(String(blog?.blog?.author?.id))
         : await addFollowing(String(blog?.blog?.author?.id));
-      
+
       if (response?.status === 200 || response?.success === true) {
         setIsFollowing(!isFollowing);
       }
@@ -446,14 +447,14 @@ export default function BlogDetailPage() {
                   {/* Status Badge */}
                   {blog.blog?.status && (
                     <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                      blog.blog.status === 'published' 
+                      blog.blog.status === 'published'
                         ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700'
                         : blog.blog.status === 'draft'
                         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                     }`}>
-                      {blog.blog.status === 'published' ? '✅ Published' : 
-                       blog.blog.status === 'draft' ? '📝 Draft' : 
+                      {blog.blog.status === 'published' ? '✅ Published' :
+                       blog.blog.status === 'draft' ? '📝 Draft' :
                        blog.blog.status}
                     </span>
                   )}
@@ -461,7 +462,7 @@ export default function BlogDetailPage() {
                   {/* Comments Status */}
                   {blog.blog?.show_comments !== undefined && (
                     <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                      blog.blog.show_comments 
+                      blog.blog.show_comments
                         ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                     }`}>
@@ -542,22 +543,30 @@ export default function BlogDetailPage() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
-                    isLiked
-                      ? "bg-red-500 text-white hover:bg-red-600"
-                      : "theme-bg-secondary theme-text-primary hover:opacity-80"
-                  }`}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
-                  />
-                  <span>{blog.blog?.likes || 0} likes</span>
-                </button>
-              </div>
+             {/* Action Buttons */}
+<div className="flex items-center gap-4">
+  <button
+    onClick={handleLike}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+      isLiked
+        ? "bg-red-500 text-white hover:bg-red-600"
+        : "theme-bg-secondary theme-text-primary hover:opacity-80"
+    }`}
+  >
+    <Heart
+      className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
+    />
+    <span>{blog.blog?.likes || 0} likes</span>
+  </button>
+
+  <ShareButton
+    kind="blog"
+    id={params.id}
+    title={blog.blog?.title || "Check out this blog"}
+    summary={blog.blog?.excerpt || ""}
+    onCopied={(url) => console.log("Shared blog URL:", url)}
+  />
+</div>
             </div>
           </div>
 
