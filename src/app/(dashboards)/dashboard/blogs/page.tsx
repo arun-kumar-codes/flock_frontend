@@ -41,6 +41,8 @@ import {
   MessageCircleIcon,
   MessageCircleOff,
   DollarSignIcon,
+  Share2,
+  Check,
 } from "lucide-react";
 import Image from "next/image";
 import { useSelector } from "react-redux";
@@ -94,6 +96,7 @@ interface Blog {
   locations?: string[] | string;
   brand_tags?: string[];
   paid_promotion?: boolean;
+  slug?: string;
 }
 
 interface CreateBlogData {
@@ -158,6 +161,11 @@ export default function BlogsPage() {
 
   // Like state for view modal
   const [isLiked, setIsLiked] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  //store id for url
+  const [createdBlogId, setCreatedBlogId] = useState<string | null>(null)
+
 
   // Comment states for view modal
   const [newComment, setNewComment] = useState("");
@@ -1410,6 +1418,11 @@ export default function BlogsPage() {
         response?.status === 201 ||
         response?.data
       ) {
+
+      if (response?.data?.blog_id) {
+        setCreatedBlogId(response.data.blog_id.toString());
+      }
+
         setCreateSuccess("Blog created successfully!");
 
         localStorage.removeItem("blogFormDraft");
@@ -2252,6 +2265,51 @@ export default function BlogsPage() {
                                   <>
                                     <MessageCircleIcon className="w-4 h-4" />{" "}
                                     <span> Turn on comment</span>{" "}
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation(); // so it doesn't close menu
+
+                                  const baseUrl = window.location.origin;
+                                  const shareUrl = `${baseUrl}/viewer/blog/${item.slug || item.id}`;
+
+                                  async function copyToClipboard() {
+                                    try {
+                                      if (navigator?.clipboard?.writeText) {
+                                        await navigator.clipboard.writeText(shareUrl);
+                                      } else {
+                                        const textArea = document.createElement("textarea");
+                                        textArea.value = shareUrl;
+                                        textArea.style.position = "fixed";
+                                        textArea.style.left = "-9999px";
+                                        document.body.appendChild(textArea);
+                                        textArea.select();
+                                        document.execCommand("copy");
+                                        document.body.removeChild(textArea);
+                                      }
+                                      setCopied(true);
+                                      setTimeout(() => setCopied(false), 2000);
+                                    } catch (err) {
+                                      console.error("Copy failed:", err);
+                                    }
+                                  }
+                                  copyToClipboard();
+                                }}
+                                className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                                title="Copy share link"
+                              >
+                                {copied ? (
+                                  <>
+                                    <Check className="w-4 h-4 text-green-600" />
+                                    <span>Copied!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Share2 className="w-4 h-4" />
+                                    <span>Share</span>
                                   </>
                                 )}
                               </button>
@@ -3534,6 +3592,7 @@ export default function BlogsPage() {
                         <h4 className="text-2xl sm:text-3xl font-bold text-slate-800 flex-1">
                           {viewBlog.title}
                         </h4>
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={handleToggleLike}
                           className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
@@ -3549,7 +3608,52 @@ export default function BlogsPage() {
                             {isLiked ? "❤️" : "🤍"}
                           </span>
                           <span>{isLiked ? "Liked" : "Like"}</span>
+                            </button>
+                            <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const baseUrl = window.location.origin;
+                            const shareUrl = `${baseUrl}/viewer/blog/${viewBlog.id}`;
+
+                            async function copyToClipboard() {
+                              try {
+                                if (navigator?.clipboard?.writeText) {
+                                  await navigator.clipboard.writeText(shareUrl);
+                                } else {
+                                  const textArea = document.createElement("textarea");
+                                  textArea.value = shareUrl;
+                                  textArea.style.position = "fixed";
+                                  textArea.style.left = "-9999px";
+                                  document.body.appendChild(textArea);
+                                  textArea.select();
+                                  document.execCommand("copy");
+                                  document.body.removeChild(textArea);
+                                }
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                              } catch (err) {
+                                console.error("Copy failed:", err);
+                              }
+                            }
+
+                            copyToClipboard();
+                          }}
+                          className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium transition-all duration-200"
+                          title="Copy share link"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-4 h-4 text-green-600" />
+                              <span>Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="w-4 h-4" />
+                              <span>Share</span>
+                            </>
+                          )}
                         </button>
+                          </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 mb-4">
                         <span className="flex items-center space-x-1">

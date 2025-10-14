@@ -27,6 +27,8 @@ import {
   MessageCircleOff,
   MessageCircleIcon,
   ImageIcon,
+  Share2,
+  Check,
 } from "lucide-react"
 import Image from "next/image"
 import { useSelector } from "react-redux"
@@ -88,6 +90,7 @@ interface VideoType {
   video_id: any
   creator: any
   id: number
+  slug?: string
   title: string
   description: string
   author: Author
@@ -177,6 +180,7 @@ export default function VideoDashboard() {
 
   // Like state for view modal
   const [isLiked, setIsLiked] = useState(false)
+  const [copied, setCopied] = useState(false);
 
   // Toast state
   const [toasts, setToasts] = useState<Array<{
@@ -190,6 +194,9 @@ export default function VideoDashboard() {
   // Polling state
   const [pollingTaskId, setPollingTaskId] = useState<string | null>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  //store id for url
+  const [createdVideoId, setCreatedVideoId] = useState<string | null>(null)
 
   // Comment states for view modal
   const [newComment, setNewComment] = useState("")
@@ -1282,6 +1289,9 @@ useEffect(() => {
     const response = await createVideo(formData)
 
     if (response?.status === 202 && response?.data?.task_id) {
+      if (response?.data?.video_id) {
+        setCreatedVideoId(response.data.video_id.toString());
+      }
       // Create uploading toast
        updateToast(uploadToastId, {
         type: 'loading',
@@ -2085,6 +2095,52 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
                               <><MessageCircleIcon className="w-4 h-4" /> <span> Turn on comment</span> </>
                             }
                           </button>
+  <button
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/viewer/video/${item.slug || item.id}`;
+
+    async function copyToClipboard() {
+      try {
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = shareUrl;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-9999px";
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Copy failed:", err);
+      }
+    }
+
+    copyToClipboard();
+  }}
+  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+  title="Copy share link"
+>
+  {copied ? (
+    <>
+      <Check className="w-4 h-4 text-green-600" />
+      <span>Copied!</span>
+    </>
+  ) : (
+    <>
+      <Share2 className="w-4 h-4" />
+      <span>Share</span>
+    </>
+  )}
+</button>
 
 
                           {/* Edit button - show for non-archived videos */}
@@ -3260,6 +3316,7 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
     </div>
   </div>
 
+<div className="flex items-center gap-2">
   <button
     onClick={handleToggleLike}
     className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
@@ -3272,6 +3329,52 @@ const handleBrandTagKeyPress = (e: React.KeyboardEvent, isEdit = false) => {
     <span className="text-xl">{isLiked ? '❤️' : '🤍'}</span>
     <span>{isLiked ? 'Liked' : 'Like'}</span>
   </button>
+
+    <button
+  onClick={(e) => {
+    e.preventDefault();
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/viewer/video/${viewVideo.id}`;
+
+    async function copyToClipboard() {
+      try {
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = shareUrl;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-9999px";
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Copy failed:", err);
+      }
+    }
+
+    copyToClipboard();
+  }}
+  className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium transition-all duration-200"
+  title="Copy share link"
+>
+  {copied ? (
+    <>
+      <Check className="w-4 h-4 text-green-600" />
+      <span>Copied!</span>
+    </>
+  ) : (
+    <>
+      <Share2 className="w-4 h-4" />
+      <span>Share</span>
+    </>
+  )}
+  </button>
+  </div>
 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 mb-4">
