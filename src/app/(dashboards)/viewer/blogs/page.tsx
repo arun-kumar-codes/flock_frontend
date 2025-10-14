@@ -391,13 +391,13 @@ export default function BlogPage() {
     <div className="flex flex-wrap gap-4 items-center w-full md:w-auto">
       <div className="relative inline-block">
         {/* Left Icon */}
-        <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 dark:text-gray-400" />
+        <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 theme-text-secondary" />
 
         <select
           value={selectedFollowing}
           onChange={(e) => setSelectedFollowing(e.target.value)}
           disabled={isLoadingFollowing}
-          className="pl-10 pr-8 py-2 md:py-3 bg-[#EAEEF6] cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
+          className="pl-10 pr-8 py-2 md:py-3 theme-bg-secondary cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
         >
           <option value="all">
             {user.isLogin ? "All Following" : "All Creators"}

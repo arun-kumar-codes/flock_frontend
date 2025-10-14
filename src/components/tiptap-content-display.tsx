@@ -39,7 +39,7 @@ export default function TipTapContentDisplay({ content, className = "" }: TipTap
         .tiptap-content-display p {
           margin-bottom: 0.75rem !important;
           line-height: 1.6 !important;
-          color: #374151 !important;
+          color: #111827 !important; /* Ensure dark text in light mode */
         }
         
         .tiptap-content-display ul {
@@ -57,7 +57,7 @@ export default function TipTapContentDisplay({ content, className = "" }: TipTap
         .tiptap-content-display li {
           margin-bottom: 0.25rem !important;
           line-height: 1.6 !important;
-          color: #374151 !important;
+          color: #111827 !important; /* Ensure dark text in light mode */
         }
         
         .tiptap-content-display blockquote {
@@ -164,40 +164,48 @@ export default function TipTapContentDisplay({ content, className = "" }: TipTap
           margin-top: 2rem !important;
         }
         
-        /* Dark mode styles */
-        @media (prefers-color-scheme: dark) {
-          .tiptap-content-display h1,
-          .tiptap-content-display h2,
-          .tiptap-content-display h3 {
-            color: #f9fafb !important;
-          }
-          
-          .tiptap-content-display p,
-          .tiptap-content-display li {
-            color: #d1d5db !important;
-          }
-          
-          .tiptap-content-display code {
-            color: #fca5a5 !important;
-            background-color: #1f2937 !important;
-          }
-          
-          .tiptap-content-display pre {
-            background-color: #1f2937 !important;
-          }
-          
-          .tiptap-content-display blockquote {
-            color: #d1d5db !important;
-            border-left-color: #4b5563 !important;
-          }
-          
-          .tiptap-content-display a {
-            color: #60a5fa !important;
-          }
-          
-          .tiptap-content-display a:hover {
-            color: #93c5fd !important;
-          }
+        /* Dark mode styles - respond to Tailwind's .dark class and data-theme="dark" */
+        .dark .tiptap-content-display h1,
+        .dark .tiptap-content-display h2,
+        .dark .tiptap-content-display h3,
+        html[data-theme="dark"] .tiptap-content-display h1,
+        html[data-theme="dark"] .tiptap-content-display h2,
+        html[data-theme="dark"] .tiptap-content-display h3 {
+          color: #ffffff !important;
+        }
+
+        .dark .tiptap-content-display p,
+        .dark .tiptap-content-display li,
+        html[data-theme="dark"] .tiptap-content-display p,
+        html[data-theme="dark"] .tiptap-content-display li {
+          color: #ffffff !important;
+        }
+
+        .dark .tiptap-content-display code,
+        html[data-theme="dark"] .tiptap-content-display code {
+          color: #fca5a5 !important;
+          background-color: #1f2937 !important;
+        }
+
+        .dark .tiptap-content-display pre,
+        html[data-theme="dark"] .tiptap-content-display pre {
+          background-color: #1f2937 !important;
+        }
+
+        .dark .tiptap-content-display blockquote,
+        html[data-theme="dark"] .tiptap-content-display blockquote {
+          color: #d1d5db !important;
+          border-left-color: #4b5563 !important;
+        }
+
+        .dark .tiptap-content-display a,
+        html[data-theme="dark"] .tiptap-content-display a {
+          color: #60a5fa !important;
+        }
+
+        .dark .tiptap-content-display a:hover,
+        html[data-theme="dark"] .tiptap-content-display a:hover {
+          color: #93c5fd !important;
         }
       `}</style>
 

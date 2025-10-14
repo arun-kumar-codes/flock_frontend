@@ -422,7 +422,7 @@ export default function BlogDetailPage() {
 
               {/* Blog Content */}
               <div className="mb-6">
-                <div className="prose prose-lg max-w-none dark:prose-invert">
+                <div className="prose prose-lg max-w-none dark:prose-invert text-black dark:text-white">
                   <TipTapContentDisplay content={blog.blog?.content || ""} />
                 </div>
               </div>
