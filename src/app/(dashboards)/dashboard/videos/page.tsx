@@ -286,40 +286,51 @@ export default function VideoDashboard() {
   });
 
   // Toast helper functions
-  const addToast = (toast: {
-    type: "success" | "error" | "info" | "loading";
-    message: string;
-    description?: string;
-    duration?: number;
-  }) => {
-    const id = `toast-${Date.now()}-${Math.random()}`;
-    console.log("🔔 Adding toast:", { id, ...toast });
-    setToasts((prev) => {
-      const newToasts = [...prev, { id, ...toast }];
-      console.log("Current toasts:", newToasts);
-      return newToasts;
-    });
-    return id;
-  };
+const addToast = (toast: {
+  type: 'success' | 'error' | 'info' | 'loading';
+  message: string;
+  description?: string;
+  duration?: number;
+}) => {
+  const id = `toast-${Date.now()}-${Math.random()}`
+  const newToast = { id, ...toast }
 
-  const removeToast = (id: string) => {
-    console.log("🗑️ Removing toast:", id);
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
+  console.log('🔔 Adding toast:', newToast)
 
-  const updateToast = (
-    id: string,
-    updates: Partial<{
-      type: "success" | "error" | "info" | "loading";
-      message: string;
-      description?: string;
-    }>
-  ) => {
-    console.log("✏️ Updating toast:", id, updates);
-    setToasts((prev) =>
-      prev.map((toast) => (toast.id === id ? { ...toast, ...updates } : toast))
-    );
-  };
+  setToasts((prev) => {
+    const updatedToasts = [...prev, newToast]
+    localStorage.setItem("activeToasts", JSON.stringify(updatedToasts))
+    return updatedToasts
+  })
+
+  return id
+}
+
+
+const removeToast = (id: string) => {
+  console.log('🗑️ Removing toast:', id)
+  setToasts((prev) => {
+    const updatedToasts = prev.filter((toast) => toast.id !== id)
+    localStorage.setItem("activeToasts", JSON.stringify(updatedToasts))
+    return updatedToasts
+  })
+}
+
+const updateToast = (id: string, updates: Partial<{
+  type: 'success' | 'error' | 'info' | 'loading';
+  message: string;
+  description?: string;
+}>) => {
+  console.log('✏️ Updating toast:', id, updates)
+  setToasts((prev) => {
+    const updatedToasts = prev.map((toast) =>
+      toast.id === id ? { ...toast, ...updates } : toast
+    )
+    localStorage.setItem("activeToasts", JSON.stringify(updatedToasts))
+    return updatedToasts
+  })
+}
+
 
   // Polling function
   const pollTaskStatus = async (taskId: string, toastId: string) => {
@@ -327,88 +338,115 @@ export default function VideoDashboard() {
       const response = await getTaskStatus(taskId);
       const { state, status, result, error } = response.data;
 
-      if (state === "SUCCESS") {
-        // Stop polling
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-        setPollingTaskId(null);
+    if (state === 'SUCCESS') {
+  // Stop polling
+  if (pollingIntervalRef.current) {
+    clearInterval(pollingIntervalRef.current)
+    pollingIntervalRef.current = null
+  }
+  setPollingTaskId(null)
 
-        // ✅ Update toast to success
-        updateToast(toastId, {
-          type: "success",
-          message: "Upload Successful!",
-          description:
-            result?.message || "Your video has been uploaded successfully.",
-        });
+  // ✅ CLEAR LOCALSTORAGE
+  localStorage.removeItem('videoUploadPolling')
 
-        // ✅ Remove success toast after duration
-        setTimeout(() => removeToast(toastId), 5000);
+  // ✅ Update toast to success
+  updateToast(toastId, {
+    type: 'success',
+    message: 'Upload Successful!',
+    description: result?.message || 'Your video has been uploaded successfully.'
+  })
 
-        // Refresh video list
-        await fetchUserVideos();
-      } else if (state === "FAILURE") {
-        // Stop polling
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-        setPollingTaskId(null);
+   // ✅ Remove success toast after duration
+  setTimeout(() => removeToast(toastId), 5000)
 
-        // ✅ Update toast to error
-        updateToast(toastId, {
-          type: "error",
-          message: "Upload Failed",
-          description: error || "There was an error uploading your video.",
-        });
+  // Refresh video list
+  await fetchUserVideos()
 
-        setTimeout(() => removeToast(toastId), 7000);
-      } else if (state === "STARTED") {
-        // ✅ Update toast when upload actually starts
-        updateToast(toastId, {
-          type: "loading",
-          message: "Uploading Video...",
-          description: status || "Your video is being uploaded to the server.",
-        });
-      }
-      // 🔹 ADD THIS NEW CASE ↓↓↓
-      else if (state === "PENDING") {
-        // This ensures the "Processing" toast updates properly while queued
-        updateToast(toastId, {
-          type: "loading",
-          message: "Processing video...",
-          description: "Preparing your upload, please wait...",
-        });
-      }
-      // 🔹 END ADDITION
-    } catch (error) {
-      console.error("Error polling task status:", error);
-      // Stop polling on error
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-      setPollingTaskId(null);
+} else if (state === 'FAILURE') {
+  // Stop polling
+  if (pollingIntervalRef.current) {
+    clearInterval(pollingIntervalRef.current)
+    pollingIntervalRef.current = null
+  }
+  setPollingTaskId(null)
 
+  // ✅ CLEAR LOCALSTORAGE
+  localStorage.removeItem('videoUploadPolling')
+
+  // ✅ Update toast to error
+  updateToast(toastId, {
+    type: 'error',
+    message: 'Upload Failed',
+    description: error || 'There was an error uploading your video.'
+  })
+
+  setTimeout(() => removeToast(toastId), 7000)
+
+} else if (state === 'STARTED') {
+      // ✅ Update toast when upload actually starts
       updateToast(toastId, {
-        type: "error",
-        message: "Error Checking Status",
-        description: "Could not check upload status. Please refresh the page.",
-      });
+        type: 'loading',
+        message: 'Uploading Video...',
+        description: status || 'Your video is being uploaded to the server.',
+      })
 
-      setTimeout(() => removeToast(toastId), 7000);
     }
-  };
+    // 🔹 ADD THIS NEW CASE ↓↓↓
+    else if (state === 'PENDING') {
+      // This ensures the "Processing" toast updates properly while queued
+      updateToast(toastId, {
+        type: 'loading',
+        message: 'Processing video...',
+        description: 'Preparing your upload, please wait...',
+      })
+    }
+    // 🔹 END ADDITION
 
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
+ } catch (error) {
+  console.error('Error polling task status:', error)
+  // Stop polling on error
+  if (pollingIntervalRef.current) {
+    clearInterval(pollingIntervalRef.current)
+    pollingIntervalRef.current = null
+  }
+  setPollingTaskId(null)
+
+  // ✅ CLEAR LOCALSTORAGE
+  localStorage.removeItem('videoUploadPolling')
+
+  updateToast(toastId, {
+    type: 'error',
+    message: 'Error Checking Status',
+    description: 'Could not check upload status. Please refresh the page.'
+  })
+
+  setTimeout(() => removeToast(toastId), 7000)
+}
+}
+
+// Cleanup polling on unmount
+useEffect(() => {
+  return () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+  }
+}, [])
+
+useEffect(() => {
+  const savedToasts = localStorage.getItem("activeToasts")
+  if (savedToasts) {
+    try {
+      const parsedToasts = JSON.parse(savedToasts)
+      if (Array.isArray(parsedToasts)) {
+        setToasts(parsedToasts)
       }
-    };
-  }, []);
+    } catch (err) {
+      console.error("Error restoring toasts:", err)
+      localStorage.removeItem("activeToasts")
+    }
+  }
+}, [])
 
   // Comment states
 
@@ -1364,28 +1402,35 @@ export default function VideoDashboard() {
 
       const response = await createVideo(formData);
 
-      if (response?.status === 202 && response?.data?.task_id) {
-        if (response?.data?.video_id) {
-          setCreatedVideoId(response.data.video_id.toString());
-        }
-        // Create uploading toast
-        updateToast(uploadToastId, {
-          type: "loading",
-          message: "Starting Upload...",
-          description: "Preparing your video for upload.",
-        });
+   if (response?.status === 202 && response?.data?.task_id) {
+  if (response?.data?.video_id) {
+    setCreatedVideoId(response.data.video_id.toString());
+  }
+  // Create uploading toast
+   updateToast(uploadToastId, {
+    type: 'loading',
+    message: 'Starting Upload...',
+    description: 'Preparing your video for upload.',
+  })
 
-        // Start polling for task status
-        const taskId = response.data.task_id;
-        setPollingTaskId(taskId);
+  // Start polling for task status
+  const taskId = response.data.task_id
+  setPollingTaskId(taskId)
 
-        // Poll every 2 seconds
-        pollingIntervalRef.current = setInterval(() => {
-          pollTaskStatus(taskId, uploadToastId!);
-        }, 2000);
+  // SAVE TO LOCALSTORAGE
+  localStorage.setItem('videoUploadPolling', JSON.stringify({
+    taskId,
+    toastId: uploadToastId,
+    timestamp: Date.now()
+  }))
 
-        // Initial poll
-        pollTaskStatus(taskId, uploadToastId);
+  // Poll every 2 seconds
+  pollingIntervalRef.current = setInterval(() => {
+    pollTaskStatus(taskId, uploadToastId!)
+  }, 2000)
+
+  // Initial poll
+  pollTaskStatus(taskId, uploadToastId)
 
         // Reset form
         localStorage.removeItem("videoFormDraft");
@@ -1698,15 +1743,50 @@ export default function VideoDashboard() {
 
   const handleThumbnailDragLeave = () => setIsThumbnailDragOver(false);
 
-  const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsThumbnailDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setThumbnailPreview(URL.createObjectURL(file));
-      setVideoForm((prev) => ({ ...prev, thumbnail: file }));
+    const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      setIsThumbnailDragOver(false)
+      const file = e.dataTransfer.files[0]
+      if (file && file.type.startsWith("image/")) {
+        setThumbnailPreview(URL.createObjectURL(file))
+        setVideoForm((prev) => ({ ...prev, thumbnail: file }))
+      }
     }
-  };
+
+    useEffect(() => {
+  const savedPollingState = localStorage.getItem('videoUploadPolling')
+  if (savedPollingState) {
+    try {
+      const { taskId, timestamp } = JSON.parse(savedPollingState)
+      // Only restore if the polling started less than 30 minutes ago
+      if (Date.now() - timestamp < 30 * 60 * 1000) {
+        setPollingTaskId(taskId)
+
+        // Recreate the toast
+        const newToastId = addToast({
+          type: 'loading',
+          message: 'Upload in progress...',
+          description: 'Your video is still being uploaded.',
+        })
+
+        // Start polling
+        pollingIntervalRef.current = setInterval(() => {
+          pollTaskStatus(taskId, newToastId)
+        }, 2000)
+
+        // Initial poll
+        pollTaskStatus(taskId, newToastId)
+      } else {
+        // Clear old polling state
+        localStorage.removeItem('videoUploadPolling')
+      }
+    } catch (error) {
+      console.error('Error restoring polling state:', error)
+      localStorage.removeItem('videoUploadPolling')
+    }
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []) // Run once on mount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -2717,8 +2797,6 @@ export default function VideoDashboard() {
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       Custom Thumbnail (optional)
                     </label>
-                    
-                    
 
                     {/* Preview */}
                     {thumbnailPreview && (
