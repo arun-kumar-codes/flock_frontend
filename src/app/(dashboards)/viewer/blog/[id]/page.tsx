@@ -3,7 +3,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
-import ShareButton from "@/components/viewer/ShareButton";
 import {
   getBlogById,
   addComment,
@@ -95,7 +94,9 @@ export default function BlogDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
   const [isEditingComment, setIsEditingComment] = useState(false);
-  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(
+    null
+  );
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null);
   const [isFollowingLoading, setIsFollowingLoading] = useState(false);
 
@@ -210,7 +211,10 @@ export default function BlogDetailPage() {
 
     setIsEditingComment(true);
     try {
-      const response = await editComments(editingCommentId, editCommentText.trim());
+      const response = await editComments(
+        editingCommentId,
+        editCommentText.trim()
+      );
       if (response?.status === 200 || response?.success === true) {
         setEditingCommentId(null);
         setEditCommentText("");
@@ -349,10 +353,10 @@ export default function BlogDetailPage() {
               </h1>
 
               {/* Blog Stats */}
-              <div className="flex items-center gap-6 mb-6 text-sm theme-text-secondary">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mb-6 text-sm theme-text-secondary">
                 <span className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
-                  {blog.blog?.views || 0} views
+                  {(blog.blog?.views || 0).toLocaleString()} views
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
@@ -383,9 +387,6 @@ export default function BlogDetailPage() {
                   <div>
                     <p className="font-medium theme-text-primary">
                       {blog.blog?.author?.username || "Unknown Author"}
-                    </p>
-                    <p className="text-sm theme-text-secondary">
-                      {blog.blog?.author?.email || "No email available"}
                     </p>
                   </div>
                 </div>
@@ -441,32 +442,6 @@ export default function BlogDetailPage() {
                   {blog.blog?.paid_promotion && (
                     <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-sm font-medium px-3 py-1 rounded-full border border-yellow-200 dark:border-yellow-700">
                       💰 Paid Promotion
-                    </span>
-                  )}
-
-                  {/* Status Badge */}
-                  {blog.blog?.status && (
-                    <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                      blog.blog.status === 'published'
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700'
-                        : blog.blog.status === 'draft'
-                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600'
-                    }`}>
-                      {blog.blog.status === 'published' ? '✅ Published' :
-                       blog.blog.status === 'draft' ? '📝 Draft' :
-                       blog.blog.status}
-                    </span>
-                  )}
-
-                  {/* Comments Status */}
-                  {blog.blog?.show_comments !== undefined && (
-                    <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                      blog.blog.show_comments
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600'
-                    }`}>
-                      {blog.blog.show_comments ? '💬 Comments Enabled' : '🚫 Comments Disabled'}
                     </span>
                   )}
 
@@ -528,7 +503,7 @@ export default function BlogDetailPage() {
               {blog.blog?.brand_tags && blog.blog.brand_tags.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium theme-text-primary mb-2">
-                    Brand Tags
+                    Tags
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {blog.blog?.brand_tags.map((tag, index) => (
@@ -543,30 +518,22 @@ export default function BlogDetailPage() {
                 </div>
               )}
 
-             {/* Action Buttons */}
-<div className="flex items-center gap-4">
-  <button
-    onClick={handleLike}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
-      isLiked
-        ? "bg-red-500 text-white hover:bg-red-600"
-        : "theme-bg-secondary theme-text-primary hover:opacity-80"
-    }`}
-  >
-    <Heart
-      className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
-    />
-    <span>{blog.blog?.likes || 0} likes</span>
-  </button>
-
-  <ShareButton
-    kind="blog"
-    id={params.id}
-    title={blog.blog?.title || "Check out this blog"}
-    summary={blog.blog?.excerpt || ""}
-    onCopied={(url) => console.log("Shared blog URL:", url)}
-  />
-</div>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                    isLiked
+                      ? "bg-red-500 text-white hover:bg-red-600"
+                      : "theme-bg-secondary theme-text-primary hover:opacity-80"
+                  }`}
+                >
+                  <Heart
+                    className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
+                  />
+                  <span>{blog.blog?.likes || 0} likes</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -578,11 +545,16 @@ export default function BlogDetailPage() {
                 <h3 className="text-lg font-semibold theme-text-primary flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
                   Comments ({blog.blog?.comments_count || 0})
+                  {blog.blog?.show_comments === false && (
+                    <span className="ml-2 px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                      Disabled
+                    </span>
+                  )}
                 </h3>
               </div>
 
               {/* Add Comment - Only show if comments are enabled */}
-              {blog.blog?.show_comments !== false && (
+              {blog.blog?.show_comments !== false ? (
                 <div className="p-4 border-b theme-border">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -624,21 +596,23 @@ export default function BlogDetailPage() {
                     </div>
                   </div>
                 </div>
+              ) : (
+                <div className="p-4 border-b theme-border">
+                  <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
+                    <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Comments are disabled for this blog
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      The author has turned off commenting
+                    </p>
+                  </div>
+                </div>
               )}
 
               {/* Comments List */}
               <div className="max-h-96 overflow-y-auto">
-                {blog.blog?.show_comments === false ? (
-                  <div className="p-8 text-center">
-                    <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h4 className="font-medium theme-text-primary mb-2">
-                      Comments are disabled
-                    </h4>
-                    <p className="theme-text-secondary text-sm">
-                      The author has disabled comments for this blog.
-                    </p>
-                  </div>
-                ) : blog.blog?.comments && blog.blog.comments.length > 0 ? (
+                {blog.blog?.comments && blog.blog.comments.length > 0 ? (
                   <div className="p-4 space-y-4">
                     {blog.blog?.comments
                       .sort((a, b) => {
@@ -650,7 +624,8 @@ export default function BlogDetailPage() {
                         return 0;
                       })
                       .map((comment) => {
-                        const isUserComment = comment.commenter?.id === user?.id;
+                        const isUserComment =
+                          comment.commenter?.id === user?.id;
                         const isEditing = editingCommentId === comment.id;
 
                         return (
@@ -659,7 +634,9 @@ export default function BlogDetailPage() {
                               {comment.commenter?.profile_picture ? (
                                 <Image
                                   src={comment.commenter.profile_picture}
-                                  alt={comment.commenter?.username || "Commenter"}
+                                  alt={
+                                    comment.commenter?.username || "Commenter"
+                                  }
                                   width={32}
                                   height={32}
                                   className="w-full h-full rounded-full object-cover"
@@ -720,7 +697,9 @@ export default function BlogDetailPage() {
                                             handleDeleteComment(comment.id);
                                             setShowCommentMenu(null);
                                           }}
-                                          disabled={deletingCommentId === comment.id}
+                                          disabled={
+                                            deletingCommentId === comment.id
+                                          }
                                           className="flex items-center space-x-2 w-full px-2 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors disabled:opacity-50 cursor-pointer"
                                         >
                                           {deletingCommentId === comment.id ? (
@@ -783,7 +762,7 @@ export default function BlogDetailPage() {
                         );
                       })}
                   </div>
-                ) : (
+                ) : blog.blog?.show_comments ? (
                   <div className="p-8 text-center">
                     <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h4 className="font-medium theme-text-primary mb-2">
@@ -793,7 +772,7 @@ export default function BlogDetailPage() {
                       Be the first to comment on this blog.
                     </p>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           </div>

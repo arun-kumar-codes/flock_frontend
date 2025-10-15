@@ -2,6 +2,7 @@
 import type React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Country } from "country-state-city";
 import {
   archiveBlog,
   createBlog,
@@ -252,6 +253,10 @@ export default function BlogsPage() {
 
   const [locationInput, setLocationInput] = useState("");
   const [editLocationInput, setEditLocationInput] = useState("");
+  const [countrySearch, setCountrySearch] = useState("");
+  const [editCountrySearch, setEditCountrySearch] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [showEditCountryDropdown, setShowEditCountryDropdown] = useState(false);
 
   const [brandTagInput, setBrandTagInput] = useState("");
   const [editBrandTagInput, setEditBrandTagInput] = useState("");
@@ -965,28 +970,10 @@ export default function BlogsPage() {
     setShowEditModal(true);
   };
 
-  // Handle view blog
+  // Handle view blog - navigate to dedicated page
   const handleViewBlog = (blog: Blog) => {
-    //console.log("View blog clicked:", blog.id)
     setShowActionMenu(null);
-    let parsedLocations: string[] = [];
-    if (blog.locations) {
-      if (Array.isArray(blog.locations)) {
-        parsedLocations = blog.locations;
-      } else if (typeof blog.locations === "string") {
-        parsedLocations = blog.locations
-          .split(",")
-          .map((l) => l.trim())
-          .filter((l) => l);
-      }
-    }
-    setViewBlog({
-      ...blog,
-      locations: parsedLocations,
-    });
-    setShowViewModal(true);
-    setIsLiked(blog.is_liked || false);
-    document.body.style.overflow = "hidden";
+    router.push(`/dashboard/blog/${blog.id}`);
   };
 
   // Handle like toggle
@@ -2636,6 +2623,10 @@ export default function BlogsPage() {
                         <label className="block text-sm font-medium text-slate-700 mb-2">
                           Blog Image (Optional)
                         </label>
+                        
+                        {/* Upload Requirements */}
+                        
+                        
                         {/* Image Preview */}
                         {imagePreview && (
                           <div className="mb-4 relative">
@@ -2703,7 +2694,7 @@ export default function BlogsPage() {
                                   or drag and drop
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  PNG, JPG,JPEG, GIF, WebP up to 18MB
+                                  PNG, JPG, JPEG, GIF, WebP • Min 1000×1000px 
                                 </p>
                               </div>
                             </div>
@@ -2742,44 +2733,79 @@ export default function BlogsPage() {
                         </p>
                       </div>
 
-                      {/* Location Section - Add after keywords */}
+                      {/* Country Section */}
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Location (Optional)
+                          Country (Optional)
                         </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={locationInput}
-                            onChange={(e) => setLocationInput(e.target.value)}
-                            onKeyDown={(e) => handleLocationKeyPress(e, false)}
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
-                            placeholder="Enter a location..."
-                            maxLength={50}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => addLocation(false)}
-                            disabled={!locationInput.trim()}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                          >
-                            Add
-                          </button>
-                        </div>
-                        {/* Location tags */}
+                        {!blogForm.locations || blogForm.locations.length === 0 ? (
+                          <div className="relative">
+                            {/* Combined Search/Select Input */}
+                            <input
+                              type="text"
+                              placeholder="🔍 Search and select a country..."
+                              value={countrySearch}
+                              onChange={(e) => {
+                                setCountrySearch(e.target.value);
+                                setShowCountryDropdown(true);
+                              }}
+                              onFocus={() => setShowCountryDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowCountryDropdown(false), 200)}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                            />
+                            
+                            {/* Dropdown Results */}
+                            {showCountryDropdown && countrySearch && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {Country.getAllCountries()
+                                  .filter((country) =>
+                                    country.name.toLowerCase().includes(countrySearch.toLowerCase())
+                                  )
+                                  .slice(0, 10)
+                                  .map((country) => (
+                                    <button
+                                      key={country.isoCode}
+                                      type="button"
+                                      onClick={() => {
+                                        setBlogForm({
+                                          ...blogForm,
+                                          locations: [country.name],
+                                        });
+                                        setCountrySearch("");
+                                        setShowCountryDropdown(false);
+                                      }}
+                                      className="w-full text-left px-4 py-2 hover:bg-indigo-50 transition-colors text-sm flex items-center gap-2"
+                                    >
+                                      <span className="text-lg">{country.flag}</span>
+                                      <span>{country.name}</span>
+                                    </button>
+                                  ))}
+                                {Country.getAllCountries().filter((country) =>
+                                  country.name.toLowerCase().includes(countrySearch.toLowerCase())
+                                ).length === 0 && (
+                                  <div className="px-4 py-3 text-sm text-slate-500 text-center">
+                                    No countries found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                        
+                        {/* Selected Country tag */}
                         {blogForm.locations &&
                           blogForm.locations.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
+                            <div className="mt-2 flex flex-wrap gap-2">
                               {blogForm.locations.map((loc, index) => (
                                 <span
                                   key={index}
-                                  className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium"
                                 >
-                                  {loc}
+                                  <span>📍 {loc}</span>
                                   <button
                                     type="button"
                                     onClick={() => removeLocation(loc, false)}
-                                    className="ml-1 text-purple-600 hover:text-purple-800 transition-colors"
+                                    className="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors font-bold"
                                   >
                                     ×
                                   </button>
@@ -2787,24 +2813,24 @@ export default function BlogsPage() {
                               ))}
                             </div>
                           )}
-                        <p className="text-xs text-slate-500 mt-1">
-                          Press Enter or click Add to add keywords. You can add
-                          multiple keywords at once by separating them with a
-                          space or comma. Click × to remove a keyword.
+                        <p className="text-xs text-slate-500 mt-2">
+                          {blogForm.locations && blogForm.locations.length > 0
+                            ? "Click × to change it."
+                            : "Type to search and select a country"}
                         </p>
                       </div>
 
                       {/* Brand Tags (Optional) */}
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Brand Tags (Optional)
+                          Tags (Optional)
                         </label>
 
                         {/* Brand tag input row */}
                         <div className="flex gap-2">
                           <input
                             type="text"
-                            placeholder="Enter a brand..."
+                            placeholder="Enter a tag..."
                             value={brandTagInput}
                             onChange={(e) => setBrandTagInput(e.target.value)}
                             onKeyDown={(e) => handleBrandTagKeyPress(e, false)}
@@ -3183,6 +3209,9 @@ export default function BlogsPage() {
                         <label className="block text-sm font-medium text-slate-700 mb-2">
                           Blog Image (Optional)
                         </label>
+                        
+                        
+                        
                         {/* Current/Preview Image */}
                         {editImagePreview && !removeExistingImage && (
                           <div className="mb-4 relative">
@@ -3239,7 +3268,9 @@ export default function BlogsPage() {
                                   </button>{" "}
                                   or drag and drop
                                 </p>
-                                {/* <p className="text-xs text-slate-500">PNG, JPG, GIF, WebP up to 5MB</p> */}
+                                <p className="text-xs text-slate-500">
+                                  PNG, JPG, JPEG, GIF, WebP • Min 1000×1000px • Max 19MB
+                                </p>
                               </div>
                             </div>
                             <input
@@ -3278,47 +3309,79 @@ export default function BlogsPage() {
                         </p>
                       </div>
 
-                      {/* Location Section in Edit Modal */}
+                      {/* Country Section in Edit Modal */}
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Location (Optional)
+                          Country (Optional)
                         </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={editLocationInput}
-                            onChange={(e) =>
-                              setEditLocationInput(e.target.value)
-                            }
-                            onKeyPress={(e) => handleLocationKeyPress(e, true)}
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
-                            placeholder="Enter a location..."
-                            maxLength={50}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => addLocation(true)}
-                            disabled={!editLocationInput.trim()}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                          >
-                            Add
-                          </button>
-                        </div>
+                        {!editBlogForm.locations || editBlogForm.locations.length === 0 ? (
+                          <div className="relative">
+                            {/* Combined Search/Select Input */}
+                            <input
+                              type="text"
+                              placeholder="🔍 Search and select a country..."
+                              value={editCountrySearch}
+                              onChange={(e) => {
+                                setEditCountrySearch(e.target.value);
+                                setShowEditCountryDropdown(true);
+                              }}
+                              onFocus={() => setShowEditCountryDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowEditCountryDropdown(false), 200)}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                            />
+                            
+                            {/* Dropdown Results */}
+                            {showEditCountryDropdown && editCountrySearch && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {Country.getAllCountries()
+                                  .filter((country) =>
+                                    country.name.toLowerCase().includes(editCountrySearch.toLowerCase())
+                                  )
+                                  .slice(0, 10)
+                                  .map((country) => (
+                                    <button
+                                      key={country.isoCode}
+                                      type="button"
+                                      onClick={() => {
+                                        setEditBlogForm({
+                                          ...editBlogForm,
+                                          locations: [country.name],
+                                        });
+                                        setEditCountrySearch("");
+                                        setShowEditCountryDropdown(false);
+                                      }}
+                                      className="w-full text-left px-4 py-2 hover:bg-indigo-50 transition-colors text-sm flex items-center gap-2"
+                                    >
+                                      <span className="text-lg">{country.flag}</span>
+                                      <span>{country.name}</span>
+                                    </button>
+                                  ))}
+                                {Country.getAllCountries().filter((country) =>
+                                  country.name.toLowerCase().includes(editCountrySearch.toLowerCase())
+                                ).length === 0 && (
+                                  <div className="px-4 py-3 text-sm text-slate-500 text-center">
+                                    No countries found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
 
-                        {/* Location tags */}
+                        {/* Selected Country tag */}
                         {editBlogForm.locations &&
                           editBlogForm.locations.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
+                            <div className="mt-2 flex flex-wrap gap-2">
                               {editBlogForm.locations.map((loc, index) => (
                                 <span
                                   key={index}
-                                  className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium"
                                 >
-                                  {loc}
+                                  <span>📍 {loc}</span>
                                   <button
                                     type="button"
                                     onClick={() => removeLocation(loc, true)}
-                                    className="ml-1 text-purple-600 hover:text-purple-800 transition-colors"
+                                    className="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors font-bold"
                                   >
                                     ×
                                   </button>
@@ -3326,17 +3389,17 @@ export default function BlogsPage() {
                               ))}
                             </div>
                           )}
-                        <p className="text-xs text-slate-500 mt-1">
-                          Press Enter or click Add to add Location. You can add
-                          multiple Locations at once by separating them with a
-                          space or comma. Click × to remove a keyword.
+                        <p className="text-xs text-slate-500 mt-2">
+                          {editBlogForm.locations && editBlogForm.locations.length > 0
+                            ? "Click × to change it."
+                            : "Type to search and select a country"}
                         </p>
                       </div>
 
                       {/* Brand Tags (Edit) */}
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Brand Tags
+                          Tags
                         </label>
 
                         {/* Show added tags */}

@@ -499,12 +499,12 @@ export default function VideoPage() {
                       </div>
 
                       {/* Play button overlay */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center transform scale-0 group-hover:scale-100 transition-all duration-300 shadow-lg">
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
+                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300">
                           <Image
                             src={VideoIcon}
                             alt="Video"
-                            className="w-12 h-12 text-gray-900 ml-0.5"
+                            className="w-10 h-10 md:w-12 md:h-12 ml-0.5"
                           />
                         </div>
                       </div>

@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ThumbsUpIcon,
   PlayIcon,
-  RefreshCwIcon,
   BookOpenIcon,
   FilterIcon,
   UserIcon,
@@ -406,8 +404,6 @@ export default function DashboardPage() {
 
       if (response?.data?.creators) {
         setCreators(response.data.creators);
-      } else {
-        setCreatorsError("No creators data received");
       }
     } catch (error) {
       console.error("Error fetching creators:", error);
@@ -976,7 +972,7 @@ export default function DashboardPage() {
 
               <div className="relative inline-block">
                 {/* Left Icon */}
-                <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-secondary" />
+                <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 theme-text-secondary" />
 
                 <select
                   value={contentTypeFilter}
@@ -1204,19 +1200,19 @@ export default function DashboardPage() {
                           )}
 
                           {/* Play Button Overlay */}
-                          <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
-                            <div className="w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 scale-100">
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-white/10 transition-all duration-300 flex items-center justify-center">
+                            <div className="w-20 h-20 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 shadow-lg group-hover:scale-110">
                               {item.type === "video" ? (
                                 <Image
                                   src={VideoIcon}
                                   alt="Video"
-                                  className="w-18 h-18 text-gray-900 ml-0.5"
+                                  className="w-12 h-12 ml-0.5"
                                 />
                               ) : (
                                 <Image
                                   src={BlogIcon}
                                   alt="Blog"
-                                  className="w-18 h-18 text-gray-900"
+                                  className="w-12 h-12"
                                 />
                               )}
                             </div>
@@ -1372,19 +1368,19 @@ export default function DashboardPage() {
                           )}
 
                           {/* Play Button Overlay */}
-                          <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
-                            <div className="w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg scale-100">
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
+                            <div className="w-20 h-20 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 shadow-lg group-hover:scale-110">
                               {item.type === "video" ? (
                                 <Image
                                   src={VideoIcon}
                                   alt="Video"
-                                  className="w-18 h-18 text-gray-900 ml-0.5"
+                                  className="w-12 h-12 ml-0.5"
                                 />
                               ) : (
                                 <Image
                                   src={BlogIcon}
                                   alt="Blog"
-                                  className="w-18 h-18 text-gray-900"
+                                  className="w-12 h-12"
                                 />
                               )}
                             </div>
@@ -1540,19 +1536,19 @@ export default function DashboardPage() {
                           )}
 
                           {/* Play Button Overlay */}
-                          <div className="absolute inset-0 bg-black/0  transition-all duration-300 flex items-center justify-center">
-                            <div className="w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg scale-100">
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
+                            <div className="w-20 h-20 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 shadow-lg group-hover:scale-110">
                               {item.type === "video" ? (
                                 <Image
                                   src={VideoIcon}
                                   alt="Video"
-                                  className="w-18 h-18 text-gray-900 ml-0.5"
+                                  className="w-12 h-12 ml-0.5"
                                 />
                               ) : (
                                 <Image
                                   src={BlogIcon}
                                   alt="Blog"
-                                  className="w-18 h-18 text-gray-900"
+                                  className="w-12 h-12"
                                 />
                               )}
                             </div>
@@ -1682,7 +1678,7 @@ export default function DashboardPage() {
                             {creator.profile_picture ? (
                               <Image
                                 src={creator.profile_picture}
-                                alt={creator.username || creator.email}
+                                alt={creator.username || "Creator"}
                                 fill
                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                               />
@@ -1693,8 +1689,7 @@ export default function DashboardPage() {
                                     <UserIcon className="w-10 h-10 text-gray-500" />
                                   </div>
                                   <p className="text-sm text-gray-500 font-medium">
-                                    {creator.username ||
-                                      creator.email.split("@")[0]}
+                                    {creator.username || "Creator"}
                                   </p>
                                 </div>
                               </div>
@@ -1705,8 +1700,7 @@ export default function DashboardPage() {
                               <div className="absolute inset-0 bg-black/0 transition-all duration-300 flex items-end mb-2 px-2">
                                 <div className="w-full bg-white/20 px-4 py-3 text-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
                                   <h3 className="text-white font-semibold text-base truncate">
-                                    {creator.username ||
-                                      creator.email.split("@")[0]}
+                                    {creator.username || "Creator"}
                                   </h3>
                                 </div>
                               </div>
@@ -1877,62 +1871,68 @@ export default function DashboardPage() {
 
         {/* Fullscreen Animation Modal */}
         {showVideoOverlay && (
-  <div className="fixed inset-0 z-50 bg-white flex items-center justify-center overflow-hidden">
-    {/* Video container */}
-    <div className="relative w-full h-full max-w-[100%] sm:max-w-full flex items-center justify-center">
-      {/* Video element - no controls, no hover effects */}
-      <video
-        src="/Flock-Video.mp4"
-        className="w-full h-auto sm:h-full pointer-events-none"
-        autoPlay
-        muted
-        playsInline
-        style={{
-          backgroundColor: "white",
-          display: "cover",
-          maxWidth: "100%",
-          maxHeight: "100%",
-          objectFit: "cover",
-          pointerEvents: "none",
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          MozUserSelect: "none",
-          msUserSelect: "none",
-        }}
-        onContextMenu={(e) => e.preventDefault()}
-        onMouseDown={(e) => e.preventDefault()}
-        onMouseUp={(e) => e.preventDefault()}
-        onMouseMove={(e) => e.preventDefault()}
-        onMouseEnter={(e) => e.preventDefault()}
-        onMouseLeave={(e) => e.preventDefault()}
-        onMouseOver={(e) => e.preventDefault()}
-        onMouseOut={(e) => e.preventDefault()}
-        onFocus={(e) => e.preventDefault()}
-        onBlur={(e) => e.preventDefault()}
-        onEnded={handleVideoEnd}
-        tabIndex={-1}
-      />
+          <div className="fixed inset-0 z-50 bg-white flex items-center justify-center overflow-hidden">
+            {/* Video container */}
+            <div className="relative w-full h-full max-w-[100%] sm:max-w-full flex items-center justify-center">
+              {/* Video element - no controls, no hover effects */}
+              <video
+                src="/Flock-Video.mp4"
+                className="w-full h-auto sm:h-full pointer-events-none"
+                autoPlay
+                muted
+                playsInline
+                style={{
+                  backgroundColor: "white",
+                  display: "cover",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  objectFit: "cover",
+                  pointerEvents: "none",
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                  MozUserSelect: "none",
+                  msUserSelect: "none",
+                }}
+                onContextMenu={(e) => e.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
+                onMouseUp={(e) => e.preventDefault()}
+                onMouseMove={(e) => e.preventDefault()}
+                onMouseEnter={(e) => e.preventDefault()}
+                onMouseLeave={(e) => e.preventDefault()}
+                onMouseOver={(e) => e.preventDefault()}
+                onMouseOut={(e) => e.preventDefault()}
+                onFocus={(e) => e.preventDefault()}
+                onBlur={(e) => e.preventDefault()}
+                onEnded={handleVideoEnd}
+                tabIndex={-1}
+              />
 
-      {/* Optional fallback (hidden unless error) */}
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center "
-        style={{ display: "none" }}
-      >
-        <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
+              {/* Optional fallback (hidden unless error) */}
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center "
+                style={{ display: "none" }}
+              >
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                    <svg
+                      className="w-10 h-10"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Video Not Found
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Redirecting to videos section...
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h3 className="text-xl font-semibold mb-2">Video Not Found</h3>
-          <p className="text-sm text-gray-400">Redirecting to videos section...</p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-)}
-
+        )}
       </div>
     </div>
   );

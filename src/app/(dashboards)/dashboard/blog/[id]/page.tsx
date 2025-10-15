@@ -5,19 +5,17 @@ import { useSelector } from "react-redux";
 import Image from "next/image";
 import ShareButton from "@/components/viewer/ShareButton";
 import {
-  getVideoById,
-  addView,
-  toggleVideoLike,
-  addCommentToVideo,
-  deleteVideoComment,
-  editVideoComment,
-  addWatchTime,
+  getBlogById,
+  addComment,
+  editComments,
+  deleteComment,
+  viewBLog,
+  toggleBlogLike,
 } from "@/api/content";
 import {
   ArrowLeft,
   Heart,
   MessageCircle,
-  Share2,
   Eye,
   Clock,
   User,
@@ -25,31 +23,29 @@ import {
   Edit,
   Trash2,
   Send,
+  Calendar,
 } from "lucide-react";
 import Loader from "@/components/Loader";
+import TipTapContentDisplay from "@/components/tiptap-content-display";
 
-interface Video {
-  video: {
-    video: string;
-    thumbnail: string;
-    duration: number;
-    duration_formatted: string;
-    views: number;
-    likes: number;
-    is_liked: boolean;
-    created_at: string;
-    description: string;
+interface Blog {
+  blog: {
+    id: number;
     title: string;
-    creator: {
+    content: string;
+    author: {
       id: number;
       username: string;
       email: string;
       profile_picture?: string;
     };
+    created_at: string;
+    created_by: number;
     comments: Array<{
       id: number;
       comment: string;
       commented_at: string;
+      commented_by: number;
       commenter: {
         id: number;
         username: string;
@@ -58,23 +54,30 @@ interface Video {
       };
     }>;
     comments_count: number;
+    liked_by: number[];
+    likes: number;
+    image?: string;
+    archived: boolean;
+    status: string;
+    is_liked: boolean;
+    views?: number;
+    readTime?: string;
+    excerpt?: string;
+    age_restricted?: boolean;
+    paid_promotion?: boolean;
+    show_comments?: boolean;
     keywords?: string[];
     locations?: string[];
     brand_tags?: string[];
-    age_restricted?: boolean;
-    paid_promotion?: boolean;
-    status?: string;
-    show_comments?: boolean;
   };
 }
 
-export default function VideoDetailPage() {
+export default function DashboardBlogDetailPage() {
   const params = useParams();
   const router = useRouter();
   const user = useSelector((state: any) => state.user);
 
-  const [video, setVideo] = useState<Video | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isLiked, setIsLiked] = useState(false);
@@ -88,82 +91,36 @@ export default function VideoDetailPage() {
   );
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null);
 
-  const [watchTime, setWatchTime] = useState(0);
-  const [lastWatchTimeUpdate, setLastWatchTimeUpdate] = useState(0);
-  console.log("window url", videoUrl);
   useEffect(() => {
-    const fetchVideo = async () => {
+    const fetchBlog = async () => {
       try {
         setLoading(true);
 
-        // Get video data
-        const videoResponse = await getVideoById(params.id);
-        console.log("Video API Response:", videoResponse);
+        // Get blog data
+        const blogResponse = await getBlogById(params.id);
+        console.log("Blog API Response:", blogResponse);
 
-        if (videoResponse?.data) {
-          console.log("Video data:", videoResponse.data);
-          console.log("Video URL:", videoResponse.data.video);
-          console.log(
-            "Video object structure:",
-            Object.keys(videoResponse.data)
-          );
-
-          // Check if video is an object and extract the URL
-          let extractedVideoUrl = videoResponse.data.video;
-          if (
-            typeof extractedVideoUrl === "object" &&
-            extractedVideoUrl !== null
-          ) {
-            // The video URL is nested inside the video object as video.video
-            extractedVideoUrl =
-              extractedVideoUrl.video ||
-              extractedVideoUrl.url ||
-              extractedVideoUrl.src ||
-              extractedVideoUrl.file ||
-              extractedVideoUrl.path ||
-              extractedVideoUrl.video_url;
-            console.log("Extracted video URL:", extractedVideoUrl);
-          }
-
-          setVideo(videoResponse.data);
-
-          // Modify the video URL to add custom styling parameters
-          let finalVideoUrl = extractedVideoUrl || "";
-
-          // If it's a Cloudflare Stream URL, convert it to iframe embed with custom params
-          if (
-            finalVideoUrl &&
-            (finalVideoUrl.includes("videodelivery.net") ||
-              finalVideoUrl.includes("cloudflarestream.com"))
-          ) {
-            // Extract video ID from various URL formats
-            const videoIdMatch = finalVideoUrl.match(/([a-f0-9]{32})/);
-            if (videoIdMatch) {
-              const videoId = videoIdMatch[1];
-              // Use iframe embed URL with autoplay enabled for better UX
-              finalVideoUrl = `https://customer-2134ee9mui3goprl.cloudflarestream.com/${videoId}/iframe?autoplay=1&loop=0&muted=0&preload=auto&controls=true`;
-            }
-          }
-
-          setVideoUrl(finalVideoUrl);
-          setIsLiked(videoResponse.data.video?.is_liked || false);
+        if (blogResponse?.data) {
+          console.log("Blog data:", blogResponse.data);
+          setBlog(blogResponse.data);
+          setIsLiked(blogResponse.data.blog?.is_liked || false);
 
           // Increment view count
-          await addView(params.id);
+          await viewBLog(params.id);
         } else {
-          console.error("No video data received");
-          setError("Video not found");
+          console.error("No blog data received");
+          setError("Blog not found");
         }
       } catch (err) {
-        console.error("Error fetching video:", err);
-        setError("Failed to load video");
+        console.error("Error fetching blog:", err);
+        setError("Failed to load blog");
       } finally {
         setLoading(false);
       }
     };
 
     if (params.id) {
-      fetchVideo();
+      fetchBlog();
     }
   }, [params.id]);
 
@@ -183,18 +140,15 @@ export default function VideoDetailPage() {
     };
   }, []);
 
-  // Note: Watch time tracking is disabled for iframe videos due to CORS restrictions
-  // Cloudflare Stream handles analytics on their end
-
   const handleLike = async () => {
     try {
-      const response = await toggleVideoLike(params.id);
+      const response = await toggleBlogLike(params.id);
       if (response?.status === 200 || response?.success === true) {
         setIsLiked(!isLiked);
-        // Refresh video data to get updated like count
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data to get updated like count
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
@@ -207,13 +161,13 @@ export default function VideoDetailPage() {
 
     setIsAddingComment(true);
     try {
-      const response = await addCommentToVideo(params.id, newComment.trim());
+      const response = await addComment(params.id, newComment.trim());
       if (response?.status === 201 || response?.success === true) {
         setNewComment("");
-        // Refresh video data to get updated comments
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data to get updated comments
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
@@ -228,17 +182,17 @@ export default function VideoDetailPage() {
 
     setIsEditingComment(true);
     try {
-      const response = await editVideoComment(
+      const response = await editComments(
         editingCommentId,
         editCommentText.trim()
       );
       if (response?.status === 200 || response?.success === true) {
         setEditingCommentId(null);
         setEditCommentText("");
-        // Refresh video data
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
@@ -251,12 +205,12 @@ export default function VideoDetailPage() {
   const handleDeleteComment = async (commentId: number) => {
     setDeletingCommentId(commentId);
     try {
-      const response = await deleteVideoComment(commentId);
+      const response = await deleteComment(commentId);
       if (response?.status === 200 || response?.success === true) {
-        // Refresh video data
-        const videoResponse = await getVideoById(params.id);
-        if (videoResponse?.data) {
-          setVideo(videoResponse.data);
+        // Refresh blog data
+        const blogResponse = await getBlogById(params.id);
+        if (blogResponse?.data) {
+          setBlog(blogResponse.data);
         }
       }
     } catch (err) {
@@ -290,21 +244,12 @@ export default function VideoDetailPage() {
     }
   };
 
-  const formatDuration = (seconds: number) => {
-    if (!seconds || isNaN(seconds) || seconds < 0) {
-      return "0:00";
-    }
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  const calculateReadTime = (content: string): string => {
+    const wordsPerMinute = 200;
+    const textContent = content.replace(/<[^>]*>/g, "");
+    const wordCount = textContent.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readTime} min read`;
   };
 
   if (loading) return <Loader />;
@@ -323,15 +268,15 @@ export default function VideoDetailPage() {
         </div>
       </div>
     );
-  if (!video)
+  if (!blog)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Video Not Found
+            Blog Not Found
           </h2>
           <p className="text-gray-600 mb-4">
-            The video you're looking for doesn't exist.
+            The blog you're looking for doesn't exist.
           </p>
           <button
             onClick={() => router.back()}
@@ -347,66 +292,63 @@ export default function VideoDetailPage() {
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-4">
+        <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 shadow-sm border border-slate-200 hover:shadow-md transition-shadow theme-text-secondary hover:theme-text-primary duration-200 mb-4 cursor-pointer bg-transparent theme-bg-hover active:scale-95 rounded-4xl p-2"
+            className="flex items-center gap-2 shadow-sm border border-slate-200 hover:shadow-md transition-shadow theme-text-secondary hover:theme-text-primary transition-all duration-200 mb-4 cursor-pointer bg-transparent theme-bg-hover active:scale-95 rounded-4xl p-2 hover:shadow-md"
           >
             <ArrowLeft className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" />
-            <span>Back</span>
+            <span>Back to Blogs</span>
           </button>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 xl:gap-8">
-          {/* Main Video Content */}
+          {/* Main Blog Content */}
           <div className="xl:col-span-2">
-            {/* Video Player */}
-            <div className="theme-bg-card rounded-lg overflow-hidden mb-4 shadow-lg theme-border">
-              <div className="relative w-full aspect-video bg-black">
-                <iframe
-                  src={videoUrl}
-                  className="absolute top-0 left-0 w-full h-full"
-                  style={{
-                    border: "none",
-                    width: "100%",
-                    height: "100%",
-                    display: "block",
-                  }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                  allowFullScreen
-                  title={video.video?.title || "Video"}
-                />
+            {/* Blog Image */}
+            {blog.blog?.image && (
+              <div className="theme-bg-card rounded-lg overflow-hidden mb-4 shadow-lg theme-border">
+                <div className="relative w-full aspect-video">
+                  <Image
+                    src={blog.blog.image}
+                    alt={blog.blog.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Video Info */}
+            {/* Blog Info */}
             <div className="theme-bg-card rounded-lg p-6 shadow-sm theme-border">
-              <h1 className="text-2xl font-bold theme-text-primary mb-4">
-                {video.video?.title || "Untitled Video"}
+              <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-4">
+                {blog.blog?.title || "Untitled Blog"}
               </h1>
 
-              {/* Video Stats */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-sm theme-text-secondary">
-                <span className="flex items-center gap-1 whitespace-nowrap">
-                  <Eye className="w-4 h-4 shrink-0" />
-                  {(video.video?.views || 0).toLocaleString()} views
-                </span>
-                <span className="flex items-center gap-1 whitespace-nowrap">
-                  <Clock className="w-4 h-4 shrink-0" />
-                  {formatDuration(video.video?.duration || 0)}
-                </span>
-                <span className="whitespace-nowrap">
-                  {formatDate(video.video?.created_at || "")}
-                </span>
-              </div>
+              {/* Blog Stats */}
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-4 text-sm text-gray-500">
+  <span className="flex items-center gap-1 w-full xs:w-auto">
+    <Eye className="w-4 h-4" />
+    {(blog.blog?.views || 0).toLocaleString()} views
+  </span>
+  <span className="flex items-center gap-1 w-full xs:w-auto">
+    <Clock className="w-4 h-4" />
+    {calculateReadTime(blog.blog?.content || "")}
+  </span>
+  <span className="flex items-center gap-1 w-full xs:w-auto">
+    <Calendar className="w-4 h-4" />
+    {formatDate(blog.blog?.created_at || "")}
+  </span>
+</div>
 
-              {/* Creator Info */}
-              <div className="flex items-center gap-3 mb-4">
+
+              {/* Author Info */}
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                  {video.video?.creator?.profile_picture ? (
+                  {blog.blog?.author?.profile_picture ? (
                     <Image
-                      src={video.video.creator.profile_picture}
-                      alt={video.video?.creator?.username || "Creator"}
+                      src={blog.blog.author.profile_picture}
+                      alt={blog.blog?.author?.username || "Author"}
                       width={40}
                       height={40}
                       className="w-full h-full object-cover"
@@ -417,33 +359,30 @@ export default function VideoDetailPage() {
                 </div>
                 <div>
                   <p className="font-medium theme-text-primary">
-                    {video.video?.creator?.username || "Unknown Creator"}
+                    {blog.blog?.author?.username || "Unknown Author"}
+                  </p>
+                  <p className="text-sm theme-text-secondary">
+                    {blog.blog?.author?.email || "No email available"}
                   </p>
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="mb-6">
-                <div
-                  className="theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words"
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      video.video?.description || "No description available",
-                  }}
-                />
+              {/* Blog Content */}
+              <div className="mb-6 prose prose-slate max-w-none theme-text-primary">
+                <TipTapContentDisplay content={blog.blog?.content || "No content available"} />
               </div>
 
               {/* Keywords */}
-              {video.video?.keywords && video.video.keywords.length > 0 && (
+              {blog.blog?.keywords && blog.blog.keywords.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium theme-text-primary mb-2">
                     Keywords
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {video.video?.keywords.map((keyword, index) => (
+                    {blog.blog?.keywords.map((keyword, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm rounded-full"
+                        className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 text-sm rounded-full"
                       >
                         #{keyword}
                       </span>
@@ -453,16 +392,16 @@ export default function VideoDetailPage() {
               )}
 
               {/* Locations */}
-              {video.video?.locations && video.video.locations.length > 0 && (
+              {blog.blog?.locations && blog.blog.locations.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium theme-text-primary mb-2">
                     Locations
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {video.video?.locations.map((location, index) => (
+                    {blog.blog?.locations.map((location, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm rounded-full flex items-center gap-1"
+                        className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm rounded-full flex items-center gap-1"
                       >
                         📍 {location}
                       </span>
@@ -472,16 +411,16 @@ export default function VideoDetailPage() {
               )}
 
               {/* Brand Tags */}
-              {video.video?.brand_tags && video.video.brand_tags.length > 0 && (
+              {blog.blog?.brand_tags && blog.blog.brand_tags.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium theme-text-primary mb-2">
                     Tags
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {video.video?.brand_tags.map((tag, index) => (
+                    {blog.blog?.brand_tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm rounded-full"
+                        className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm rounded-full"
                       >
                         🏷️ {tag}
                       </span>
@@ -490,24 +429,56 @@ export default function VideoDetailPage() {
                 </div>
               )}
 
-              {/* Video Metadata Badges */}
+              {/* Blog Metadata Badges */}
               <div className="mb-6">
                 <div className="flex flex-wrap gap-2">
                   {/* Age Restricted Badge */}
-                  {video.video?.age_restricted && (
+                  {blog.blog?.age_restricted && (
                     <span className="inline-flex items-center px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-sm font-medium rounded-full border border-red-200 dark:border-red-700">
                       🔞 18+ Restricted
                     </span>
                   )}
 
                   {/* Paid Promotion Badge */}
-                  {video.video?.paid_promotion && (
+                  {blog.blog?.paid_promotion && (
                     <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-sm font-medium px-3 py-1 rounded-full border border-yellow-200 dark:border-yellow-700">
                       💰 Paid Promotion
                     </span>
                   )}
 
-                  
+                  {/* Status Badge */}
+                  {blog.blog?.status && (
+                    <span
+                      className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
+                        blog.blog.status === "published"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700"
+                          : blog.blog.status === "draft"
+                          ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                      }`}
+                    >
+                      {blog.blog.status === "published"
+                        ? "✅ Published"
+                        : blog.blog.status === "draft"
+                        ? "📝 Draft"
+                        : blog.blog.status}
+                    </span>
+                  )}
+
+                  {/* Comments Status */}
+                  {blog.blog?.show_comments !== undefined && (
+                    <span
+                      className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
+                        blog.blog.show_comments
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                      }`}
+                    >
+                      {blog.blog.show_comments
+                        ? "💬 Comments Enabled"
+                        : "🚫 Comments Disabled"}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -524,14 +495,14 @@ export default function VideoDetailPage() {
                   <Heart
                     className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
                   />
-                  <span>{video.video?.likes || 0} likes</span>
+                  <span>{blog.blog?.likes || 0} likes</span>
                 </button>
 
                 <ShareButton
-                  kind="video"
+                  kind="blog"
                   id={params.id}
-                  title={video.video?.title || "Check out this video"}
-                  summary={video.video?.description || ""}
+                  title={blog.blog?.title || "Check out this blog"}
+                  summary={blog.blog?.content || ""}
                   onCopied={(url) => console.log("Shared URL:", url)}
                 />
               </div>
@@ -539,14 +510,14 @@ export default function VideoDetailPage() {
           </div>
 
           {/* Comments Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1">
             <div className="theme-bg-card rounded-lg shadow-sm theme-border">
               {/* Comments Header */}
               <div className="p-4 border-b theme-border">
                 <h3 className="text-lg font-semibold theme-text-primary flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
-                  Comments ({video.video?.comments_count || 0})
-                  {!video.video?.show_comments && (
+                  Comments ({blog.blog?.comments_count || 0})
+                  {blog.blog?.show_comments === false && (
                     <span className="ml-2 px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                       Disabled
                     </span>
@@ -555,7 +526,7 @@ export default function VideoDetailPage() {
               </div>
 
               {/* Add Comment - Only show if comments are enabled */}
-              {video.video?.show_comments ? (
+              {blog.blog?.show_comments ? (
                 <div className="p-4 border-b theme-border">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -602,10 +573,10 @@ export default function VideoDetailPage() {
                   <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
                     <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Comments are disabled for this video
+                      Comments are disabled for this blog
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      The creator has turned off commenting
+                      The author has turned off commenting
                     </p>
                   </div>
                 </div>
@@ -613,9 +584,9 @@ export default function VideoDetailPage() {
 
               {/* Comments List */}
               <div className="max-h-96 overflow-y-auto">
-                {video.video?.comments && video.video.comments.length > 0 ? (
+                {blog.blog?.comments && blog.blog.comments.length > 0 ? (
                   <div className="p-4 space-y-4">
-                    {video.video?.comments
+                    {blog.blog?.comments
                       .sort((a, b) => {
                         // Show user's comments first
                         const aIsUser = a.commenter?.id === user?.id;
@@ -677,7 +648,7 @@ export default function VideoDetailPage() {
                                       <MoreVertical className="w-4 h-4 theme-text-secondary" />
                                     </button>
                                     {showCommentMenu === comment.id && (
-                                      <div className="absolute right-5 top-0  w-30 theme-bg-card rounded-lg shadow-lg border theme-border z-20">
+                                      <div className="absolute right-5 top-0 w-30 theme-bg-card rounded-lg shadow-lg border theme-border z-20">
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -763,14 +734,14 @@ export default function VideoDetailPage() {
                         );
                       })}
                   </div>
-                ) : video.video?.show_comments ? (
+                ) : blog.blog?.show_comments ? (
                   <div className="p-8 text-center">
                     <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h4 className="font-medium text-gray-900 mb-2">
+                    <h4 className="font-medium theme-text-primary mb-2">
                       No comments yet
                     </h4>
-                    <p className="text-gray-600 text-sm">
-                      Be the first to comment on this video.
+                    <p className="theme-text-secondary text-sm">
+                      Be the first to comment on this blog.
                     </p>
                   </div>
                 ) : null}
@@ -782,4 +753,6 @@ export default function VideoDetailPage() {
     </div>
   );
 }
+
+
 

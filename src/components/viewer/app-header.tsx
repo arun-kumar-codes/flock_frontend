@@ -13,6 +13,9 @@ import {
   LogInIcon,
   ToggleLeft,
   CirclePower,
+  UserRoundPen,
+  PenToolIcon,
+  Eye,
 } from "lucide-react";
 import Image from "next/image";
 import { useSelector, useDispatch } from "react-redux";
@@ -177,33 +180,39 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
           </button>
 
           {user.isLogin ? (
-            <div className="flex items-center space-x-3">
-              {/* Switch Role Button - Toggle Effect */}
-              <button
-                onClick={handleSwitchRole}
-                className="w-12 h-6 flex items-center justify-center rounded-full p-1 transition-all duration-300 cursor-pointer mb-2 "
-                title="Switch To Creator Mode"
-              >
-                <CirclePower className="w-6 h-6 theme-text-primary transition-transform duration-300" />
-              </button>
+            <div className="flex items-center space-x-3 mb-2">
 
-              {/* Profile Picture */}
-              <button
-                onClick={() => router.push("/viewer/profile")}
-                className="relative"
-                title="View Profile"
-              >
-                <div className="w-10 h-10 rounded-full overflow-hidden transition-all duration-300 cursor-pointer mb-2 theme-bg-secondary border-2 theme-border">
-                  <Image
-                    src={user.profileImage || "/placeholder-profile.png"}
-                    alt="Profile"
-                    width={40}
-                    height={40}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </button>
-            </div>
+  {/* Switch Role Button */}
+<button
+  onClick={handleSwitchRole}
+  className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 cursor-pointer bg-blue-100 hover:bg-blue-50"
+  title="Switch To Creator Mode"
+>
+  <UserRoundPen className="w-5 h-5 transition-transform duration-300" />
+  <span className="hidden sm:inline text-sm font-medium">Switch to Creator</span>
+</button>
+
+
+
+  {/* Profile Picture */}
+  <button
+    onClick={() => router.push("/viewer/profile")}
+    className="relative cursor-pointer"
+    title="View Profile"
+  >
+    <div className="w-10 h-10 rounded-full overflow-hidden border-2 theme-border theme-bg-secondary transition-all duration-300">
+      <Image
+        src={user.profileImage || "/placeholder-profile.png"}
+        alt="Profile"
+        width={40}
+        height={40}
+        className="w-full h-full object-cover"
+      />
+    </div>
+  </button>
+
+</div>
+
           ) : (
             <div className="flex items-center space-x-3 mb-2">
               <button

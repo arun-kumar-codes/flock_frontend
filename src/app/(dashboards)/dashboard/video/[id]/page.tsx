@@ -11,13 +11,11 @@ import {
   addCommentToVideo,
   deleteVideoComment,
   editVideoComment,
-  addWatchTime,
 } from "@/api/content";
 import {
   ArrowLeft,
   Heart,
   MessageCircle,
-  Share2,
   Eye,
   Clock,
   User,
@@ -25,8 +23,10 @@ import {
   Edit,
   Trash2,
   Send,
+  CalendarIcon,
 } from "lucide-react";
 import Loader from "@/components/Loader";
+import TipTapContentDisplay from "@/components/tiptap-content-display";
 
 interface Video {
   video: {
@@ -68,7 +68,7 @@ interface Video {
   };
 }
 
-export default function VideoDetailPage() {
+export default function DashboardVideoDetailPage() {
   const params = useParams();
   const router = useRouter();
   const user = useSelector((state: any) => state.user);
@@ -88,9 +88,6 @@ export default function VideoDetailPage() {
   );
   const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null);
 
-  const [watchTime, setWatchTime] = useState(0);
-  const [lastWatchTimeUpdate, setLastWatchTimeUpdate] = useState(0);
-  console.log("window url", videoUrl);
   useEffect(() => {
     const fetchVideo = async () => {
       try {
@@ -103,10 +100,6 @@ export default function VideoDetailPage() {
         if (videoResponse?.data) {
           console.log("Video data:", videoResponse.data);
           console.log("Video URL:", videoResponse.data.video);
-          console.log(
-            "Video object structure:",
-            Object.keys(videoResponse.data)
-          );
 
           // Check if video is an object and extract the URL
           let extractedVideoUrl = videoResponse.data.video;
@@ -114,7 +107,6 @@ export default function VideoDetailPage() {
             typeof extractedVideoUrl === "object" &&
             extractedVideoUrl !== null
           ) {
-            // The video URL is nested inside the video object as video.video
             extractedVideoUrl =
               extractedVideoUrl.video ||
               extractedVideoUrl.url ||
@@ -122,7 +114,6 @@ export default function VideoDetailPage() {
               extractedVideoUrl.file ||
               extractedVideoUrl.path ||
               extractedVideoUrl.video_url;
-            console.log("Extracted video URL:", extractedVideoUrl);
           }
 
           setVideo(videoResponse.data);
@@ -182,9 +173,6 @@ export default function VideoDetailPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  // Note: Watch time tracking is disabled for iframe videos due to CORS restrictions
-  // Cloudflare Stream handles analytics on their end
 
   const handleLike = async () => {
     try {
@@ -347,13 +335,13 @@ export default function VideoDetailPage() {
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-4">
+        <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 shadow-sm border border-slate-200 hover:shadow-md transition-shadow theme-text-secondary hover:theme-text-primary duration-200 mb-4 cursor-pointer bg-transparent theme-bg-hover active:scale-95 rounded-4xl p-2"
+            className="flex items-center gap-2 shadow-sm border border-slate-200 hover:shadow-md transition-shadow theme-text-secondary hover:theme-text-primary transition-all duration-200 mb-4 cursor-pointer bg-transparent theme-bg-hover active:scale-95 rounded-4xl p-2 hover:shadow-md"
           >
             <ArrowLeft className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" />
-            <span>Back</span>
+            <span>Back to Videos</span>
           </button>
         </div>
 
@@ -386,16 +374,17 @@ export default function VideoDetailPage() {
               </h1>
 
               {/* Video Stats */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-sm theme-text-secondary">
-                <span className="flex items-center gap-1 whitespace-nowrap">
-                  <Eye className="w-4 h-4 shrink-0" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mb-4 text-sm theme-text-secondary">
+                <span className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
                   {(video.video?.views || 0).toLocaleString()} views
                 </span>
-                <span className="flex items-center gap-1 whitespace-nowrap">
-                  <Clock className="w-4 h-4 shrink-0" />
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
                   {formatDuration(video.video?.duration || 0)}
                 </span>
-                <span className="whitespace-nowrap">
+                <span className="flex items-center gap-1">
+                  <CalendarIcon className="w-4 h-4" />
                   {formatDate(video.video?.created_at || "")}
                 </span>
               </div>
@@ -419,18 +408,24 @@ export default function VideoDetailPage() {
                   <p className="font-medium theme-text-primary">
                     {video.video?.creator?.username || "Unknown Creator"}
                   </p>
+                  <p className="text-sm theme-text-secondary">
+                    {video.video?.creator?.email || "No email available"}
+                  </p>
                 </div>
               </div>
 
               {/* Description */}
               <div className="mb-6">
-                <div
-                  className="theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words"
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      video.video?.description || "No description available",
-                  }}
-                />
+                <h3 className="text-sm font-medium theme-text-primary mb-2">
+                  Description
+                </h3>
+                <div className="theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words">
+                  <TipTapContentDisplay
+                    content={
+                      video.video?.description || "No description available"
+                    }
+                  />
+                </div>
               </div>
 
               {/* Keywords */}
@@ -507,7 +502,39 @@ export default function VideoDetailPage() {
                     </span>
                   )}
 
-                  
+                  {/* Status Badge */}
+                  {video.video?.status && (
+                    <span
+                      className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
+                        video.video.status === "published"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700"
+                          : video.video.status === "draft"
+                          ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                      }`}
+                    >
+                      {video.video.status === "published"
+                        ? "✅ Published"
+                        : video.video.status === "draft"
+                        ? "📝 Draft"
+                        : video.video.status}
+                    </span>
+                  )}
+
+                  {/* Comments Status */}
+                  {video.video?.show_comments !== undefined && (
+                    <span
+                      className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
+                        video.video.show_comments
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                      }`}
+                    >
+                      {video.video.show_comments
+                        ? "💬 Comments Enabled"
+                        : "🚫 Comments Disabled"}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -677,7 +704,7 @@ export default function VideoDetailPage() {
                                       <MoreVertical className="w-4 h-4 theme-text-secondary" />
                                     </button>
                                     {showCommentMenu === comment.id && (
-                                      <div className="absolute right-5 top-0  w-30 theme-bg-card rounded-lg shadow-lg border theme-border z-20">
+                                      <div className="absolute right-5 top-0 w-30 theme-bg-card rounded-lg shadow-lg border theme-border z-20">
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -782,4 +809,3 @@ export default function VideoDetailPage() {
     </div>
   );
 }
-

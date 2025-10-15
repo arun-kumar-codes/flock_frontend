@@ -170,13 +170,36 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  html {
+    height: 100%;
+    /* Disable Safari text inflation that can appear as zoom on load */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+
+    /* Full viewport height */
+    height: 100vh;       /* Standard browsers */
+    height: 100svh;      /* Small viewport height (mobile, dynamic toolbars) */
+    height: 100lvh;      /* Large viewport height */
+    height: 100dvh;      /* Dynamic viewport height (newest spec) */
+
+    /* Fallbacks to ensure coverage */
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
   }
 }
+
+/* Prevent iOS zoom on inputs */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
 
 /* Theme Classes */
 .theme-bg-primary {

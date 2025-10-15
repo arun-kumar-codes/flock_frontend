@@ -1,6 +1,6 @@
-"use client"
-import { useState, useRef, useEffect } from "react"
-import type React from "react"
+"use client";
+import { useState, useRef, useEffect } from "react";
+import type React from "react";
 import {
   X,
   Calendar,
@@ -16,218 +16,240 @@ import {
   Loader2,
   UserPlus,
   MessageSquareOff,
-} from "lucide-react"
-import Image from "next/image"
-import { addComment, editComments, deleteComment, viewBLog, addFollowing, removeFollowing } from "@/api/content"
-import { useSelector } from "react-redux"
-import TipTapContentDisplay from "@/components/tiptap-content-display"
-import { useRouter } from "next/navigation"
-import profileImg from "../../assets/profile.png"
+} from "lucide-react";
+import Image from "next/image";
+import {
+  addComment,
+  editComments,
+  deleteComment,
+  viewBLog,
+  addFollowing,
+  removeFollowing,
+} from "@/api/content";
+import { useSelector } from "react-redux";
+import TipTapContentDisplay from "@/components/tiptap-content-display";
+import { useRouter } from "next/navigation";
+import profileImg from "../../assets/profile.png";
 
 interface BlogModalProps {
-  blog: any
-  onClose: () => void
-  onToggleLike: (blogId: number) => void
-  onRefreshBlogs: () => void
+  blog: any;
+  onClose: () => void;
+  onToggleLike: (blogId: number) => void;
+  onRefreshBlogs: () => void;
 }
 
-export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogModalProps) {
-  const user = useSelector((state: any) => state.user)
-  const [newComment, setNewComment] = useState("")
-  const [isLiked, setIsLiked] = useState(blog.is_liked)
-  const [likeCount, setLikeCount] = useState(blog.likes)
-  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
-  const [editCommentText, setEditCommentText] = useState("")
-  const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null)
-  const modalRef = useRef<HTMLDivElement>(null)
-  const commentMenuRef = useRef<HTMLDivElement>(null)
-  const [isFollowing, setFollowing] = useState(blog.is_following_author)
-  const [isLoading, setIsLoading] = useState(false)
-  const [likeAnimation, setLikeAnimation] = useState<{ [key: number]: boolean }>({})
-  const router = useRouter()
+export function BlogModal({
+  blog,
+  onClose,
+  onToggleLike,
+  onRefreshBlogs,
+}: BlogModalProps) {
+  const user = useSelector((state: any) => state.user);
+  const [newComment, setNewComment] = useState("");
+  const [isLiked, setIsLiked] = useState(blog.is_liked);
+  const [likeCount, setLikeCount] = useState(blog.likes);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editCommentText, setEditCommentText] = useState("");
+  const [showCommentMenu, setShowCommentMenu] = useState<number | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const commentMenuRef = useRef<HTMLDivElement>(null);
+  const [isFollowing, setFollowing] = useState(blog.is_following_author);
+  const [isLoading, setIsLoading] = useState(false);
+  const [likeAnimation, setLikeAnimation] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const router = useRouter();
   // Separate author comments and regular comments
-  const authorComments = blog.comments.filter((comment: any) => 
-    comment.commented_by === blog.author.id
+  const authorComments = blog.comments.filter(
+    (comment: any) => comment.commented_by === blog.author.id
   );
-  const regularComments = blog.comments.filter((comment: any) => 
-    comment.commented_by !== blog.author.id
+  const regularComments = blog.comments.filter(
+    (comment: any) => comment.commented_by !== blog.author.id
   );
   // Author comments first (newest first), then regular comments (newest first)
-  const commentsToShow = [...authorComments.reverse(), ...regularComments.reverse()]
-  const [isSaving, setIsSaving] = useState(false)
-  const [commentPost,setCommentPost]=useState(false);
+  const commentsToShow = [
+    ...authorComments.reverse(),
+    ...regularComments.reverse(),
+  ];
+  const [isSaving, setIsSaving] = useState(false);
+  const [commentPost, setCommentPost] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose()
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        onClose();
       }
 
       // Check if click is outside the open comment menu
       if (showCommentMenu !== null) {
-        console.log(showCommentMenu)
-        const menu = document.getElementById(`comment-menu-${showCommentMenu}`)
+        console.log(showCommentMenu);
+        const menu = document.getElementById(`comment-menu-${showCommentMenu}`);
         if (menu && !menu.contains(event.target as Node)) {
-          setShowCommentMenu(null)
+          setShowCommentMenu(null);
         }
       }
-    }
+    };
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [onClose, showCommentMenu])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose, showCommentMenu]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   const handleRoute = () => {
     //console.log("user:::",user);
     if (user.isLogin) {
-      return true
+      return true;
     }
-    router.push("/login")
-  }
+    router.push("/login");
+  };
 
   const handleViewBlog = async () => {
     try {
       if (!handleRoute()) {
-        return
+        return;
       }
 
-      await viewBLog(blog.id)
+      await viewBLog(blog.id);
     } catch (error) {
-      console.error("Error viewing blog:", error)
+      console.error("Error viewing blog:", error);
     }
-  }
+  };
 
   const formatCommentDate = (dateString: string) => {
-    const date = new Date(dateString + "z")
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    const date = new Date(dateString + "z");
+    const now = new Date();
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
 
-    if (diffInHours < 1) return "Just now"
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-  }
+    if (diffInHours < 1) return "Just now";
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!handleRoute()) {
-      return
+      return;
     }
-    if (!newComment.trim()) return
+    if (!newComment.trim()) return;
     setCommentPost(true);
 
     try {
-      await addComment(blog.id, newComment.trim())
-      setNewComment("")
-      onRefreshBlogs()
+      await addComment(blog.id, newComment.trim());
+      setNewComment("");
+      onRefreshBlogs();
     } catch (error) {
-      console.error("Error adding comment:", error)
-    }finally{
+      console.error("Error adding comment:", error);
+    } finally {
       setCommentPost(false);
     }
-  }
+  };
 
   const handleEditComment = (comment: any) => {
-    setEditingCommentId(comment.id)
-    setEditCommentText(comment.comment)
-    setShowCommentMenu(null)
-  }
+    setEditingCommentId(comment.id);
+    setEditCommentText(comment.comment);
+    setShowCommentMenu(null);
+  };
 
   const handleSaveEditComment = async (commentId: number) => {
-    if (!editCommentText.trim()) return
+    if (!editCommentText.trim()) return;
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
-      await editComments(commentId, editCommentText.trim())
-      setEditingCommentId(null)
-      setEditCommentText("")
-      onRefreshBlogs()
+      await editComments(commentId, editCommentText.trim());
+      setEditingCommentId(null);
+      setEditCommentText("");
+      onRefreshBlogs();
     } catch (error) {
-      console.error("Error updating comment:", error)
+      console.error("Error updating comment:", error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleDeleteComment = async (commentId: number) => {
-    setShowCommentMenu(null)
+    setShowCommentMenu(null);
     try {
-      await deleteComment(commentId)
-      onRefreshBlogs()
+      await deleteComment(commentId);
+      onRefreshBlogs();
     } catch (error) {
-      console.error("Error deleting comment:", error)
+      console.error("Error deleting comment:", error);
     }
-  }
+  };
 
   const handleCancelEdit = () => {
-    setEditingCommentId(null)
-    setEditCommentText("")
-  }
+    setEditingCommentId(null);
+    setEditCommentText("");
+  };
 
   const toggleCommentMenu = (commentId: number) => {
-    setShowCommentMenu(showCommentMenu === commentId ? null : commentId)
-  }
+    setShowCommentMenu(showCommentMenu === commentId ? null : commentId);
+  };
 
   const handleLike = async () => {
     if (!handleRoute()) {
-      return
+      return;
     }
 
-    setIsLiked((prev: boolean) => !prev)
-    setLikeCount((prev: number) => (isLiked ? prev - 1 : prev + 1))
+    setIsLiked((prev: boolean) => !prev);
+    setLikeCount((prev: number) => (isLiked ? prev - 1 : prev + 1));
 
     // Trigger animation
-    setLikeAnimation((prev) => ({ ...prev, [blog.id]: true }))
+    setLikeAnimation((prev) => ({ ...prev, [blog.id]: true }));
     setTimeout(() => {
-      setLikeAnimation((prev) => ({ ...prev, [blog.id]: false }))
-    }, 500)
+      setLikeAnimation((prev) => ({ ...prev, [blog.id]: false }));
+    }, 500);
 
     try {
-      await onToggleLike(blog.id)
-      onRefreshBlogs()
+      await onToggleLike(blog.id);
+      onRefreshBlogs();
     } catch (error) {
-      console.error("Error toggling like:", error)
+      console.error("Error toggling like:", error);
     }
-  }
+  };
 
   useEffect(() => {
     if (!blog.is_viewed && user.isLogin) {
-      handleViewBlog()
+      handleViewBlog();
     }
-  })
+  });
 
   const handleFollowClick = async () => {
     if (!handleRoute()) {
-      return
+      return;
     }
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       if (isFollowing) {
-        await removeFollowing(blog.author.id)
-        setFollowing(false)
+        await removeFollowing(blog.author.id);
+        setFollowing(false);
       } else {
-        await addFollowing(blog.author.id)
-        setFollowing(true)
+        await addFollowing(blog.author.id);
+        setFollowing(true);
       }
-      onRefreshBlogs()
+      onRefreshBlogs();
     } catch (error) {
-      console.error("Error toggling follow:", error)
+      console.error("Error toggling follow:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -239,14 +261,13 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
         <div className="p-6 theme-border-b flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-4">
-  
-  <h2 className="flex items-center flex-wrap gap-2 text-2xl font-bold theme-text-primary mb-2">
-  <span>{blog.title}</span>
+              <h2 className="flex items-center flex-wrap gap-2 text-2xl font-bold theme-text-primary mb-2">
+                <span>{blog.title}</span>
 
-  {/* 18+ badge */}
-  {blog.age_restricted && (
-    <span
-      className="
+                {/* 18+ badge */}
+                {blog.age_restricted && (
+                  <span
+                    className="
         px-2 py-0.5 
         rounded-full 
         text-xs font-semibold 
@@ -255,15 +276,15 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
         border border-red-200 dark:border-red-800/40
         shadow-sm
       "
-    >
-      18+ content
-    </span>
-  )}
+                  >
+                    18+ content
+                  </span>
+                )}
 
-  {/* Paid Promotion badge */}
-  {blog.paid_promotion && (
-    <span
-      className="
+                {/* Paid Promotion badge */}
+                {blog.paid_promotion && (
+                  <span
+                    className="
         px-2 py-0.5 
         rounded-full 
         text-xs font-semibold 
@@ -272,11 +293,11 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
         border border-yellow-200 dark:border-yellow-800/40
         shadow-sm
       "
-    >
-      💰 Paid Promotion
-    </span>
-  )}
-</h2>
+                  >
+                    💰 Paid Promotion
+                  </span>
+                )}
+              </h2>
 
               <div className="flex items-center space-x-4 text-sm theme-text-secondary">
                 <span>by {blog.author.username} test</span>
@@ -292,10 +313,11 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
               <button
                 onClick={handleFollowClick}
                 disabled={isLoading}
-                className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium ${isFollowing
+                className={`flex items-center gap-2 mt-2 px-5 py-2 rounded-full transition-all duration-300 shadow-sm border font-medium ${
+                  isFollowing
                     ? "theme-button-secondary theme-text-secondary hover:theme-text-primary theme-border"
                     : "theme-button-primary text-white hover:opacity-90"
-                  } disabled:opacity-60 disabled:cursor-not-allowed`}
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin w-5 h-5" />
@@ -312,7 +334,10 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                 )}
               </button>
             </div>
-            <button onClick={onClose} className="p-2 theme-button-secondary rounded-lg transition-colors flex-shrink-0">
+            <button
+              onClick={onClose}
+              className="p-2 theme-button-secondary rounded-lg transition-colors flex-shrink-0"
+            >
               <X className="w-6 h-6 theme-text-muted" />
             </button>
           </div>
@@ -331,77 +356,88 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
                 className="w-full object-cover rounded-lg"
               />
             </div>
-            
           )}
 
-        {/* Blog Content */}
-        <div className="p-6 pt-0 theme-border-b space-y-4">
-          <TipTapContentDisplay content={blog.content} className="theme-text-secondary" />
+          {/* Blog Content */}
+          <div className="p-6 pt-0 theme-border-b space-y-4">
+            <TipTapContentDisplay
+              content={blog.content}
+              className="theme-text-secondary"
+            />
 
-          {/* Keywords */}
-          {blog.keywords && blog.keywords.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold theme-text-primary mb-2">Keywords</h4>
-              <div className="flex flex-wrap gap-2">
-                {blog.keywords.map((keyword: string, index: number) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-sm"
-                  >
-                    # {keyword}
-                  </span>
-                ))}
+            {/* Keywords */}
+            {blog.keywords && blog.keywords.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold theme-text-primary mb-2">
+                  Keywords
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {blog.keywords.map((keyword: string, index: number) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-sm"
+                    >
+                      # {keyword}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Brand Tags */}
-{blog.brand_tags && blog.brand_tags.length > 0 && (
-  <div>
-    <h4 className="text-sm font-semibold theme-text-primary mb-2">Brand Tags</h4>
-    <div className="flex flex-wrap gap-2">
-      {blog.brand_tags.map((brand: string, index: number) => (
-        <span
-          key={index}
-          className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-sm"
-        >
-          🏷 {brand}
-        </span>
-      ))}
-    </div>
-  </div>
-)}
-
-          {/* Locations */}
-          {blog.locations && blog.locations.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold theme-text-primary mb-2">Locations</h4>
-              <div className="flex flex-wrap gap-2">
-                {blog.locations.map((loc: string, index: number) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-sm"
-                  >
-                  📍 {loc}
-                  </span>
-                ))}
+            {/* Brand Tags */}
+            {blog.brand_tags && blog.brand_tags.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold theme-text-primary mb-2">
+                  Tags
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {blog.brand_tags.map((brand: string, index: number) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-sm"
+                    >
+                      🏷 {brand}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+
+            {/* Locations */}
+            {blog.locations && blog.locations.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold theme-text-primary mb-2">
+                  Locations
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {blog.locations.map((loc: string, index: number) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-sm"
+                    >
+                      📍 {loc}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Engagement Section */}
           <div className="p-6 theme-border-b">
             <div className="flex items-center space-x-6">
               <button
                 onClick={handleLike}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${isLiked
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                  isLiked
                     ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
                     : "theme-button-secondary theme-text-secondary hover:theme-text-primary"
-                  }`}
+                }`}
               >
                 <ThumbsUp
-                  className={`w-5 h-5 ${isLiked ? "fill-current" : ""} ${likeAnimation[blog.id] ? "animate-pop-purple" : ""}`}
+                  className={`w-5 h-5 ${isLiked ? "fill-current" : ""} ${
+                    likeAnimation[blog.id] ? "animate-pop-purple" : ""
+                  }`}
                 />
                 <span>{likeCount} Likes</span>
               </button>
@@ -410,197 +446,222 @@ export function BlogModal({ blog, onClose, onToggleLike, onRefreshBlogs }: BlogM
 
           {/* Comments Section */}
 
-         { 
-         blog.show_comments ?
-          <div className="p-6">
-            <h3 className="text-lg font-semibold theme-text-primary mb-4">Comments ({blog.comments_count})</h3>
-            
-            {/* Creator Comment at Top */}
-            {blog.creator_comment && (
-              <div className="mb-6 p-4 theme-bg-secondary rounded-lg border-l-4 border-purple-500">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Image
-                    src={blog.author.profile_picture || profileImg}
-                    alt={blog.author.username}
-                    width={32}
-                    height={32}
-                    className="rounded-full w-8 h-8 object-cover"
-                  />
-                  <span className="font-medium theme-text-primary text-sm">
-                    {blog.author.username} (Creator)
-                  </span>
-                  <span className="text-xs theme-text-muted">
-                    {formatCommentDate(blog.creator_comment.commented_at)}
-                  </span>
-                </div>
-                <p className="theme-text-secondary text-sm">{blog.creator_comment.comment}</p>
-              </div>
-            )}
+          {blog.show_comments ? (
+            <div className="p-6">
+              <h3 className="text-lg font-semibold theme-text-primary mb-4">
+                Comments ({blog.comments_count})
+              </h3>
 
-            {/* Add Comment Form */}
-            <form onSubmit={handleCommentSubmit} className="mb-6">
-              <div className="flex space-x-3">
-                <Image
-                  src={user.profileImage ? user.profileImage : profileImg || "/placeholder.svg"}
-                  alt="Your avatar"
-                  width={40}
-                  height={40}
-                  className="rounded-full flex-shrink-0 w-10 h-10 object-cover"
-                />
-                <div className="flex-1">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="w-full p-3 theme-input rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                    rows={3}
-                  />
-                  <div className="flex justify-end mt-2">
-                    <button
-                      type="submit"
-                      disabled={!newComment.trim()||commentPost}
-                      className="px-4 py-2 theme-button-primary text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      <Send className="w-4 h-4" />
-                      <span>Post Comment</span>
-                    </button>
+              {/* Creator Comment at Top */}
+              {blog.creator_comment && (
+                <div className="mb-6 p-4 theme-bg-secondary rounded-lg border-l-4 border-purple-500">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Image
+                      src={blog.author.profile_picture || profileImg}
+                      alt={blog.author.username}
+                      width={32}
+                      height={32}
+                      className="rounded-full w-8 h-8 object-cover"
+                    />
+                    <span className="font-medium theme-text-primary text-sm">
+                      {blog.author.username} (Creator)
+                    </span>
+                    <span className="text-xs theme-text-muted">
+                      {formatCommentDate(blog.creator_comment.commented_at)}
+                    </span>
                   </div>
+                  <p className="theme-text-secondary text-sm">
+                    {blog.creator_comment.comment}
+                  </p>
                 </div>
-              </div>
-            </form>
+              )}
 
-            {/* Comments List */}
-            <div className="space-y-4">
-              {commentsToShow.map((comment: any) => (
-                <div key={comment.id} className="flex space-x-3 items-center">
+              {/* Add Comment Form */}
+              <form onSubmit={handleCommentSubmit} className="mb-6">
+                <div className="flex space-x-3">
                   <Image
                     src={
-                      comment.commenter.profile_picture
-                        ? comment.commenter.profile_picture
+                      user.profileImage
+                        ? user.profileImage
                         : profileImg || "/placeholder.svg"
                     }
-                    alt={comment.commenter.username}
+                    alt="Your avatar"
                     width={40}
                     height={40}
-                    className="rounded-full flex-shrink-0 w-10 h-10"
+                    className="rounded-full flex-shrink-0 w-10 h-10 object-cover"
                   />
                   <div className="flex-1">
-                    <div className="theme-bg-secondary rounded-lg p-3">
-                      {/* YouTube-style pinned label for author comments */}
-                      {comment.commented_by === blog.author.id ? (
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="flex items-center space-x-1 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full">
-                            <span className="text-xs font-medium text-purple-700 dark:text-purple-300">Author</span>
-                          </div>
-                        </div>
-                      ) : null}
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium theme-text-primary text-sm">
-                            {comment.commenter.username}
-                          </span>
-                          <span className="text-xs theme-text-muted">{formatCommentDate(comment.commented_at)}</span>
-                        </div>
-
-                        {/* Comment Actions Menu */}
-                        {user && comment.commented_by === user.id && (
-                          <div className="relative" ref={commentMenuRef}>
-                            <button
-                              onClick={() => toggleCommentMenu(comment.id)}
-                              className="p-1 theme-button-secondary rounded transition-colors"
-                            >
-                              <MoreVertical className="w-3 h-3 theme-text-muted" />
-                            </button>
-                            {showCommentMenu === comment.id && (
-                              <div
-                                id={`comment-menu-${comment.id}`}
-                                className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10"
-                              >
-                                <button
-                                  onClick={() => handleEditComment(comment)}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
-                                >
-                                  <Edit className="w-3 h-3 theme-text-muted" />
-                                  <span className="theme-text-secondary">Edit</span>
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteComment(comment.id)}
-                                  className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                >
-                                  <Trash className="w-3 h-3 text-red-500" />
-                                  <span>Delete</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {editingCommentId === comment.id ? (
-                        <div className="space-y-2">
-                          <textarea
-                            value={editCommentText}
-                            onChange={(e) => setEditCommentText(e.target.value)}
-                            className="w-full p-2 theme-input rounded text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            rows={2}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSaveEditComment(comment.id)
-                              }
-                              if (e.key === "Escape") {
-                                handleCancelEdit()
-                              }
-                            }}
-                          />
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleSaveEditComment(comment.id)}
-                              disabled={!editCommentText.trim() || isSaving}
-                              className="px-3 py-1 theme-button-primary cursor-pointer text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
-                            >
-                              {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                              <span>{isSaving ? "Saving..." : "Save"}</span>
-                            </button>
-
-                            <button
-                              onClick={handleCancelEdit}
-                              className="px-3 py-1 theme-button-secondary cursor-pointer  theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="theme-text-secondary text-sm">{comment.comment}</p>
-                      )}
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="w-full p-3 theme-input rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                      rows={3}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <button
+                        type="submit"
+                        disabled={!newComment.trim() || commentPost}
+                        className="px-4 py-2 theme-button-primary text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>Post Comment</span>
+                      </button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </form>
 
-            {blog.comments.length === 0 && (
-              <div className="text-center py-8">
-                <MessageCircle className="w-12 h-12 theme-text-muted mx-auto mb-3" />
-                <p className="theme-text-muted">No comments yet. Be the first to comment!</p>
+              {/* Comments List */}
+              <div className="space-y-4">
+                {commentsToShow.map((comment: any) => (
+                  <div key={comment.id} className="flex space-x-3 items-center">
+                    <Image
+                      src={
+                        comment.commenter.profile_picture
+                          ? comment.commenter.profile_picture
+                          : profileImg || "/placeholder.svg"
+                      }
+                      alt={comment.commenter.username}
+                      width={40}
+                      height={40}
+                      className="rounded-full flex-shrink-0 w-10 h-10"
+                    />
+                    <div className="flex-1">
+                      <div className="theme-bg-secondary rounded-lg p-3">
+                        {/* YouTube-style pinned label for author comments */}
+                        {comment.commented_by === blog.author.id ? (
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex items-center space-x-1 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full">
+                              <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                                Author
+                              </span>
+                            </div>
+                          </div>
+                        ) : null}
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium theme-text-primary text-sm">
+                              {comment.commenter.username}
+                            </span>
+                            <span className="text-xs theme-text-muted">
+                              {formatCommentDate(comment.commented_at)}
+                            </span>
+                          </div>
+
+                          {/* Comment Actions Menu */}
+                          {user && comment.commented_by === user.id && (
+                            <div className="relative" ref={commentMenuRef}>
+                              <button
+                                onClick={() => toggleCommentMenu(comment.id)}
+                                className="p-1 theme-button-secondary rounded transition-colors"
+                              >
+                                <MoreVertical className="w-3 h-3 theme-text-muted" />
+                              </button>
+                              {showCommentMenu === comment.id && (
+                                <div
+                                  id={`comment-menu-${comment.id}`}
+                                  className="absolute right-0 top-full mt-1 w-32 theme-bg-card rounded-lg shadow-lg theme-border py-1 z-10"
+                                >
+                                  <button
+                                    onClick={() => handleEditComment(comment)}
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:theme-bg-secondary transition-colors"
+                                  >
+                                    <Edit className="w-3 h-3 theme-text-muted" />
+                                    <span className="theme-text-secondary">
+                                      Edit
+                                    </span>
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteComment(comment.id)
+                                    }
+                                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                  >
+                                    <Trash className="w-3 h-3 text-red-500" />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {editingCommentId === comment.id ? (
+                          <div className="space-y-2">
+                            <textarea
+                              value={editCommentText}
+                              onChange={(e) =>
+                                setEditCommentText(e.target.value)
+                              }
+                              className="w-full p-2 theme-input rounded text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              rows={2}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSaveEditComment(comment.id);
+                                }
+                                if (e.key === "Escape") {
+                                  handleCancelEdit();
+                                }
+                              }}
+                            />
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() =>
+                                  handleSaveEditComment(comment.id)
+                                }
+                                disabled={!editCommentText.trim() || isSaving}
+                                className="px-3 py-1 theme-button-primary cursor-pointer text-white rounded text-xs hover:opacity-90 transition-colors disabled:opacity-50 flex items-center space-x-1"
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Check className="w-3 h-3" />
+                                )}
+                                <span>{isSaving ? "Saving..." : "Save"}</span>
+                              </button>
+
+                              <button
+                                onClick={handleCancelEdit}
+                                className="px-3 py-1 theme-button-secondary cursor-pointer  theme-text-secondary rounded text-xs hover:theme-text-primary transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="theme-text-secondary text-sm">
+                            {comment.comment}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>:
-               <div className="text-center py-8">
-  <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-    <MessageSquareOff className="w-6 h-6 text-gray-400" />
-  </div>
-  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-    Comments are turned off for this blog
-  </p>
-</div>
-}
 
-
-
+              {blog.comments.length === 0 && (
+                <div className="text-center py-8">
+                  <MessageCircle className="w-12 h-12 theme-text-muted mx-auto mb-3" />
+                  <p className="theme-text-muted">
+                    No comments yet. Be the first to comment!
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                <MessageSquareOff className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                Comments are turned off for this blog
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 }

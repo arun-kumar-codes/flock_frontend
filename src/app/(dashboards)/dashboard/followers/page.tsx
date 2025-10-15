@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { SearchIcon, UsersIcon, AlertCircleIcon, RefreshCwIcon, FilterIcon, UserIcon, MailIcon } from 'lucide-react'
+import { SearchIcon, UsersIcon, AlertCircleIcon, RefreshCwIcon, FilterIcon, UserIcon } from 'lucide-react'
 import Image from "next/image"
 import { useSelector } from "react-redux"
 import Loader2 from "@/components/Loader2"
@@ -86,8 +86,7 @@ export default function FollowersPage() {
   const filteredAndSortedFollowers = followers
     .filter((follower) => {
       const matchesSearch =
-        (follower.username&&follower?.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      ( follower.email&& follower?.email.toLowerCase().includes(searchTerm.toLowerCase()) )
+        (follower.username && follower?.username.toLowerCase().includes(searchTerm.toLowerCase()))
 
       const matchesRole = filterRole === "all" || follower.role.toLowerCase() === filterRole.toLowerCase()
 
@@ -124,10 +123,10 @@ export default function FollowersPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="text-center sm:text-left">
                   <h1 className="text-xl md:text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3">
-                    My Followers
+                    My Flocks
                   </h1>
                   <p className="text-slate-600 text-sm md:text-base lg:text-lg">
-                    Manage and view your followers
+                    Manage and view your flocks
                   </p>
                   {followersCount > 0 && (
                     <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
@@ -168,7 +167,7 @@ export default function FollowersPage() {
               <SearchIcon className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 w-3 h-4 md:w-4 md:h-5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search followers by username, email"
+                placeholder="Search flocks by username"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-6 md:pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-sm md:text-base"
@@ -199,7 +198,7 @@ export default function FollowersPage() {
                       <UsersIcon className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-slate-600">Total Followers</p>
+                      <p className="text-sm text-slate-600">Total Flocks</p>
                       <p className="text-2xl font-bold text-slate-800">{followersCount}</p>
                     </div>
                   </div>
@@ -210,7 +209,7 @@ export default function FollowersPage() {
                       <UserIcon className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-slate-600">Active Followers</p>
+                      <p className="text-sm text-slate-600">Active Flocks</p>
                       <p className="text-2xl font-bold text-slate-800">{followers.filter(f => f.following_count > 0).length}</p>
                     </div>
                   </div>
@@ -260,14 +259,13 @@ export default function FollowersPage() {
                   </div>
 
                   {/* User Info */}
-                  <h3 className="font-bold text-slate-800 text-lg mb-1">{follower.username}</h3>
-                  <p className="text-slate-500 text-sm mb-4 break-all">{follower.email}</p>
+                  <h3 className="font-bold text-slate-800 text-lg mb-4">{follower.username}</h3>
 
                   {/* Stats */}
                   <div className="flex items-center justify-center space-x-6 w-full">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-slate-800">{formatCount(follower.followers_count)}</p>
-                      <p className="text-xs text-slate-500">Followers</p>
+                      <p className="text-xs text-slate-500">Flocks</p>
                     </div>
                     <div className="w-px h-8 bg-slate-200"></div>
                     <div className="text-center">
@@ -284,11 +282,11 @@ export default function FollowersPage() {
                 <UsersIcon className="w-10 h-10 text-slate-400" />
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                {followers.length === 0 ? "No followers yet" : "No followers found"}
+                {followers.length === 0 ? "No flocks yet" : "No flocks found"}
               </h3>
               <p className="text-slate-600 mb-6 max-w-md mx-auto">
                 {followers.length === 0
-                  ? "Start creating content to attract followers to your profile."
+                  ? "Start creating content to attract flocks to your profile."
                   : searchTerm || filterRole !== "all"
                     ? "Try adjusting your search or filter criteria to find what you're looking for."
                     : "No followers match your current filters."

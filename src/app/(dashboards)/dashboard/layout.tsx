@@ -13,6 +13,9 @@ import {
   FileChartColumnIncreasing,
   BadgeDollarSign,
   User,
+  GroupIcon,
+  Group,
+  UsersRound,
 } from "lucide-react";
 import profileImg from "@/assets/profile.png";
 import { logOut } from "@/slice/userSlice";
@@ -42,9 +45,9 @@ const navigationItems = [
     icon: VideoIcon,
   },
   {
-    name: "Followers",
+    name: "My Flock",
     href: "/dashboard/followers",
-    icon: Building2Icon,
+    icon: UsersRound,
   },
   {
     name: "Analytics",
@@ -319,99 +322,105 @@ export default function DashboardLayout({
       <Suspense fallback={<div>Loading...</div>}>
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* Header */}
-          <header className="bg-white ">
-            <div className="px-6 py-2 flex items-center justify-between">
-              {/* Left Section - Current Page Name */}
-              <div className="flex items-center space-x-4">
-                <h1 className="text-2xl font-semibold text-gray-800">
-                  {currentPageName}
-                </h1>
-              </div>
+          <header className="bg-white border-b border-gray-200">
+  <div className="px-6 py-2 flex items-center justify-between">
+    {/* Left Section - Current Page Name */}
+    <div className="flex items-center space-x-4">
+      <h1 className="text-2xl font-semibold text-gray-800 truncate">
+        {currentPageName}
+      </h1>
+    </div>
 
-              {/* Right Section - Actions */}
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={handleToggleRole}
-                  className="hover:bg-blue-50 hidden sm:flex cursor-pointer items-center space-x-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Switch to Viewer</span>
-                </button>
+    {/* Right Section - Actions */}
+    <div className="flex items-center space-x-3">
+      {/* Switch Role Button */}
+      <button
+        onClick={handleToggleRole}
+        className="flex items-center space-x-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded-2xl text-sm font-medium hover:bg-blue-50 cursor-pointer transition-colors"
+        title="Switch To Viewer"
+      >
+        <User className="w-4 h-4" />
+        <span className="hidden sm:inline">Switch to Viewer</span>
+      </button>
 
-                {/* Creator Badge */}
-                <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
-                  <PenToolIcon className="w-4 h-4" />
-                  <span>Creator</span>
+      {/* Creator Badge */}
+      <div
+        className="flex items-center space-x-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded-2xl text-sm font-medium"
+        title="Creator"
+      >
+        <PenToolIcon className="w-4 h-4" />
+        <span className="hidden sm:inline">Creator</span>
+      </div>
+
+      {/* User Profile Dropdown */}
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setShowUserDetails(!showUserDetails)}
+          className="p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+          title="User Menu"
+        >
+          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <Image
+              src={user.profileImage || profileImg}
+              alt="User Avatar"
+              width={40}
+              height={40}
+              className="w-full h-full rounded-full object-cover"
+            />
+          </div>
+        </button>
+
+        {/* User Details Dropdown */}
+        {showUserDetails && (
+          <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <Image
+                    src={user.profileImage || profileImg}
+                    alt="User Avatar"
+                    width={48}
+                    height={48}
+                    className="w-full h-full rounded-full object-cover"
+                  />
                 </div>
-
-                {/* User Profile */}
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setShowUserDetails(!showUserDetails)}
-                    className="p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
-                  >
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      <Image
-                        src={user.profileImage || profileImg}
-                        alt="User Avatar"
-                        width={40}
-                        height={40}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    </div>
-                  </button>
-
-                  {/* User Details Dropdown */}
-                  {showUserDetails && (
-                    <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            <Image
-                              src={user.profileImage || profileImg}
-                              alt="User Avatar"
-                              width={48}
-                              height={48}
-                              className="w-full h-full rounded-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {user?.username || user?.name || "Creator"}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {user?.email || "creator@flock.com"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="py-2">
-                        <button
-                          onClick={() => {
-                            router.push("/dashboard/profiles");
-                            setShowUserDetails(false);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          View Profile
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowUserDetails(false);
-                            setShowLogoutConfirm(true);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          Logout
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                <div className="truncate">
+                  <p className="font-medium text-gray-900 truncate">
+                    {user?.username || user?.name || "Creator"}
+                  </p>
+                  <p className="text-sm text-gray-500 truncate">
+                    {user?.email || "creator@flock.com"}
+                  </p>
                 </div>
               </div>
             </div>
-          </header>
+
+            <div className="py-2">
+              <button
+                onClick={() => {
+                  router.push("/dashboard/profiles");
+                  setShowUserDetails(false);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                View Profile
+              </button>
+              <button
+                onClick={() => {
+                  setShowUserDetails(false);
+                  setShowLogoutConfirm(true);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</header>
 
           {/* Page Content */}
           <main className="flex-1 overflow-auto">{children}</main>

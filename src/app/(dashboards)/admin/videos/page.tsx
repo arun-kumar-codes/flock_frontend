@@ -538,8 +538,8 @@ export default function AdminVideosPage() {
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-center">
-                            <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
-                              <PlayIcon className="w-6 h-6 text-white" />
+                            <div className="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                              <PlayIcon className="w-7 h-7 text-gray-900 ml-0.5" />
                             </div>
                           </div>
                           {video.duration_formatted && (
@@ -744,7 +744,9 @@ export default function AdminVideosPage() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                          <PlayIcon className="w-6 h-6 text-white" />
+                          <div className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md">
+                            <PlayIcon className="w-5 h-5 text-gray-900 ml-0.5" />
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1044,7 +1046,9 @@ export default function AdminVideosPage() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                          <PlayIcon className="w-6 h-6 text-white" />
+                          <div className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md">
+                            <PlayIcon className="w-5 h-5 text-gray-900 ml-0.5" />
+                          </div>
                         </div>
                       </div>
                     )}
