@@ -122,3 +122,13 @@ export async function becomeCreator() {
     return error.response;
   }
 }
+
+export async function getCreatorById(id: number) {
+  try {
+    const response = await axiosInstance.get(`/auth/creator/${id}`);
+    return response;
+  } catch (error: any) {
+    console.error("Error fetching creator:", error);
+    return error.response;
+  }
+}

@@ -28,6 +28,8 @@ export default function ProfilePage() {
 
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [username, setUsername] = useState(initialUser.username)
+  const [bio, setBio] = useState(initialUser.bio || "")
+  const [originalBio, setOriginalBio] = useState(initialUser.bio || "")
   const [profileImage, setProfileImage] = useState(initialUser.profileImage)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading,setisLoading]=useState(true);
@@ -37,12 +39,14 @@ export default function ProfilePage() {
   const [originalProfileImage, setOriginalProfileImage] = useState(initialUser.profileImage)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
 
   useEffect(() => {
     setUsername(initialUser.username)
     setProfileImage(initialUser.profileImage)
     setOriginalUsername(initialUser.username)
+    setBio(initialUser.bio || "")
+    setOriginalBio(initialUser.bio || "")
     setOriginalProfileImage(initialUser.profileImage)
     setisLoading(false);
   }, [initialUser])
@@ -51,7 +55,8 @@ export default function ProfilePage() {
   const hasChanges = () => {
     const usernameChanged = username !== originalUsername
     const imageChanged = imageFile !== null
-    return usernameChanged || imageChanged
+    const bioChanged = bio !== originalBio
+    return usernameChanged || imageChanged || bioChanged
   }
 
   const handleAvatarClick = () => {
@@ -86,6 +91,9 @@ export default function ProfilePage() {
         form.append("profile_picture", imageFile)
       }
       form.append("username", username)
+      if (bio) {
+        form.append("bio", bio)
+      }
       const response = await updateProfile(form)
 
       console.log("Update response:", response.data.user);
@@ -101,7 +109,7 @@ export default function ProfilePage() {
       }
 
       // Update original values after successful save
-   
+
     } catch (error) {
       console.error("Error updating profile:", error)
       toast.error("Error: Failed to connect to the server. Please try again.")
@@ -265,6 +273,21 @@ export default function ProfilePage() {
                         </div>
                         <p className="text-xs md:text-sm text-gray-500 mt-2">Email cannot be changed for security reasons</p>
                       </div>
+
+                      <div className="md:col-span-2">
+                      <label htmlFor="bio" className="block text-sm font-semibold text-gray-700 mb-3">
+                        Bio (optional)
+                      </label>
+                      <textarea
+                        id="bio"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="Tell something about yourself..."
+                        rows={4}
+                        className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm md:text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 resize-none"
+                      />
+                    </div>
+
                     </div>
 
                     {/* Action Buttons */}

@@ -24,7 +24,7 @@ import {
   getMostLiked,
 } from "@/api/content";
 import { useSelector } from "react-redux";
-import { getAllCreators } from "@/api/user";
+import { getAllCreators, getCreatorById } from "@/api/user";
 
 interface Creator {
   email: string;
@@ -1176,7 +1176,10 @@ export default function DashboardPage() {
                       onClick={() => handleTrendingCardClick(item)}
                     >
                       <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
-                        <div className="aspect-[4/3] relative overflow-hidden">
+                        <div
+  className="relative w-full rounded-3xl bg-black overflow-hidden flex items-center justify-center"
+  style={{ aspectRatio: "16 / 9" }}
+>
                           {item.type === "video" ? (
                             <img
                               src={
@@ -1187,7 +1190,7 @@ export default function DashboardPage() {
                                     )}&query=Professional video thumbnail`
                               }
                               alt={item.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                               loading="lazy"
                             />
                           ) : (
@@ -1195,7 +1198,7 @@ export default function DashboardPage() {
                               src={item.image || "/placeholder.svg"}
                               alt={item.title}
                               fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-contain group-hover:scale-105 transition-transform duration-300 bg-black"
                             />
                           )}
 
@@ -1344,7 +1347,10 @@ export default function DashboardPage() {
                       onClick={() => handleTrendingCardClick(item)}
                     >
                       <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
-                        <div className="aspect-[4/3] relative overflow-hidden">
+                        <div
+  className="relative w-full rounded-3xl bg-black overflow-hidden flex items-center justify-center"
+  style={{ aspectRatio: "16 / 9" }}
+>
                           {item.type === "video" ? (
                             <img
                               src={
@@ -1355,7 +1361,7 @@ export default function DashboardPage() {
                                     )}&query=Professional video thumbnail`
                               }
                               alt={item.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                               loading="lazy"
                             />
                           ) : (
@@ -1363,7 +1369,7 @@ export default function DashboardPage() {
                               src={item.image || "/placeholder.svg"}
                               alt={item.title}
                               fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="object-contain group-hover:scale-105 transition-transform duration-300 bg-black"
                             />
                           )}
 
@@ -1512,7 +1518,10 @@ export default function DashboardPage() {
                       onClick={() => handleTrendingCardClick(item)}
                     >
                       <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
-                        <div className="aspect-[4/3] relative overflow-hidden">
+                        <div
+  className="relative w-full rounded-3xl bg-black overflow-hidden flex items-center justify-center"
+  style={{ aspectRatio: "16 / 9" }}
+>
                           {item.type === "video" ? (
                             <img
                               src={
@@ -1523,7 +1532,7 @@ export default function DashboardPage() {
                                     )}&query=Professional video thumbnail`
                               }
                               alt={item.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                               loading="lazy"
                             />
                           ) : (
@@ -1531,7 +1540,8 @@ export default function DashboardPage() {
                               src={item.image || "/placeholder.svg"}
                               alt={item.title}
                               fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="object-contain group-hover:scale-105 transition-transform duration-300 bg-black"
+
                             />
                           )}
 
@@ -1672,6 +1682,7 @@ export default function DashboardPage() {
                       <div
                         key={`creator-${creator.id}`}
                         className="group cursor-pointer flex-shrink-0 w-full md:w-64"
+                        onClick={() => router.push(`/viewer/creator/${creator.id}`)}
                       >
                         <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
                           <div className="aspect-[3/4] relative overflow-hidden">

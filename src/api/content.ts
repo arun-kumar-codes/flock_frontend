@@ -620,3 +620,23 @@ export async function toggleCommentOnVideo(blogId: any) {
   }
 }
 
+export async function getVideosByCreator (videoId: any) {
+  try {
+    const response = await axiosInstance.post(`/api/videos/creator/${videoId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error getting video", error);
+    return error.response;
+  }
+}
+
+
+export async function getBlogsByCreator (blogId: any) {
+  try {
+    const response = await axiosInstance.post(`/api/blogs/creator/${blogId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error getting video", error);
+    return error.response;
+  }
+}

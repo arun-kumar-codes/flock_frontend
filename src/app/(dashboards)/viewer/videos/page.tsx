@@ -373,7 +373,7 @@ export default function VideoPage() {
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300">
-      <div className="lg:px-3 py-6">
+      <div className="px-5 md:px-6 py-6 ml-4">
         {/* Search and Filter */}
         <div className="mb-4 md:mb-4 theme-border ml-2">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -442,7 +442,7 @@ export default function VideoPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-center items-start">
           {currentVideos.length > 0 ? (
             currentVideos.map((video) => {
               const plainDescription = stripHtmlAndDecode(video.description);
@@ -454,8 +454,8 @@ export default function VideoPage() {
                   className="group cursor-pointer h-full"
                   onClick={() => handleVideoClick(video)}
                 >
-                  <div className="theme-bg-card rounded-4xl shadow-sm hover:shadow-md theme-border overflow-hidden transition-all duration-300 h-full flex flex-col ml-2">
-                    <div className="relative aspect-video overflow-hidden rounded-t-xl flex-shrink-0">
+                  <div className="theme-bg-card rounded-xl shadow-sm hover:shadow-md theme-border overflow-hidden transition-all duration-300 flex flex-col w-full">
+                      <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg">
                       <img
                         src={
                           video.thumbnail && video.thumbnail !== ""
@@ -465,7 +465,7 @@ export default function VideoPage() {
                               )}&query=Professional outdoor adventure thumbnail design, turquoise/teal colored object placed on red sandstone cliff edge, dramatic desert landscape background with blue sky and clouds, minimalist composition, natural daylight photography, adventure travel aesthetic, clean modern design, high contrast colors`
                         }
                         alt={video.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-full object-contain bg-black transition-transform duration-300 group-hover:scale-105"
                         loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -510,7 +510,7 @@ export default function VideoPage() {
                       </div>
                     </div>
 
-                    <div className="p-4 flex-1 flex flex-col">
+                    <div className="px-3 py-2 flex-1 flex flex-col">
                       <div className="flex gap-3 flex-1 h-24">
                         {/* Avatar */}
                         <div className="flex-shrink-0">

@@ -535,13 +535,13 @@ export default function BlogPage() {
                 onClick={() => handleBlogClick(blog)}
               >
                 <div className="theme-bg-card rounded-4xl shadow-sm hover:shadow-lg theme-border overflow-hidden h-full flex flex-col transition-all duration-300 ml-2">
-                  <div className="aspect-[16/9] relative overflow-hidden">
+                  <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg flex items-center justify-center bg-black">
                     {blog.image ? (
                       <Image
                         src={blog.image || "/placeholder.svg"}
                         alt={blog.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-contain transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 flex items-center justify-center">
