@@ -130,7 +130,7 @@ export default function CreatorProfilePage() {
           </h1>
           <div className="flex text-xl justify-center md:justify-start gap-8 text-sm">
             <div className="text-center">
-              <p className="theme-text-primary">Followers</p>
+              <p className="theme-text-primary">Flocks</p>
               <p className="font-semibold theme-text-primary">
                 {creator.followers_count}
               </p>
