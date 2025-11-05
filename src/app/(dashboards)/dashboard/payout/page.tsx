@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getEarning, setupStripeAccount, getStripeAccount, removeStripeAccount, refreshStripeAccount, requestWithdrawal, withdrawalHistory, setupPayoneerAccount, getPayoneerAccountStatus, requestPayoneerWithdrawal, payoneerWithdrawalHistory } from "@/api/earnings";
+import { getEarning, setupStripeAccount, getStripeAccount, removeStripeAccount, refreshStripeAccount, requestWithdrawal, withdrawalHistory, setupPayPalAccount, requestPayPalWithdrawal, payPalWithdrawalHistory, getPayPalAccount, removePayPalAccount } from "@/api/earnings";
 import { DollarSign, TrendingUp, Clock, CheckCircle, CreditCard, ArrowUpRight, Wallet, Plus, RefreshCw, Trash2 } from "lucide-react"
 import Loader from "@/components/Loader2";
 import toast from "react-hot-toast";
 
-type PaymentProvider = 'stripe' | 'payoneer' | null;
+type PaymentProvider = 'stripe' | 'payoneer' | 'paypal' | null;
 
 export default function PayoutPage() {
   const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>(null)
@@ -74,23 +74,21 @@ export default function PayoutPage() {
           }
         }
 
-        // Check Payoneer account
-        const payoneerResponse = await getPayoneerAccountStatus();
-        if (payoneerResponse?.status === 200 && payoneerResponse.data?.success) {
-          const payoneerAccount = payoneerResponse.data.account;
-
-          if (payoneerAccount?.account_status === "active") {
-            setIsAccountConnected(true)
-            setIsAccountPending(false)
-            setConnectedProvider('payoneer')
-            setOnboardingUrl(null)
-          } else if (payoneerAccount) {
-            setIsAccountConnected(false)
-            setIsAccountPending(true)
-            setConnectedProvider('payoneer')
-            setOnboardingUrl(null)
+        // Check PayPal account
+        const paypalResponse = await getPayPalAccount();
+        if (paypalResponse?.status === 200 && paypalResponse.data?.success) {
+          const account = paypalResponse.data.account;
+          if (account?.account_status === "verified") {
+            setIsAccountConnected(true);
+            setIsAccountPending(false);
+            setConnectedProvider("paypal");
+          } else if (account) {
+            setIsAccountConnected(false);
+            setIsAccountPending(true);
+            setConnectedProvider("paypal");
           }
         }
+
       } catch (error) {
         console.error("Error fetching payment accounts:", error);
       }
@@ -118,14 +116,14 @@ export default function PayoutPage() {
         } else {
           setWithdrawals([]);
         }
-      } else if (connectedProvider === 'payoneer') {
-        const response = await payoneerWithdrawalHistory();
-        if (response?.status === 200 && response.data?.success) {
-          setWithdrawals(response.data.withdrawals || []);
-        } else {
-          setWithdrawals([]);
-        }
+      } else if (connectedProvider === "paypal") {
+      const response = await payPalWithdrawalHistory();
+      if (response?.status === 200 && response.data?.success) {
+        setWithdrawals(response.data.withdrawals || []);
+      } else {
+        setWithdrawals([]);
       }
+    }
     } catch (error) {
       console.error("Error Fetching withdrawal history.");
       setWithdrawals([]);
@@ -154,118 +152,174 @@ export default function PayoutPage() {
         } else {
           console.error("Stripe Setup Failed:", response?.data)
         }
-      } else if (provider === 'payoneer') {
-        const response = await setupPayoneerAccount()
-        if (response?.status === 200) {
-          setOnboardingUrl(response.data.onboarding_url)
-          setIsAccountConnected(false)
-          setIsAccountPending(false)
-          setConnectedProvider('payoneer')
-        } else {
-          console.error("Payoneer Setup Failed:", response?.data)
-        }
+      } else if (provider === "paypal") {
+  try {
+    const response = await setupPayPalAccount(); // no prompt; backend handles OAuth
+    if (response?.status === 200 && response.data?.success) {
+      const { onboarding_url, status } = response.data;
+
+      if (onboarding_url) {
+        // open PayPal OAuth page
+        window.open(onboarding_url, "_blank");
+        toast("Redirecting to PayPal for verification...", { icon: "🔗" });
       }
+
+      if (status === "already_active") {
+        toast.success("Your PayPal account is already connected 🎉");
+        setConnectedProvider("paypal");
+        setIsAccountConnected(true);
+        setIsAccountPending(false);
+      } else if (status === "existing_incomplete") {
+        toast("Continue your PayPal onboarding.", { icon: "⏳" });
+        setConnectedProvider("paypal");
+        setIsAccountPending(true);
+        setIsAccountConnected(false);
+        setOnboardingUrl(onboarding_url);
+      } else if (status === "new_created") {
+        toast("PayPal onboarding started ✅");
+        setConnectedProvider("paypal");
+        setIsAccountPending(true);
+        setIsAccountConnected(false);
+        setOnboardingUrl(onboarding_url);
+      }
+    } else {
+      toast.error(response?.data?.error || "PayPal setup failed.");
+    }
+  } catch (error) {
+    console.error("Error connecting PayPal account:", error);
+    toast.error("Something went wrong while connecting PayPal.");
+  }
+}
     } catch (error) {
       console.error("Error connecting account:", error)
     }
   }
 
-  const handleRefreshAccount = async () => {
-    setIsRefreshing(true)
-    try {
-      if (connectedProvider === 'stripe') {
-        const response = await refreshStripeAccount()
-        if (response.status === 200 && response.data?.success) {
-          const account = response.data.account;
-          if (account?.account_status === "active" && account?.charges_enabled && account?.payouts_enabled) {
-            setIsAccountConnected(true);
-            setIsAccountPending(false);
-            setShowVerifyAgain(false);
-          } else {
-            setIsAccountConnected(false)
-            setIsAccountPending(true)
-            setShowVerifyAgain(true)
-          }
+ const handleRefreshAccount = async () => {
+  setIsRefreshing(true);
+  try {
+    if (connectedProvider === "stripe") {
+      const response = await refreshStripeAccount();
+      if (response.status === 200 && response.data?.success) {
+        const account = response.data.account;
+        if (
+          account?.account_status === "active" &&
+          account?.charges_enabled &&
+          account?.payouts_enabled
+        ) {
+          setIsAccountConnected(true);
+          setIsAccountPending(false);
+          setShowVerifyAgain(false);
         } else {
           setIsAccountConnected(false);
           setIsAccountPending(true);
           setShowVerifyAgain(true);
         }
-      } else if (connectedProvider === 'payoneer') {
-        const response = await getPayoneerAccountStatus()
-        if (response.status === 200 && response.data?.success) {
-          const account = response.data.account;
-          if (account?.account_status === "active") {
-            setIsAccountConnected(true);
-            setIsAccountPending(false);
-            setShowVerifyAgain(false);
-          } else {
-            setIsAccountConnected(false)
-            setIsAccountPending(true)
-            setShowVerifyAgain(true)
-          }
-        } else {
-          setIsAccountConnected(false);
-          setIsAccountPending(true);
-          setShowVerifyAgain(true);
-        }
+      } else {
+        setIsAccountConnected(false);
+        setIsAccountPending(true);
+        setShowVerifyAgain(true);
       }
-    } catch (error) {
-      console.error("Error Refreshing account:", error)
-    } finally {
-      setIsRefreshing(false)
+    } 
+    else if (connectedProvider === "paypal") {
+      // ✅ Correct logic for PayPal
+      const response = await getPayPalAccount();
+      if (response.status === 200 && response.data?.success) {
+        const account = response.data.account;
+        if (account?.account_status === "verified") {
+          setIsAccountConnected(true);
+          setIsAccountPending(false);
+          setShowVerifyAgain(false);
+        } else {
+          setIsAccountConnected(false);
+          setIsAccountPending(true);
+          setShowVerifyAgain(true);
+        }
+      } else {
+        setIsAccountConnected(false);
+        setIsAccountPending(true);
+        setShowVerifyAgain(true);
+      }
+    } 
+    else if (connectedProvider === "payoneer") {
+      // Payoneer not yet connected to backend
+      toast("Payoneer refresh not available yet.", { icon: "🛠️" });
+      setIsAccountConnected(false);
+      setIsAccountPending(true);
     }
+  } catch (error) {
+    console.error("Error refreshing account:", error);
+  } finally {
+    setIsRefreshing(false);
   }
+};
 
   const handleVerifyAgain = async () => {
-    try {
-      if (connectedProvider === 'stripe') {
-        const response = await setupStripeAccount();
-        if (response?.status === 200) {
-          setOnboardingUrl(response.data.onboarding_url);
-          setIsAccountConnected(false);
-          setIsAccountPending(true);
-          setShowVerifyAgain(false);
-        }
-      } else if (connectedProvider === 'payoneer') {
-        const response = await setupPayoneerAccount();
-        if (response?.status === 200) {
-          setOnboardingUrl(response.data.onboarding_url);
-          setIsAccountConnected(false);
-          setIsAccountPending(true);
-          setShowVerifyAgain(false);
-        }
+  try {
+    if (connectedProvider === "stripe") {
+      const response = await setupStripeAccount();
+      if (response?.status === 200) {
+        setOnboardingUrl(response.data.onboarding_url);
+        setIsAccountConnected(false);
+        setIsAccountPending(true);
+        setShowVerifyAgain(false);
       }
-    } catch (error) {
-      console.error("Error verifying account again", error)
+    } else if (connectedProvider === "paypal") {
+      // PayPal doesn't use onboarding links — simply re-fetch the account
+      const response = await getPayPalAccount();
+      if (response?.status === 200 && response.data?.success) {
+        const account = response.data.account;
+        if (account.account_status === "verified") {
+          toast.success("PayPal account verified successfully 🎉");
+          setIsAccountConnected(true);
+          setIsAccountPending(false);
+        } else {
+          toast("PayPal account still pending verification.", { icon: "⏳" });
+        }
+      } else {
+        toast.error("Unable to verify PayPal account at this time.");
+      }
+    } else if (connectedProvider === "payoneer") {
+      // No backend integration yet → show friendly placeholder
+      toast("Payoneer verification is not available yet.", { icon: "🛠️" });
     }
+  } catch (error) {
+    console.error("Error verifying account again:", error);
+    toast.error("Something went wrong while verifying your account.");
   }
+};
 
   const handleRemoveAccount = async () => {
-    try {
-      if (connectedProvider === 'stripe') {
-        const response = await removeStripeAccount()
-        if (response?.status === 200 && response.data?.success) {
-          setIsAccountConnected(false);
-          setIsAccountPending(false);
-          setConnectedProvider(null);
-          setOnboardingUrl(null);
-          console.log("Stripe account removed successfully")
-        } else {
-          console.error("Failed to remove Stripe account:", response?.data)
-        }
-      } else if (connectedProvider === 'payoneer') {
-        // Implement remove Payoneer account if API exists
-        setIsAccountConnected(false);
-        setIsAccountPending(false);
-        setConnectedProvider(null);
-        setOnboardingUrl(null);
-        console.log("Payoneer account removed successfully")
+  try {
+    if (connectedProvider === 'stripe') {
+      const response = await removeStripeAccount();
+      if (response?.status === 200 && response.data?.success) {
+        toast.success("Stripe account removed successfully");
+      } else {
+        toast.error("Failed to remove Stripe account");
       }
-    } catch (error) {
-      console.error("Error removing account:", error);
+    } else if (connectedProvider === 'paypal') {
+      const response = await removePayPalAccount();
+      if (response?.status === 200 && response.data?.success) {
+        toast.success("PayPal account removed successfully");
+      } else {
+        toast.error("Failed to remove PayPal account");
+      }
+    } else if (connectedProvider === 'payoneer') {
+      toast("Payoneer removal not implemented yet", { icon: "🛠️" });
     }
+
+    // ✅ Reset UI after any successful removal
+    setIsAccountConnected(false);
+    setIsAccountPending(false);
+    setConnectedProvider(null);
+    setOnboardingUrl(null);
+
+  } catch (error) {
+    console.error("Error removing account:", error);
+    toast.error("Something went wrong while removing account");
   }
+};
 
   const handleWithdraw = async () => {
     if (!isAccountConnected) {
@@ -287,8 +341,8 @@ export default function PayoutPage() {
       let response;
       if (connectedProvider === 'stripe') {
         response = await requestWithdrawal(Number(withdrawAmount));
-      } else if (connectedProvider === 'payoneer') {
-        response = await requestPayoneerWithdrawal();
+      } else if (connectedProvider === "paypal") {
+        response = await requestPayPalWithdrawal(Number(withdrawAmount));
       }
 
       if (response?.status === 200 && response.data?.success) {
@@ -398,7 +452,11 @@ export default function PayoutPage() {
                   <div className="text-center space-y-4">
                     <CheckCircle className="h-10 w-10 text-green-600 mx-auto" />
                     <p className="text-gray-700 font-medium">
-                      Your {connectedProvider === 'stripe' ? 'Stripe' : 'Payoneer'} account is connected 🎉
+                                          Your {connectedProvider === 'stripe'
+                      ? 'Stripe'
+                      : connectedProvider === 'paypal'
+                      ? 'PayPal'
+                      : 'Payoneer'} account is connected 🎉
                     </p>
                     <button
                       onClick={handleRemoveAccount}
@@ -441,7 +499,7 @@ export default function PayoutPage() {
 
                       {/* Payoneer Option */}
                       <div
-                        onClick={() => handleConnectAccount('payoneer')}
+                        onClick={() => handleConnectAccount('paypal')}
                         className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-all"
                       >
                         <div className="flex flex-col items-center">
@@ -460,7 +518,7 @@ export default function PayoutPage() {
 
                       {/* PayPal Option just UI integrate backend later*/}
                   <div
-                    onClick={() => handleConnectAccount('payoneer')}
+                    onClick={() => handleConnectAccount('paypal')}
                     className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 hover:bg-blue-50 transition-all"
                   >
                     <div className="flex flex-col items-center">

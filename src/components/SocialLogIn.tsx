@@ -82,12 +82,12 @@ const SocialLogin = () => {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+      <div className="flex flex-row flex-wrap items-center justify-center gap-3 w-full">
         {/* Google Login */}
         <button
           onClick={() => loginWithProvider(new GoogleAuthProvider(), "google")}
           disabled={isLoading !== null}
-          className="flex-1 flex items-center justify-center gap-2 py-3 px-2 cursor-pointer rounded-full border border-gray-300 bg-white text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          className="flex-1 flex items-center justify-center gap-2 py-2 px-3 cursor-pointer rounded-full border border-gray-300 bg-white text-black shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >
           {isLoading === "google" ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
@@ -95,10 +95,10 @@ const SocialLogin = () => {
             <Image
               src={google || "/placeholder.svg"}
               alt="Google"
-              className="w-5 h-5"
+              className="w-4 h-4"
             />
           )}
-          <span className="font-medium text-sm sm:text-base">
+          <span className="text-xs xs:text-base">
             {isLoading === "google" ? "Connecting..." : "Continue with Google"}
           </span>
         </button>
@@ -109,7 +109,7 @@ const SocialLogin = () => {
             loginWithProvider(new FacebookAuthProvider(), "facebook")
           }
           disabled={isLoading !== null}
-          className="flex-1 flex items-center justify-center gap-2 py-3 px-2 cursor-pointer rounded-full border border-gray-300 bg-white text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          className="flex-1 flex items-center justify-center gap-2 py-2 px-3 cursor-pointer rounded-full border border-gray-300 bg-white text-black shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >
           {isLoading === "facebook" ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
@@ -117,10 +117,10 @@ const SocialLogin = () => {
             <Image
               src={facebook || "/placeholder.svg"}
               alt="Facebook"
-              className="w-5 h-5"
+              className="w-4 h-4"
             />
           )}
-          <span className="font-medium text-sm sm:text-base">
+          <span className="text-xs xs:text-base">
             {isLoading === "facebook"
               ? "Connecting..."
               : "Continue with Facebook"}

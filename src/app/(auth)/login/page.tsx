@@ -1,24 +1,88 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
-import { EyeIcon, EyeOffIcon, LockIcon, ShieldCheckIcon } from "lucide-react";
+import { useState, useRef } from "react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import SocialLogIn from "@/components/SocialLogIn";
 import { logIn } from "@/api/auth";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 import Loader from "@/components/Loader";
-import AutoScrollCarousel from "@/components/AutoScrollCarousel";
 import Image from "next/image";
-import { Poppins } from "next/font/google";
-import loginBg from "@/assets/auth-bg.jpg";
-import logo from "@/assets/logo.svg";
-import img1 from "@/assets/Image1.png";
-import img2 from "@/assets/Image2.png";
-import img3 from "@/assets/Image3.png";
-import img4 from "@/assets/Image4.png";
+import Lottie from "lottie-react";
+import logoAnimation from "@/assets/logo animation.json";
+import bird from "@/assets/whiteflock.png";
+import { motion } from "framer-motion";
+import loginBg from "@/assets/LSbg.jpg";
+import { Inter } from "next/font/google";
+import { ResponsiveCaptcha } from "@/components/ResponsiveCaptcha";
 
-const poppins = Poppins({ subsets: ["latin"], weight: "400" });
+
+const inter = Inter({ subsets: ["latin"] });
+
+function GridTile({
+  image,
+  badgeText,
+  badgeSubText,
+  badgeColor,
+  cornerType,
+  tileDelay = 0,
+  badgeDelay = 0,
+}: {
+  image: any;
+  badgeText?: string;
+  badgeSubText?: { sub1?: string; sub2?: string };
+  badgeColor?: string;
+  cornerType?: string; // "corner" or "rounded"
+  tileDelay?: number;
+  badgeDelay?: number;
+}) {
+  const cornerStyle = "rounded-[14px]";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.35, ease: "easeOut", delay: tileDelay }}
+      className={`relative overflow-hidden bg-gray-200 backdrop-blur-[2px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] aspect-square ${cornerStyle}`}
+    >
+      <video
+        src={image}
+        className="object-cover opacity-90 w-full h-full"
+        autoPlay
+        loop
+        muted
+        playsInline
+      />
+
+      {badgeText ? (
+ <motion.div
+  initial={{ y: 100, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{
+    duration: 0.25,
+    ease: "easeOut",
+    delay: badgeDelay,
+  }}
+  className={`absolute bottom-0 left-0 right-0 px-5 sm:px-3  py-2 sm:py-3 text-white font-extrabold ${badgeColor} min-h-[60px] sm:min-h-[70px] flex flex-col justify-center`}
+>
+  <div className="text-[11px] sm:text-[12px] leading-tight mb-1">
+    {badgeText}
+  </div>
+
+  <div className="space-y-[2px]">
+    <div className="text-[8px] sm:text-[10px] font-normal opacity-90 leading-tight">
+      {badgeSubText?.sub1 || "\u00A0" /* non-breaking space placeholder */}
+    </div>
+    <div className="text-[8px] sm:text-[10px] font-normal opacity-90 leading-tight">
+      {badgeSubText?.sub2 || "\u00A0"}
+    </div>
+  </div>
+</motion.div>
+) : null}
+    </motion.div>
+  );
+}
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -30,34 +94,10 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
   const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
-  const platformFeatures = [
-    {
-      title: "CREATE & SHARE",
-      description: "Upload and share amazing content",
-      image: img1,
-    },
-    {
-      title: "DISCOVER & ENGAGE",
-      description: "Explore & Connect with Creators",
-      image: img2,
-    },
-    {
-      title: "ANALYTICS & INSIGHTS",
-      description: "Track performance and Growth",
-      image: img3,
-    },
-    {
-      title: "MONETIZE & GROW",
-      description: "Turn passion into profit",
-      image: img4,
-    },
-  ];
 
   const handleChange = (name: string, value: string) => {
     setFormData({
@@ -101,7 +141,6 @@ export default function Login() {
 
     try {
       const response = await logIn(formData);
-
       if (response.status === 200) {
         localStorage.setItem("access_token", response.data.access_token);
         localStorage.setItem("refresh_token", response.data.refresh_token);
@@ -131,250 +170,273 @@ export default function Login() {
     return <Loader />;
   }
 
+  const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      ease: "easeOut" as const,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.04,
+      ease: "easeOut" as const,
+    },
+  },
+};
+
   return (
-    <div className="min-h-screen relative">
-      {/* Background image */}
+    <div className={`${inter.className} min-h-screen relative overflow-hidden`}>
+     
+     {/* Background image */}
       <div className="absolute inset-0">
-        <Image src={loginBg} alt="bg" fill className="object-top" />
-      </div>
-
-      <div className="relative z-10 max-w-8xl mx-auto min-h-screen flex items-center justify-center px-8">
-        <div className="flex flex-col lg:flex-row items-stretch gap-4 w-full">
-          {/* Left translucent panel */}
-          <div className="w-full lg:w-1/2 flex items-center justify-center mt-2 mb-2">
-            <div className="w-full h-full rounded-3xl bg-gradient-to-br from-white/50 to-white/0 backdrop-blur-sm p-6 sm:p-8 md:p-10 shadow-xl flex items-center justify-center">
-              <div className="w-full max-w-xl mx-auto">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-20 h-20 flex items-center justify-center">
-                    <Image src={logo} alt="logo" className="h-20 w-20" />
-                  </div>
-                  <div>
-                    <h3 className="text-4xl font-bold text-[#2C50A2]">FLOCK</h3>
-                  </div>
-                </div>
-
-                <h2
-                  className="text-2xl md:text-4xl font-medium text-[#C14C42] leading-[1] mb-4"
-                  style={{ fontFamily: '"Cera Pro", sans-serif' }}
-                >
-                  Welcome Back to Your <br /> Creative Journey
-                </h2>
-                <p
-                  className={`${poppins.className} text-slate-700 font-normal text-sm md:text-lg  leading-[1.5] tracking-normal mb-6`}
-                >
-                  Continue creating, discovering, & connecting with your
-                  community. Your creative universe awaits.
-                </p>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Email/Username Field */}
-                  <div className="space-y-1">
-                    {/*  */}
-                    <input
-                      id="username_or_email"
-                      type="text"
-                      value={formData.username_or_email}
-                      onChange={(e) =>
-                        handleChange(
-                          "username_or_email",
-                          e.target.value.toLocaleLowerCase()
-                        )
-                      }
-                      onFocus={() => setFocusedField("username_or_email")}
-                      onBlur={() => setFocusedField(null)}
-                      placeholder="Enter your email or username"
-                      className={`w-full rounded-full border-2 px-4 py-3 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
-                        errors.username_or_email
-                          ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                          : "border-slate-200"
-                      }`}
-                    />
-                    {errors.username_or_email && (
-                      <p className="text-xs text-red-600 flex items-center font-medium">
-                        <span className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
-                        {errors.username_or_email}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Password Field */}
-                  <div className="space-y-1">
-                    <div className="relative">
-                      <input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password}
-                        onChange={(e) =>
-                          handleChange("password", e.target.value)
-                        }
-                        onFocus={() => setFocusedField("password")}
-                        onBlur={() => setFocusedField(null)}
-                        placeholder="Enter your password"
-                        className={`w-full rounded-full border-2 px-4 py-3 pr-10 text-slate-900 bg-white transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-slate-400 placeholder:text-slate-400 text-sm ${
-                          errors.password
-                            ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                            : "border-slate-200"
-                        }`}
-                      />
-
-                      {/* Show Eye Icon only if password field has value */}
-                      {formData.password.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 cursor-pointer transform -translate-y-1/2 text-slate-800 hover:text-indigo-600 transition-colors duration-200"
-                        >
-                          {showPassword ? (
-                            <EyeOffIcon className="h-5 w-5" />
-                          ) : (
-                            <EyeIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                      )}
-                    </div>
-                    {errors.password && (
-                      <p className="text-xs text-red-600 flex items-center font-medium">
-                        <div className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></div>
-                        {errors.password}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Forgot Password Link */}
-                  {/* <div className="flex justify-end">
-              <a
-                href="/forgot-password"
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors duration-200 hover:underline"
-              >
-                Forgot your password?
-              </a>
-            </div> */}
-
-                  {/* Sign In Button and reCAPTCHA in same line */}
-                  <div className="flex flex-col lg:flex-row items-center lg:items-center justify-start gap-6 w-full">
-  {/* Sign In Button */}
-  <div className="flex justify-center lg:justify-start w-auto">
-    <button
-      type="submit"
-      disabled={isSubmitting}
-      className="rounded-full cursor-pointer bg-[#C14C42] px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-2 sm:py-2.5 md:py-3 font-bold text-xs sm:text-sm md:text-base text-white uppercase tracking-wide transition-all duration-200 hover:bg-[#A63E36] focus:outline-none focus:ring-2 focus:ring-[#C14C42] focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap w-full sm:w-auto max-w-xs sm:max-w-none"
-    >
-      {isSubmitting ? (
-        <div className="flex items-center justify-center space-x-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-          <span className="text-xs sm:text-sm md:text-base">
-            Signing In...
-          </span>
-        </div>
-      ) : (
-        <span
-          className={`${poppins.className} text-xs sm:text-sm md:text-base font-light text-white`}
-        >
-          Sign In
-        </span>
-      )}
-    </button>
-  </div>
-
-  {/* reCAPTCHA */}
-  <div className="flex justify-center lg:justify-start w-auto">
-    <div
-      className="flex justify-center lg:justify-start transition-transform duration-200"
-      style={{
-        transform: "scale(0.6)",
-        transformOrigin: "center",
-      }}
-    >
-      <div
-        className="sm:scale-110 md:scale-125 lg:scale-140 xl:scale-150"
-        style={{ transformOrigin: "center" }}
-      >
-        <ReCAPTCHA
-          ref={recaptchaRef}
-          sitekey={RECAPTCHA_SITE_KEY || ""}
-          onChange={handleRecaptchaChange}
-          theme="light"
-          size="normal"
+        <Image
+          src={loginBg}
+          alt="Background gradient"
+          fill
+          className="object-cover"
+          priority
         />
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]" />
       </div>
-    </div>
+
+      <div className="relative z-10 max-w-8xl mx-auto min-h-screen flex flex-col lg:flex-row items-center justify-center px-4 py-10">
+        {/* Left login form */}
+        <motion.div
+  initial={{ y: 100, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ duration: 1.2, ease: "easeOut" }}
+  className="w-full lg:w-1/2 flex flex-col justify-center px-6 md:px-10 ml-6"
+>
+          <div className="-mt-26 -ml-56 -mb-30">
+            <div className="w-[550px] h-[350px]">
+              <Lottie animationData={logoAnimation} loop autoplay />
+            </div>
+          </div>
+
+          <h2 className="text-[25px] font-bold text-[#684098] leading-[1.2] mb-4">
+            Welcome Back to Your <br /> Creative Journey
+          </h2>
+
+          <p
+            className={"text-black font-normal text-[13.5px] leading-[1.5] tracking-normal mb-6"}
+          >
+            Continue creating, discovering, & connecting with your community. <br />
+            Your creative universe awaits.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <input
+              id="username_or_email"
+              type="text"
+              value={formData.username_or_email}
+              onChange={(e) =>
+                handleChange("username_or_email", e.target.value.toLocaleLowerCase())
+              }
+              placeholder="Enter your email or username"
+              className={`w-full rounded-full border-2 px-2 py-1 text-slate-900 bg-white focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 text-2xs ${
+                errors.username_or_email
+                  ? "border-red-400 focus:border-red-500"
+                  : "border-slate-200"
+              }`}
+            />
+            {errors.username_or_email && (
+              <p className="text-xs text-red-600">{errors.username_or_email}</p>
+            )}
+
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+                placeholder="Enter your password"
+                className={`w-full rounded-full border-2 px-2 py-1 pr-10 text-slate-900 bg-white focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 text-2xs ${
+                  errors.password
+                    ? "border-red-400 focus:border-red-500"
+                    : "border-slate-200"
+                }`}
+              />
+              {formData.password.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-800"
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              )}
+            </div>
+
+<div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+  {/* Sign In button */}
+  <button
+    type="submit"
+    disabled={isSubmitting}
+    className="rounded-full bg-[#684098] px-10 py-3 text-xs text-white uppercase tracking-wide hover:bg-[#58328a] transition w-full sm:w-[40%]"
+  >
+    {isSubmitting ? "Signing in.." : "Sign In"}
+  </button>
+
+  {/* Captcha */}
+  <div className="w-full sm:w-[60%] flex justify-end sm:justify-center">
+    <ResponsiveCaptcha
+      onChange={handleRecaptchaChange}
+      recaptchaRef={recaptchaRef}
+      siteKey={RECAPTCHA_SITE_KEY || ""}
+    />
   </div>
 </div>
 
 
-                  {/* reCAPTCHA Error */}
-                  {errors.recaptcha && (
-                    <p className="text-xs text-red-600 flex items-center justify-center font-medium mt-2">
-                      <div className="w-1 h-1 bg-red-600 rounded-full mr-1.5"></div>
-                      {errors.recaptcha}
-                    </p>
-                  )}
+            {errors.recaptcha && (
+              <p className="text-xs text-red-600 mt-1">{errors.recaptcha}</p>
+            )}
 
-                  {/* Error Message */}
-                  {errorMessage && (
-                    <div className="p-3 bg-red-50 border-2 border-red-200 rounded-lg mb-4">
-                      <div className="text-sm text-red-700 flex items-center font-medium">
-                        <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                        {errorMessage}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Social Login Buttons */}
-                  <SocialLogIn />
-                </form>
-
-                <div className="mt-4 text-start">
-                  <p className="text-slate-700 font-medium text-sm">
-                    Don't have an account?{" "}
-                    <Link
-                      href="/signup"
-                      className="font-bold text-[#b84238] hover:underline"
-                    >
-                      Create Account
-                    </Link>
-                  </p>
-                </div>
+            {errorMessage && (
+              <div className="p-3 bg-red-50 border-2 border-red-200 rounded-lg mb-4 text-sm text-red-700">
+                {errorMessage}
               </div>
+            )}
+
+            <SocialLogIn />
+          </form>
+
+          <p className="mt-4 text-black text-xs">
+            Don't have an account?{" "}
+            <Link href="/signup" className="font-bold text-white hover:text-purple-700">
+              Create Account
+            </Link>
+          </p>
+        </motion.div>
+
+        {/* Right side grid */}
+<div className="w-full lg:w-2/3 flex justify-start mt-12 lg:mt-4">
+  {(() => {
+    const tiles = [
+      {
+        src: "01.mp4",
+        badge: {
+          text: "CREATE & SHARE",
+          sub1: "Upload and share",
+          sub2: "amazing content",
+          color: "bg-[#EA4E2B]",
+        },
+      },
+      { src: "02.mp4" }, // hidden on mobile
+      {
+        src: "03.mp4",
+        badge: {
+          text: "DISCOVER & ENGAGE",
+          sub1: "Explore & Connect",
+          sub2: "with Creators",
+          color: "bg-[#623E97]",
+        },
+      },
+      { src: "05.mp4" }, // hidden on mobile
+      { src: "010.mp4", masked: true }, // bird - spans 2 cols on mobile
+      { src: "04.mp4" }, // hidden on mobile
+      {
+        src: "09.mp4",
+        badge: {
+          text: "MONETIZE & GROW",
+          sub1: "Turn passion into profit",
+          sub2: "",
+          color: "bg-[#2B6CB0]",
+        },
+      },
+      { src: "08.mp4" }, // hidden on mobile
+      {
+        src: "06.mp4",
+        badge: {
+          text: "ANALYTICS & INSIGHTS",
+          sub1: "Track performance",
+          sub2: "and Growth",
+          color: "bg-[#2AA0A9]",
+        },
+      },
+    ];
+
+    const SLOT = 0.20;
+    let slot = 0;
+    const timed = tiles.map((t, i) => {
+      const tileDelay = slot * SLOT;
+      slot += 1;
+      const badgeDelay = t.badge ? slot * SLOT : 0;
+      if (t.badge) slot += 1;
+      return { ...t, tileDelay, badgeDelay, index: i };
+    });
+
+    // Indices to hide on mobile (tiles without badges, except bird)
+    const hideOnMobile = [1, 3, 5, 7]; // indices 1,3,5,7 (02.mp4, 05.mp4, 04.mp4, 08.mp4)
+
+    return (
+      <div className="grid grid-cols-2 gap-3 w-full max-w-sm mx-auto px-2 sm:grid-cols-3 sm:max-w-2xl sm:px-4">
+        {timed.map((t, i) => {
+          // Hide specific tiles on mobile
+          const hiddenClass = hideOnMobile.includes(i) ? "hidden sm:block" : "";
+          
+          // Bird tile - center on mobile (span 2 cols)
+          if (t.masked) {
+            return (
+              <motion.div
+                key={`tile-${i}`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.35, ease: "easeOut", delay: t.tileDelay }}
+                className="relative aspect-square overflow-hidden rounded-[14px] col-span-2 sm:col-span-1 h-full w-[160px] sm:w-full mx-auto"
+                style={{
+                  maskImage: `url(${bird.src})`,
+                  maskSize: "contain",
+                  maskPosition: "center",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskImage: `url(${bird.src})`,
+                  WebkitMaskSize: "contain",
+                  WebkitMaskPosition: "center",
+                  WebkitMaskRepeat: "no-repeat",
+                }}
+              >
+                <video
+                  src={t.src}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              </motion.div>
+            );
+          }
+
+          return (
+            <div key={`tile-${i}`} className={hiddenClass}>
+              <GridTile
+                image={t.src}
+                badgeText={t.badge?.text}
+                badgeSubText={{ sub1: t.badge?.sub1, sub2: t.badge?.sub2 }}
+                badgeColor={t.badge?.color}
+                tileDelay={t.tileDelay}
+                badgeDelay={t.badgeDelay}
+              />
             </div>
-          </div>
-
-          {/* Right panel - Feature showcase */}
-          <div className="w-full lg:w-1/2 hidden lg:flex flex-col">
-            <div className="relative w-full h-full min-h-[600px] rounded-3xl overflow-hidden">
-              {/* Gradient background */}
-              <div className="absolute inset-0">
-                <div className="relative z-10 h-full flex flex-col justify-between items-center px-4 pb-4 pt-24">
-                  {/* Logo and title */}
-                  <div className="flex flex-col items-center gap-3 mb-4">
-                    <div className="w-40 h-40 flex items-center justify-center mt-4">
-                      <Image src={logo} alt="logo" className="h-40 w-40" />
-                      <h3 className="text-6xl font-bold text-[#2C50A2] tracking-wider">
-                        FLOCK
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* Create & Share section */}
-                  <div
-                    className="w-full text-left relative z-20 mt-4"
-                    style={{ fontFamily: '"Cera Pro", sans-serif' }}
-                  >
-                    <h2 className="text-xl font-bold text-white">
-                      Create & Share
-                    </h2>
-                    <p className="text-white text-md">
-                      Upload and share amazing content
-                    </p>
-                  </div>
-
-                  {/* Auto Scroll Carousel */}
-                  <AutoScrollCarousel platformFeatures={platformFeatures} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          );
+        })}
+      </div>
+    );
+  })()}
+</div>
       </div>
     </div>
   );

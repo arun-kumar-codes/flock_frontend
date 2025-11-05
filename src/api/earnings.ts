@@ -104,42 +104,53 @@ export const withdrawalHistory = async () => {
 }
 
 
-export const setupPayoneerAccount = async () => {
+export async function setupPayPalAccount() {
   try {
-    const response = await axiosInstance.post('/payoneer/setup-payoneer-account');
+    const response = await axiosInstance.post("/paypal/setup-paypal-account");
     return response;
   } catch (error: any) {
-    console.error("Error setting up Payoneer account:", error);
+    console.error("Error setting up PayPal:", error);
     return error.response;
   }
-};
+}
 
-export const getPayoneerAccountStatus = async () => {
+
+export async function getPayPalAccount() {
   try {
-    const response = await axiosInstance.get('/payoneer/payoneer-account-status');
+    const response = await axiosInstance.get("/paypal/paypal-account");
     return response;
   } catch (error: any) {
-    console.error("Error fetching Payoneer account status:", error);
+    console.error("Error fetching PayPal account:", error);
     return error.response;
   }
-};
+}
 
-export const requestPayoneerWithdrawal = async () => {
+export async function requestPayPalWithdrawal(amount: number) {
   try {
-    const response = await axiosInstance.post('/payoneer/request-payoneer-withdrawal');
+    const response = await axiosInstance.post("/paypal/request-paypal-withdrawal", { amount });
     return response;
   } catch (error: any) {
-    console.error("Error requesting Payoneer withdrawal:", error);
+    console.error("Error requesting PayPal withdrawal:", error);
     return error.response;
   }
-};
+}
 
-export const payoneerWithdrawalHistory = async () => {
+export async function payPalWithdrawalHistory() {
   try {
-    const response = await axiosInstance.get('/payoneer/payoneer-withdrawal-history');
+    const response = await axiosInstance.get("/paypal/withdrawal-history");
     return response;
   } catch (error: any) {
-    console.error("Error fetching Payoneer withdrawal history:", error);
+    console.error("Error fetching PayPal withdrawal history:", error);
+    return error.response;
+  }
+}
+
+export const removePayPalAccount = async () => {
+  try {
+    const response = await axiosInstance.post("/paypal/remove-paypal");
+    return response;
+  } catch (error: any) {
+    console.error("Error removing PayPal account:", error);
     return error.response;
   }
 };

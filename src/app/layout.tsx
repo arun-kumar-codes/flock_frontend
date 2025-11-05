@@ -16,7 +16,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Flock",
-  description: "A modern, secure, and user-friendly platform for managing content ",
+  description:
+    "A modern, secure, and user-friendly platform for managing content.",
+  icons: {
+  icon: [
+    { url: "/Logo.png", type: "image/png", sizes: "32x32" },
+  ],
+  shortcut: { url: "/Logo.png" },
+  apple: { url: "/Logo.png" },
+},
 };
 
 export const viewport: Viewport = {
