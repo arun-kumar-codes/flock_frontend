@@ -179,7 +179,7 @@ export default function DashboardLayout({
             </div>
             {isExpanded && (
               <span className="text-2xl font-bold text-[#2C50A2] tracking-tight transition-all duration-300">
-                FLOCK
+                Flock
               </span>
             )}
           </div>
@@ -333,13 +333,8 @@ export default function DashboardLayout({
           {/* Header */}
           <header className="bg-white border-b border-gray-200">
   <div className="px-6 py-2 flex items-center justify-between">
-    {/* Left Section - Current Page Name */}
-    <div className="flex items-center space-x-4">
-      <h1 className="text-2xl font-semibold text-gray-800 truncate">
-        {currentPageName}
-      </h1>
-    </div>
-
+    {/* Left Section */}
+    <div className="flex items-center space-x-4"></div>
     {/* Right Section - Actions */}
     <div className="flex items-center space-x-3">
       {/* Switch Role Button */}

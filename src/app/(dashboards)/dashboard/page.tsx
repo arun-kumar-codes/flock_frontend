@@ -200,14 +200,14 @@ export default function CreatorDashboard() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => router.push("/dashboard/blogs")}
-                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-[#34A0B8] text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-indigo-600 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-sm md:text-base"
                 >
                   <FileTextIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Blog
                 </button>
                 <button
                   onClick={() => router.push("/dashboard/videos")}
-                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-[#34A0B8] text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-purple-600 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-sm md:text-base"
                 >
                   <VideoIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Video

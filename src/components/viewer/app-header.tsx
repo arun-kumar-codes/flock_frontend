@@ -89,9 +89,15 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     const pathSegments = pathname.split("/").filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1];
 
+      // Only show "Hello <username>!" if user is logged in
+  if (lastSegment === "viewer") {
+    if (user?.isLogin && user?.username) {
+      return `Hello ${user.username}!`;
+    }
+    return "Dashboard"; // fallback if not logged in
+  }
+
     switch (lastSegment) {
-      case "viewer":
-        return `Hello ${user?.username || "User"}!`;
       case "blogs":
         return "Blog Posts";
       case "videos":
@@ -222,15 +228,19 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
                 </span>
               </button>
 
-              <button
-                onClick={() => router.push("/signup")}
-                className="flex items-center space-x-1 px-3 py-3 rounded-sm cursor-pointer bg-[#34A0B8] transition-all duration-300 group"
-                title="Sign Up"
-              >
-                <span className="text-[12px] text-white hidden sm:block">
-                  Join the Flock
-                </span>
-              </button>
+             <button
+              onClick={() => router.push("/signup")}
+              className="flex items-center justify-center gap-1 px-3 py-3 rounded-sm cursor-pointer bg-[#34A0B8] hover:bg-[#2c8ca2] transition-all duration-300 group"
+              title="Join the Flock"
+            >
+              {/* Mobile: Icon only */}
+              <UserPlus className="w-5 h-5 text-white sm:hidden" />
+
+              {/* Desktop: Text */}
+              <span className="text-[12px] text-white hidden sm:block font-medium">
+                Join the Flock
+              </span>
+            </button>
             </div>
           )}
         </div>

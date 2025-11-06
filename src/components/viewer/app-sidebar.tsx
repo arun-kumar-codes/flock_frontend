@@ -110,7 +110,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
     </div>
     {isExpanded && (
       <span className="text-2xl font-bold text-[#2C50A2] tracking-tight transition-all duration-300">
-        FLOCK
+        Flock
       </span>
     )}
   </div>

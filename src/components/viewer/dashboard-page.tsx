@@ -982,7 +982,7 @@ export default function DashboardPage() {
       </h1>
 
       <p className="mt-2 lg:ml-9 text-white/90 text-[15px] text-center lg:text-left max-w-[85%] lg:max-w-none text-center lg:text-center lg:mr-10">
-        Discover Tools, Community and collaboration – all in one place
+        Discover Tools, Community and Collaboration – all in one place
       </p>
 
       {/* Search Bar */}

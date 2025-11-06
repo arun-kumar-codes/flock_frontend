@@ -122,8 +122,8 @@ export default function FollowersPage() {
             <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="text-center sm:text-left">
-                  <h1 className="text-xl md:text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-3">
-                    My Flocks
+                  <h1 className="text-xl md:text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-800 via-red-500 to-purple-900 bg-clip-text text-transparent mb-2 sm:mb-3">
+                    My Flock
                   </h1>
                   <p className="text-slate-600 text-sm md:text-base lg:text-lg">
                     Manage and view your flocks
