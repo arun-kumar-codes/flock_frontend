@@ -9,7 +9,9 @@ import {
 } from "lucide-react";
 import SearchIcon from "@/assets/Search_Icon.svg";
 import VideoIcon from "@/assets/Video_Icon.svg";
-import Logo from "@/assets/logo.svg";
+import Lottie from "lottie-react";
+import logoAnimation from "@/assets/logo animation.json";
+import bannerBg from "@/assets/LSbg.jpg";
 import BlogIcon from "@/assets/BlogSvg.png";
 import Image from "next/image";
 import Loader from "@/components/Loader";
@@ -25,6 +27,7 @@ import {
 } from "@/api/content";
 import { useSelector } from "react-redux";
 import { getAllCreators, getCreatorById } from "@/api/user";
+import { Inter } from "next/font/google";
 
 interface Creator {
   email: string;
@@ -144,6 +147,8 @@ const stripHtmlAndDecode = (html: string): string => {
     .trim();
   return text;
 };
+
+const inter = Inter({ subsets: ["latin"] });
 
 const truncateText = (text: string, maxLength = 120): string => {
   if (text.length <= maxLength) return text;
@@ -936,188 +941,118 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen theme-bg-primary transition-colors duration-300">
+    <div className={`min-h-screen theme-bg-primary transition-colors duration-300 ${inter.className}`}>
       <div className="lg:px-2 py-4">
-        {/* Search and Filter */}
-        <div className="mb-4 md:mb-4 theme-border ml-2">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative w-full md:w-[60%]">
-              <Image
-                src={SearchIcon}
-                alt="Search"
-                className="absolute right-1.5 md:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-6 md:h-6"
-              />
-              <input
-                type="text"
-                placeholder="Search videos and articles by title, author, or content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-4 pr-6 md:pl-4 md:pr-12 py-3 border-1 border-[#CDCDCD] rounded-4xl theme-text-primary theme-placeholder focus:ring-1 focus:ring-gray-400 focus:border-transparent transition-all text-xs md:text-base font-poppins"
-              />
-            </div>
+            
+       {/* Hero Banner with background image */}
+<section className="mb-10 mx-3 md:mx-6">
+  <div
+  className="w-full rounded-[48px] flex flex-col lg:flex-row items-end 
+             justify-end lg:justify-end
+             px-4 md:px-10 py-10 md:py-14 relative overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.08)]"
+    style={{
+      backgroundImage: `url(${bannerBg.src})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+    }}
+  >
+    {/* semi-transparent overlay */}
+    <div className="absolute inset-0 bg-black/10 rounded-[28px] pointer-events-none" />
 
-            <div className="flex flex-wrap gap-4 items-center w-full md:w-auto">
-              {/* <div className="relative">
-                <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-500 dark:text-gray-400" />
-                <select
-                  value={contentTypeFilter}
-                  onChange={(e) => setContentTypeFilter(e.target.value as "all" | "videos" | "blogs")}
-                 className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
-                >
-                  <option value="all">All Content</option>
-                  <option value="videos">Videos Only</option>
-                  <option value="blogs">Blogs Only</option>
-                </select>
-              </div> */}
+    {/* Left: Animated Flock Bird - Mobile-like view for vertical layout */}
+    <div className="relative z-10 flex items-center justify-center w-full lg:w-auto lg:justify-start lg:-mb-78 lg:-mt-44 lg:-ml-50 -mt-10 -mb-30">
+      <div className="w-[280px] h-[240px] sm:w-[350px] sm:h-[300px] md:w-[420px] md:h-[340px] lg:w-[800px] lg:h-[600px]">
+        <Lottie animationData={logoAnimation} loop autoplay />
+      </div>
+    </div>
 
-              <div className="relative inline-block">
-                {/* Left Icon */}
-                <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800 theme-text-secondary" />
+    {/* Right: Headline + Search - Mobile-like centered for vertical layout */}
+    <div
+      className="relative z-10 w-full flex flex-col items-center lg:items-end 
+                 text-center lg:text-left lg:pr-3 lg:-ml-40 lg:-mt-5 lg:-mb-4 px-4 lg:mr-10"
+    >
+      <h1
+  className="text-[22px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px]
+             font-extrabold text-white leading-[1.15] tracking-tight
+             max-w-[90%] lg:max-w-none text-center lg:text-center lg:mr-11 transition-all duration-500"
+>
+        The Creator Hub for the <br />
+        Connected Generation
+      </h1>
 
-                <select
-                  value={contentTypeFilter}
-                  onChange={(e) =>
-                    setContentTypeFilter(
-                      e.target.value as "all" | "videos" | "blogs"
-                    )
-                  }
-                  className="pl-10 pr-8 py-2 md:py-3 theme-bg-secondary cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
-                >
-                  <option value="all">All Content</option>
-                  <option value="videos">Videos Only</option>
-                  <option value="blogs">Blogs Only</option>
-                </select>
+      <p className="mt-2 lg:ml-9 text-white/90 text-[15px] text-center lg:text-left max-w-[85%] lg:max-w-none text-center lg:text-center lg:mr-10">
+        Discover Tools, Community and collaboration – all in one place
+      </p>
 
-                {/* Right caret (custom dropdown arrow) */}
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                  <svg
-                    className="w-4 h-4 theme-text-secondary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span>
-              </div>
+      {/* Search Bar */}
+      <div
+        className="mt-5 flex items-center gap-2 w-full max-w-[400px] sm:max-w-[450px] lg:max-w-[530px] h-[38px] lg:h-[40px]
+                   bg-white rounded-full px-3 py-1.5 shadow-lg"
+      >
+        {/* Dropdown pill */}
+        <div className="relative flex-shrink-0 -ml-2">
+         <select
+  value={contentTypeFilter}
+  onChange={(e) =>
+    setContentTypeFilter(e.target.value as "all" | "videos" | "blogs")
+  }
+  className="appearance-none pl-3 pr-6 py-2.5 px-2 
+             text-[10px] sm:text-[11px] md:text-[12px] lg:text-[11px]
+             font-medium text-gray-700 bg-[#f3f3f3] rounded-full 
+             focus:outline-none cursor-pointer leading-tight
+             [&>option]:text-[10px] [&>option]:sm:text-[11px] [&>option]:md:text-[12px]"
+  style={{
+    fontSize: "13px",
+    WebkitAppearance: "none",
+    MozAppearance: "none",
+    appearance: "none",
+    lineHeight: "1.1",
+  }}
+>
+  <option value="all">All</option>
+  <option value="videos">Videos</option>
+  <option value="blogs">Blogs</option>
+</select>
 
-              <div className="relative inline-block">
-                {/* Left filter icon */}
-                {/* <FilterIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-
-                <select
-                  value={selectedFollowing}
-                  onChange={(e) => setSelectedFollowing(e.target.value)}
-                  disabled={isLoadingFollowing}
-                  className="pl-10 pr-8 py-2 md:py-3 theme-input rounded-xl theme-text-primary min-w-[180px] appearance-none focus:ring-2 focus:ring-purple-500 focus:border-transparent md:text-base text-sm"
-                >
-                  <option value="all">
-                    {user.isLogin ? "All Following" : "All Creators"}
-                  </option>
-                  {followings.length > 0 ? (
-                    followings.map((following) => (
-                      <option key={following.id} value={following.username}>
-                        {following.username}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="" disabled>
-                      No Followers
-                    </option>
-                  )}
-                </select> */}
-
-                {/* Right dropdown arrow */}
-                {/* <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                  <svg
-                    className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span> */}
-              </div>
-
-              {/* <button
-                onClick={() => {
-                  handleRefresh();
-                }}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-6 cursor-pointer  py-2 md:py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs md:text-sm font-medium shadow-md hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RefreshCwIcon
-                  className={`w-3 h-3 md:w-4 md:h-4 ${
-                    isLoading ? "animate-spin" : ""
-                  }`}
-                />
-                <span>{isLoading ? "Loading..." : "Refresh"}</span>
-              </button> */}
-            </div>
-          </div>
+          {/* Dropdown arrow */}
+          <svg
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-600 pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
         </div>
 
-        {/* Black Banner - Hey Flock Your Most Viewed List is here */}
-        <div className="mb-2 p-1">
-          <div className="bg-black rounded-4xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-            {/* Left Text */}
-            <span className="text-white text-xl md:text-2xl font-medium text-center md:text-left tracking-wider">
-              Hey Flock Your Most
-            </span>
-
-            {/* Central Logo Element */}
-            <div className="relative flex items-center justify-center">
-              {/* SVG Button (centered on top) */}
-              <button
-                onClick={handleFlockVideoClick}
-                className="absolute -top-[-2] bg-gray-400/40 rounded-full p-2 hover:bg-gray-400/60 transition-transform duration-200 transform hover:scale-110 shadow-md cursor-pointer"
-              >
-                <svg
-                  width="29"
-                  height="28"
-                  viewBox="0 0 30 30"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M11.9783 27.3545L12.001 27.3426C12.0333 27.321 12.0668 27.3043 12.1002 27.2828L25.5272 19.5664C25.852 19.3668 26.1623 19.1326 26.4441 18.8529C28.3617 16.9408 28.3617 13.842 26.4441 11.9292C26.1384 11.6245 25.8077 11.3778 25.4494 11.1693L8.51926 1.4409C8.4941 1.43004 8.48321 1.4354 8.4533 1.41934C7.70187 0.966395 6.82082 0.705887 5.87765 0.705887C3.11992 0.705887 0.882324 2.93649 0.882324 5.68626V22.7273V22.7333C0.882324 24.086 1.98011 25.1807 3.33681 25.1807C4.69105 25.1807 5.79252 24.086 5.79252 22.7333C5.79252 22.7249 5.78899 22.7166 5.78899 22.7082H5.80816L5.80571 7.55784C5.84175 6.91843 6.36434 6.40522 7.01991 6.40522C7.21533 6.40522 7.39141 6.44943 7.56167 6.53432L22.2159 14.344C22.572 14.5556 22.8188 14.9452 22.8188 15.3897C22.8188 15.8755 22.536 16.2956 22.126 16.4928C22.114 16.4987 22.1344 16.5035 22.1416 16.5094L9.62318 23.1671L9.62563 23.1696C8.85487 23.5733 8.324 24.3693 8.324 25.2966C8.324 26.6267 9.40614 27.7059 10.7401 27.7059C11.1945 27.7059 11.6151 27.5745 11.9783 27.3545Z"
-                    fill="#C14C42"
-                  />
-                </svg>
-              </button>
-
-              {/* White background with logo */}
-              <div className="bg-white rounded-4xl px-4 py-2 md:px-6 md:py-3 flex items-center justify-center gap-2 md:gap-3">
-                <Image
-                  src={Logo}
-                  alt="Flock Logo"
-                  width={120}
-                  height={40}
-                  className="h-8 md:h-10 w-auto"
-                />
-                <span className="text-[#2C50A2] font-bold text-lg md:text-xl uppercase tracking-wider">
-                  FLOCK
-                </span>
-              </div>
-            </div>
-
-            {/* Right Text */}
-            <span className="text-white text-xl md:text-2xl font-medium text-center md:text-right tracking-wide">
-              Viewed Video List is here
-            </span>
-          </div>
+        {/* Input */}
+        <div className="relative flex-1">
+          <input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search..."
+            className="w-full bg-transparent py-2 pr-10 pl-2 
+                       text-[12px] sm:text-[13px] lg:text-[14px]
+                       text-gray-800 focus:outline-none placeholder:text-gray-500"
+          />
+          {/* Search icon - solid black */}
+          <Image
+            src={SearchIcon}
+            alt="Search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 
+                       w-3 h-3 sm:w-[18px] sm:h-[18px] lg:w-4 lg:h-4 opacity-100 brightness-0"
+          />
         </div>
+      </div>
+    </div>
+  </div>
+</section>
 
         {/* Trending Section */}
         <div className="mb-8">
@@ -1882,7 +1817,7 @@ export default function DashboardPage() {
 
         {/* Fullscreen Animation Modal */}
         {showVideoOverlay && (
-          <div className="fixed inset-0 z-50 bg-white flex items-center justify-center overflow-hidden">
+        <div className={`fixed inset-0 z-50 bg-white flex items-center justify-center overflow-hidden ${inter.className}`}>
             {/* Video container */}
             <div className="relative w-full h-full max-w-[100%] sm:max-w-full flex items-center justify-center">
               {/* Video element - no controls, no hover effects */}

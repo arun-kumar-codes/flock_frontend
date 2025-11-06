@@ -23,11 +23,13 @@ import { toggleThemeMode } from "@/slice/userSlice";
 import { clearFilter } from "@/slice/dashbaordSlice";
 import { toast } from "react-hot-toast";
 import { toggleUserRole } from "@/api/content";
-import Login from "@/assets/Login.svg";
+import { Inter } from "next/font/google";
 
 interface HeaderNavbarProps {
   isSidebarExpanded: boolean;
 }
+
+const inter = Inter({ subsets: ["latin"] });
 
 export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
   const pathname = usePathname();
@@ -132,10 +134,10 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
 
   return (
     <header
-      className={`fixed top-0 right-0 z-30 h-16 transition-all duration-300 theme-bg-primary mb-2 ${
-        isSidebarExpanded ? "left-64" : "left-16"
-      }`}
-    >
+        className={`${inter.className} fixed top-0 right-0 z-30 h-16 transition-all duration-300 theme-bg-primary mb-2 ${
+          isSidebarExpanded ? "left-64" : "left-16"
+        }`}
+      >
       <div className="flex items-center justify-between h-full px-4 mt-2 md:px-8 ">
         <div className="flex items-center space-x-4 mb-4">
           <div
@@ -149,12 +151,6 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
             >
               <h1
                 className="text-lg sm:text-xl font-medium text-[#C14C42] leading-none"
-                style={{
-                  fontFamily: '"Cera Pro", sans-serif',
-                  fontWeight: 500,
-                  lineHeight: "100%",
-                  letterSpacing: "0%",
-                }}
               >
                 {getPageTitle()}
               </h1>
@@ -185,11 +181,11 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
   {/* Switch Role Button */}
 <button
   onClick={handleSwitchRole}
-  className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 cursor-pointer bg-blue-100 hover:bg-blue-50"
+  className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 cursor-pointer bg-[#34A0B8] hover:bg-blue-50"
   title="Switch To Creator Mode"
 >
-  <UserRoundPen className="w-5 h-5 transition-transform duration-300" />
-  <span className="hidden sm:inline text-sm font-medium">Switch to Creator</span>
+  <UserRoundPen className="w-5 h-5 text-white transition-transform duration-300" />
+  <span className="hidden sm:inline text-sm text-white font-medium">Switch to Creator</span>
 </button>
 
 
@@ -217,23 +213,22 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
             <div className="flex items-center space-x-3 mb-2">
               <button
                 onClick={() => router.push("/login")}
-                className="flex items-center space-x-1 px-2 py-2 cursor-pointer rounded-xl theme-bg-secondary theme-bg-hover theme-border transition-all duration-300 group"
+                className="flex items-center space-x-1 px-2 py-2 cursor-pointer rounded-xl theme-border transition-all duration-300 group"
                 title="Sign In"
               >
                 <LogInIcon className="w-6 h-6 theme-text-primary group-hover:translate-x-1 transition-transform duration-300" />
-                <span className="text-sm font-semibold theme-text-primary hidden sm:block">
+                <span className="text-sm theme-text-primary hidden sm:block">
                   Sign In
                 </span>
               </button>
 
               <button
                 onClick={() => router.push("/signup")}
-                className="flex items-center space-x-1 px-2 py-2 rounded-xl cursor-pointer theme-button-primary transition-all duration-300 group"
+                className="flex items-center space-x-1 px-3 py-3 rounded-sm cursor-pointer bg-[#34A0B8] transition-all duration-300 group"
                 title="Sign Up"
               >
-                <UserPlus className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-sm font-semibold hidden sm:block">
-                  Sign Up
+                <span className="text-[12px] text-white hidden sm:block">
+                  Join the Flock
                 </span>
               </button>
             </div>

@@ -15,6 +15,10 @@ import {
   Loader2Icon,
 } from "lucide-react"
 import Loader2 from "@/components/Loader2"
+import Lottie from "lottie-react";
+import logoAnimation from "@/assets/logo animation.json";
+import bannerBg from "@/assets/LSbg.jpg";
+
 
 interface BlogStats {
   archived: number
@@ -167,32 +171,43 @@ export default function CreatorDashboard() {
     <div className="min-h-screen p-2 md:p-4">
       <div className="max-w-full mx-auto">
         {/* Hero Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-4xl mb-8">
+        <div
+  className="relative overflow-hidden rounded-4xl mb-8"
+  style={{
+    backgroundImage: `
+      url(${bannerBg.src})
+    `,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
           <div className="absolute inset-0 bg-black/20"></div>
-          <div className="relative px-6 py-12 md:py-16">
+          <div className="relative px-8 md:px-15 py-9 md:py-10">
             <div className="max-w-3xl">
               <div className="flex items-center space-x-2 mb-4">
                 <SparklesIcon className="w-6 h-6 text-yellow-300" />
                 <span className="text-yellow-300 font-medium">Creator Dashboard</span>
               </div>
-              <h1 className="text-xl md:text-5xl font-bold text-white mb-4">
+              <h1 className="text-xl md:text-4xl font-bold text-white mb-4">
                 Welcome back, {user?.username || "Creator"}! 👋
               </h1>
-              <p className="text-base md:text-xl text-indigo-100 mb-8 leading-relaxed">
-                Your creative hub awaits. Manage your content, track your progress, and engage with your audience all in
+              <p className="text-base md:text-lg text-indigo-100 mb-8 leading-relaxed">
+                Your creative hub awaits. <br />
+                Manage your content, track your progress, <br /> and engage with your audience all in
                 one place.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => router.push("/dashboard/blogs")}
-                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-[#34A0B8] text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-sm md:text-base"
                 >
                   <FileTextIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Blog
                 </button>
                 <button
                   onClick={() => router.push("/dashboard/videos")}
-                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-[#34A0B8] text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-sm md:text-base"
                 >
                   <VideoIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   Create Video
@@ -201,7 +216,7 @@ export default function CreatorDashboard() {
                   onClick={() => {
                     router.push("/dashboard/analytics")
                   }}
-                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm text-sm md:text-base"
+                  className="inline-flex items-center px-6 py-3 cursor-pointer bg-[#34A0B8] text-white rounded-lg font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm text-sm md:text-base"
                 >
                   <BarChart3Icon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
                   View Analytics
@@ -209,6 +224,21 @@ export default function CreatorDashboard() {
               </div>
             </div>
           </div>
+
+         {/* Flock Animation - Visible on Large Screens (Desktop & Nest Hub) */}
+<div className="absolute -right-30 top--1 -translate-y-1/2 hidden lg:block pointer-events-none select-none">
+  <div className="w-[580px] h-[580px] xl:w-[820px] xl:h-[820px]">
+    <div className="absolute inset-0 rounded-full bg-white/20 blur-2xl"></div>
+    <Lottie
+      animationData={logoAnimation}
+      loop
+      autoplay
+      className="relative z-10 drop-shadow-xl"
+    />
+  </div>
+</div>
+
+          
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full"></div>
           <div className="absolute bottom-0 right-12 -mb-8 w-16 h-16 bg-yellow-300/20 rounded-full"></div>

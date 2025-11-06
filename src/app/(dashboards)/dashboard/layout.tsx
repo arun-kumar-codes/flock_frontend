@@ -22,11 +22,14 @@ import { logOut } from "@/slice/userSlice";
 import { Suspense } from "react";
 import Loader2 from "@/components/Loader2";
 import { toggleUserRole } from "@/api/content";
-import Logo from "@/assets/logo.svg";
-import Exit from "@/assets/Exit.svg";
+import Logo from "@/assets/Logo.png";
+import Exit from "@/assets/logout-icon.png";
 import HomeIcon from "@/assets/Home-icon.svg";
-import VideoIcon from "@/assets/Video.svg";
-import BlogIcon from "@/assets/Blog.svg";
+import BlogIcon from "@/assets/blog-icon.png"
+import VideoIcon from "@/assets/video-icon.png"
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 const navigationItems = [
   {
@@ -152,23 +155,30 @@ export default function DashboardLayout({
   if (user.loading || user.role.toLowerCase() !== "creator") return <Loader2 />;
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className={`flex h-screen bg-white ${inter.className}`}>
       {/* Sidebar */}
       <div
-        className={`bg-[#E6EEFF] mx-2 my-2 rounded-4xl  transition-all duration-300 ease-in-out ${
+        className={`bg-[#E5F6FA] mx-2 my-2 rounded-4xl  transition-all duration-300 ease-in-out ${
           isExpanded ? "w-64" : "w-18"
         } flex flex-col border-r border-gray-200 overflow-hidden`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Logo/Brand */}
-        <div className="p-3 mt-2 h-20 ">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Image src={Logo} alt="logo" className="w-10 h-10 text-white" />
+        {/* Sidebar Header / Logo */}
+        <div className="flex items-center justify-center py-2 mt-3">
+          <div className="flex items-center space-x-1">
+            <div className="w-10 h-10 flex items-center justify-center rounded-xl">
+              <Image
+                src={Logo}
+                alt="Flock Logo"
+                width={48}
+                height={48}
+                className="object-contain drop-shadow-md"
+                priority
+              />
             </div>
             {isExpanded && (
-              <span className="font-bold text-xl text-[#2C50A2] whitespace-nowrap">
+              <span className="text-2xl font-bold text-[#2C50A2] tracking-tight transition-all duration-300">
                 FLOCK
               </span>
             )}
@@ -184,37 +194,36 @@ export default function DashboardLayout({
               <div key={item.name} className="relative">
                 <Link
                   href={item.href}
-                  className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 group min-w-0 ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                     isActive
-                      ? "bg-blue-200 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      ? "bg-[#684098] text-white"
+                      : "text-black hover:text-black hover:bg-[#684098]"
                   }`}
                 >
                   <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
-                    {item.name === "Home" ||
-                    item.name === "Blogs" ||
-                    item.name === "Videos" ? (
-                      <Image
-                        src={Icon}
-                        alt={item.name}
-                        width={20}
-                        height={20}
-                        className={`w-5 h-5 ${
-                          isActive
-                            ? "text-blue-700"
-                            : "text-gray-500 group-hover:text-gray-700"
-                        }`}
-                      />
-                    ) : (
-                      <Icon
-                        className={`w-5 h-5 ${
-                          isActive
-                            ? "text-blue-700"
-                            : "text-gray-500 group-hover:text-gray-700"
-                        }`}
-                      />
-                    )}
-                  </div>
+              {/* For image icons (Home / Blogs / Videos) */}
+              {item.name === "Home" || item.name === "Blogs" || item.name === "Videos" ? (
+                <Image
+                  src={Icon}
+                  alt={item.name}
+                  width={20}
+                  height={20}
+                  className={`w-5 h-5 transition-all duration-300 ${
+                    isActive
+                      ? "filter brightness-0 invert" // makes image white
+                      : "filter brightness-0"
+                  }`}
+                />
+              ) : (
+                <Icon
+                  className={`w-5 h-5 transition-all duration-300 ${
+                    isActive
+                      ? "text-white"
+                      : "text-black"
+                  }`}
+                />
+              )}
+            </div>
                   {isExpanded && (
                     <span className="ml-3 font-medium whitespace-nowrap">
                       {item.name}
@@ -236,7 +245,7 @@ export default function DashboardLayout({
         <div className="p-3 border-t border-gray-200 relative" ref={logoutRef}>
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="w-full flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 cursor-pointer hover:bg-gray-300 rounded-lg transition-colors duration-200 group min-w-0"
+            className="w-full flex items-center px-3 py-2 text-black hover:text-gray-900 cursor-pointer hover:bg-gray-300 rounded-lg transition-colors duration-200 group min-w-0"
           >
             <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
               <Image
@@ -259,7 +268,7 @@ export default function DashboardLayout({
 
           {/* Logout Confirmation Modal */}
           {showLogoutConfirm && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+            <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100] ${inter.className}`}>
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-200">
                 <div className="p-6">
                   <div className="flex items-center space-x-4 mb-4">
@@ -336,7 +345,7 @@ export default function DashboardLayout({
       {/* Switch Role Button */}
       <button
         onClick={handleToggleRole}
-        className="flex items-center space-x-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded-2xl text-sm font-medium hover:bg-blue-50 cursor-pointer transition-colors"
+        className="flex items-center space-x-1 px-2 py-1.5 bg-[#34A0B8] hover:bg-blue-50 text-white rounded-2xl text-sm font-medium cursor-pointer transition-colors"
         title="Switch To Viewer"
       >
         <User className="w-4 h-4" />
@@ -345,7 +354,7 @@ export default function DashboardLayout({
 
       {/* Creator Badge */}
       <div
-        className="flex items-center space-x-1 px-2 py-1.5 bg-blue-100 text-blue-700 rounded-2xl text-sm font-medium"
+        className="flex items-center space-x-1 px-2 py-1.5 bg-purple-700 text-white rounded-2xl text-sm font-medium"
         title="Creator"
       >
         <PenToolIcon className="w-4 h-4" />

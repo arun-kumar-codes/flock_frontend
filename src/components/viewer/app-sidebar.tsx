@@ -4,15 +4,19 @@ import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { UserIcon, LogOutIcon, TrendingUpIcon } from "lucide-react"
 import HomeIconSvg from "@/assets/Home-icon.svg"
-import BlogIconSvg from "@/assets/Blog.svg"
-import VideoIconSvg from "@/assets/Video.svg"
 import Image from "next/image"
 import { useSelector, useDispatch } from "react-redux"
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
-import Logo from "@/assets/logo.svg"
+import Logo from "@/assets/Logo.png"
 import Exit from '@/assets/Exit.svg'
+import ExitIcon from "@/assets/logout-icon.png"
 import Login from '@/assets/Login.svg'
+import BlogIcon from "@/assets/blog-icon.png"
+import VideoIcon from "@/assets/video-icon.png"
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 const menuItems = [
   {
@@ -23,12 +27,12 @@ const menuItems = [
   {
     title: "Blog",
     url: "/viewer/blogs",
-    icon: BlogIconSvg,
+    icon: BlogIcon,
   },
   {
     title: "Video",
     url: "/viewer/videos",
-    icon: VideoIconSvg,
+    icon: VideoIcon,
   },
 ]
 
@@ -86,22 +90,31 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
 
   return (
     <div
-      className={`fixed left-0 top-0 mb-2 h-full transition-all duration-300 ease-in-out z-40 ${sidebarWidth}`}
+  className={`fixed left-0 top-0 mb-2 h-full transition-all duration-300 ease-in-out z-40 ${sidebarWidth} ${inter.className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="flex flex-col h-full bg-[#E6EEFF] mx-2 my-2 rounded-4xl">
-        {/* Header */}
-        <div className="p-3 mt-2 h-20 ">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Image src={Logo} alt="logo" className="w-10 h-10 text-white" />
-            </div>
-            <div className={`transition-opacity duration-300 ${textVisibility} ${isExpanded ? "" : "hidden"}`}>
-              <div className="font-bold text-xl text-[#2C50A2] whitespace-nowrap">FLOCK</div>
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-col h-full bg-[#E5F6FA] mx-2 my-2 rounded-4xl">
+        {/* Sidebar Header / Logo */}
+<div className="flex items-center justify-center py-4 mt-3">
+  <div className="flex items-center space-x-3">
+    <div className="w-10 h-10 flex items-center justify-center rounded-xl">
+      <Image
+        src={Logo}
+        alt="Flock Logo"
+        width={48}
+        height={48}
+        className="object-contain drop-shadow-md"
+        priority
+      />
+    </div>
+    {isExpanded && (
+      <span className="text-2xl font-bold text-[#2C50A2] tracking-tight transition-all duration-300">
+        FLOCK
+      </span>
+    )}
+  </div>
+</div>
 
         {/* Main Navigation */}
         <div className="py-4 flex-grow">
@@ -112,10 +125,10 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
                 <button
                   key={item.title}
                   onClick={() => router.push(item.url)}
-                  className={`w-full flex items-center hover:bg-gray-300 space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                     isActive
-                    ? "bg-blue-200 text-[#0F0A0F]"
-                    : "text-[#424242] hover:theme-bg-hover hover:text-gray-600"
+                      ? "bg-[#684098] text-white"
+                      : "text-black hover:text-black hover:bg-[#684098]"
                   }`}
                   title={!isExpanded ? item.title : undefined}
                 >
@@ -124,14 +137,23 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
                   ) : (
                     <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : ""}`} />
                   )} */}
-                  <Image src={item.icon} alt="icon" width={20} height={20} className={`flex-shrink-0 ${isActive ? "text-black" : ""}`} />
-                  <span
-                    className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
-                      isExpanded ? "" : "hidden"
-                    } ${isActive ? "text-black" : "hover:theme-bg-hover hover:text-gray-600"}`}
-                  >
-                    {item.title}
-                  </span>
+                  <Image
+  src={item.icon}
+  alt="icon"
+  width={22}
+  height={22}
+  className={`flex-shrink-0 transition-all duration-200 ${
+    isActive ? "brightness-0 invert" : "brightness-0"
+  }`}
+/>
+
+<span
+  className={`transition-opacity duration-300 whitespace-nowrap font-medium ${inter.className} ${
+    isExpanded ? "opacity-100" : "opacity-0 hidden"
+  } ${isActive ? "text-white" : "text-black"}`}
+>
+  {item.title}
+</span>
                 </button>
               )
             })}
@@ -198,7 +220,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
             className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer text-black dark:text-black hover:bg-gray-300 hover:text-black dark:hover:bg-gray-700 dark:hover:text-black transition-all duration-200"
             title={!isExpanded ? "Sign Out" : undefined}
           >
-            <Image src={Exit} alt="exit" className="w-6 h-6 text-white" />
+            <Image src={ExitIcon} alt="exit" className="w-6 h-6 text-white" />
             <span
               className={`transition-opacity duration-300 whitespace-nowrap text-black dark:text-black font-medium ${textVisibility} ${
                 isExpanded ? "" : "hidden"
@@ -221,7 +243,7 @@ export function CustomSidebar({ onExpandChange }: CustomSidebarProps) {
             className="w-full flex items-center space-x-3 cursor-pointer  px-4 py-2.5 rounded-lg text-black hover:bg-gray-300 transition-all duration-200"
             title={!isExpanded ? "Sign In" : undefined}
           >
-            <Image src={Login} alt="Login" className="w-8 h-8 flex-shrink-0 " />
+            <Image src={ExitIcon} alt="Login" className="w-6 h-6 text-[#F3582C] flex-shrink-0 " />
             <span
               className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility} ${
                 isExpanded ? "" : "hidden"
