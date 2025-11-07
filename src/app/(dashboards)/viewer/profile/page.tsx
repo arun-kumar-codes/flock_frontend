@@ -35,25 +35,31 @@ export default function ProfilePage() {
       : profilePlaceholder.src
   );
 
-  useEffect(() => {
-    if (!user.isLogin) {
-      router.push("/login");
-      return;
-    }
-    setUsername(user.username || "");
-    setProfileImage(
-      user.profile_picture && user.profile_picture.trim() !== ""
-        ? user.profile_picture
-        : profilePlaceholder.src
-    );
-    setOriginalUsername(user.username || "");
-    setOriginalProfileImage(
-      user.profile_picture && user.profile_picture.trim() !== ""
-        ? user.profile_picture
-        : profilePlaceholder.src
-    );
-    setIsLoading(false);
-  }, [user, router]);
+useEffect(() => {
+  if (!user?.isLogin) {
+    router.push("/login");
+    return;
+  }
+
+  setUsername(user.username);
+  setOriginalUsername(user.username);
+
+  // ✅ Normalize both possible keys (profile_picture or profileImage)
+  const validProfile =
+    user?.profile_picture ||
+    user?.profileImage
+      ? (user.profile_picture || user.profileImage)
+      : null;
+
+  const safeProfile =
+    validProfile && validProfile !== "null" && validProfile.trim() !== ""
+      ? validProfile
+      : profilePlaceholder.src;
+
+  setProfileImage(safeProfile);
+  setOriginalProfileImage(safeProfile);
+  setIsLoading(false);
+}, [user]);
 
   const hasChanges = () => {
     const usernameChanged = username !== originalUsername;
@@ -93,7 +99,23 @@ export default function ProfilePage() {
             ? updatedUser.profile_picture
             : profilePlaceholder.src;
 
-        dispatch(setUser({ ...updatedUser, profile_picture: safeProfile }));
+       const newProfile =
+  updatedUser?.profile_picture &&
+  updatedUser.profile_picture !== "null" &&
+  updatedUser.profile_picture.trim() !== ""
+    ? updatedUser.profile_picture
+    : profilePlaceholder.src;
+
+dispatch(
+  setUser({
+    ...user,
+    ...updatedUser,
+    profile_picture: newProfile,
+    profileImage: newProfile, // ✅ ensure Redux has both keys
+  })
+);
+
+setProfileImage(newProfile);
 
         setOriginalUsername(username);
         setOriginalProfileImage(safeProfile);
@@ -136,11 +158,11 @@ export default function ProfilePage() {
     <div className="min-h-screen theme-bg-primary transition-colors duration-300 md:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-6 md:mb-8 text-center">
-          <h1 className="text-2xl md:text-4xl font-bold theme-text-primary mb-2">
+        <div className="pt-6 sm:pt-8 md:pt-10 mb-6 md:mb-8 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold theme-text-primary mb-2 leading-tight">
             Profile Settings
           </h1>
-          <p className="text-sm md:text-lg theme-text-secondary">
+          <p className="text-xs sm:text-sm md:text-lg theme-text-secondary px-4 sm:px-0">
             Manage your account information and preferences
           </p>
         </div>
@@ -164,12 +186,9 @@ export default function ProfilePage() {
                   >
                     <div className="w-28 h-28 md:h-40 md:w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
                       <img
-                        src={
-                          profileImage && profileImage.trim() !== ""
-                            ? profileImage
-                            : profilePlaceholder.src
-                        }
+                        src={profileImage}
                         alt="Profile"
+                        onError={() => setProfileImage(profilePlaceholder.src)}
                         className="h-full w-full rounded-full object-cover theme-bg-card"
                       />
                     </div>

@@ -30,6 +30,7 @@ import {
   Calendar,
 } from "lucide-react";
 import Loader from "@/components/Loader";
+import ShareButton from "@/components/viewer/ShareButton";
 import TipTapContentDisplay from "@/components/tiptap-content-display";
 
 interface Blog {
@@ -518,21 +519,30 @@ export default function BlogDetailPage() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
-                    isLiked
-                      ? "bg-red-500 text-white hover:bg-red-600"
-                      : "theme-bg-secondary theme-text-primary hover:opacity-80"
-                  }`}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
-                  />
-                  <span>{blog.blog?.likes || 0} likes</span>
-                </button>
-              </div>
+              {/* Action Buttons */}
+<div className="flex items-center gap-4">
+  {/* Like Button */}
+  <button
+    onClick={handleLike}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+      isLiked
+        ? "bg-red-500 text-white hover:bg-red-600"
+        : "theme-bg-secondary theme-text-primary hover:opacity-80"
+    }`}
+  >
+    <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
+    <span>{blog.blog?.likes || 0} likes</span>
+  </button>
+
+  {/* Share Button */}
+  <ShareButton
+    kind="blog"
+    id={params.id}
+    title={blog.blog?.title || "Check out this blog"}
+    summary={blog.blog?.excerpt || ""}
+    onCopied={(url: string) => console.log("Shared Blog URL:", url)}
+  />
+</div>
             </div>
           </div>
 
