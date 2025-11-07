@@ -519,7 +519,7 @@ export default function BlogPage() {
                           id={currentBlogs[0].id.toString()}
                           title={currentBlogs[0].title}
                           summary={currentBlogs[0].excerpt || ""}
-                          onCopied={(url) => console.log("Shared blog URL:", url)}
+                          onCopied={(url: string) => console.log("Shared URL:", url)}
                         />
                       </div>
                     </div>
@@ -608,7 +608,7 @@ export default function BlogPage() {
         id={blog.id.toString()}
         title={blog.title}
         summary={blog.excerpt || ""}
-        onCopied={(url) => console.log("Shared blog URL:", url)}
+        onCopied={(url: string) => console.log("Shared URL:", url)}
       />
     </div>
   </div>

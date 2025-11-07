@@ -581,7 +581,7 @@ export default function VideoPage() {
                                                 id={video.id.toString()}
                                                 title={video.title}
                                                 summary={video.description || ""}
-                                                onCopied={(url) => console.log("Shared video URL:", url)}
+                                                onCopied={(url: string) => console.log("Shared URL:", url)}
                                               />
                           </div>
                         </div>
