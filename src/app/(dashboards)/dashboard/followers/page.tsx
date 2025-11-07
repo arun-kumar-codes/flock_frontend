@@ -126,7 +126,7 @@ export default function FollowersPage() {
                     My Flock
                   </h1>
                   <p className="text-slate-600 text-sm md:text-base lg:text-lg">
-                    Manage and view your flocks
+                    Manage and view your flock
                   </p>
                   {followersCount > 0 && (
                     <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
