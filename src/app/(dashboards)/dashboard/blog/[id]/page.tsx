@@ -321,7 +321,7 @@ export default function DashboardBlogDetailPage() {
 
             {/* Blog Info */}
             <div className="theme-bg-card rounded-lg p-6 shadow-sm theme-border">
-              <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-4">
+              <h1 className="text-sm sm:text-lg md:text-lg font-bold theme-text-primary mb-4">
                 {blog.blog?.title || "Untitled Blog"}
               </h1>
 
@@ -368,7 +368,7 @@ export default function DashboardBlogDetailPage() {
               </div>
 
               {/* Blog Content */}
-              <div className="mb-6 prose prose-slate max-w-none theme-text-primary">
+              <div className="text-sm sm:text-lg md:text-lg mb-6 prose prose-slate max-w-none theme-text-primary">
                 <TipTapContentDisplay content={blog.blog?.content || "No content available"} />
               </div>
 
@@ -503,7 +503,7 @@ export default function DashboardBlogDetailPage() {
                   id={params.id}
                   title={blog.blog?.title || "Check out this blog"}
                   summary={blog.blog?.content || ""}
-                  onCopied={(url) => console.log("Shared URL:", url)}
+                  onCopied={(url: string) => console.log("Shared URL:", url)}
                 />
               </div>
             </div>

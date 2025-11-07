@@ -140,9 +140,26 @@ export default function Signup() {
     else if (formData.username.length < 3)
       newErrors.username = "Username must be at least 3 characters";
 
-    if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
+    if (!formData.password) {
+  newErrors.password = "Password is required";
+} else {
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
+
+  if (!passwordPattern.test(formData.password)) {
+    newErrors.password =
+      "Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character.";
+    toast.error(newErrors.password, {
+      duration: 5000,
+      style: {
+        border: "1px solid #E11D48",
+        background: "#fff",
+        color: "#E11D48",
+        fontWeight: "600",
+      },
+      icon: "⚠️",
+    });
+  }
+}
 
     if (!confirmPassword)
       newErrors.confirmPassword = "Confirm password is required";
@@ -297,6 +314,24 @@ export default function Signup() {
                 </button>
               )}
             </div>
+            {/* Live password strength hint */}
+{formData.password && !errors.password && (
+  <p
+    className={`text-[10px] mt-1 ${
+      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$!%*?&]).{8,}$/.test(formData.password)
+        ? "text-green-600"
+        : formData.password.length >= 6
+        ? "text-yellow-600"
+        : "text-red-600"
+    }`}
+  >
+    {formData.password.length < 6
+      ? "Too short"
+      : /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(formData.password)
+      ? "Strong password"
+      : "Add uppercase, number & special character"}
+  </p>
+)}
 
             <div className="relative">
               <input

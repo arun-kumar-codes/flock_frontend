@@ -369,7 +369,7 @@ export default function DashboardVideoDetailPage() {
 
             {/* Video Info */}
             <div className="theme-bg-card rounded-lg p-6 shadow-sm theme-border">
-              <h1 className="text-2xl font-bold theme-text-primary mb-4">
+              <h1 className="text-sm sm:text-lg md:text-lg font-bold theme-text-primary mb-4">
                 {video.video?.title || "Untitled Video"}
               </h1>
 
@@ -419,7 +419,7 @@ export default function DashboardVideoDetailPage() {
                 <h3 className="text-sm font-medium theme-text-primary mb-2">
                   Description
                 </h3>
-                <div className="theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words">
+                <div className="text-sm sm:text-lg md:text-lg theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words">
                   <TipTapContentDisplay
                     content={
                       video.video?.description || "No description available"
@@ -559,7 +559,7 @@ export default function DashboardVideoDetailPage() {
                   id={params.id}
                   title={video.video?.title || "Check out this video"}
                   summary={video.video?.description || ""}
-                  onCopied={(url) => console.log("Shared URL:", url)}
+                  onCopied={(url: string) => console.log("Shared URL:", url)}
                 />
               </div>
             </div>

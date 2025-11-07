@@ -1,167 +1,159 @@
-"use client"
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { Camera, User, Mail, Shield, Edit3, X } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useSelector } from "react-redux"
-import { updateProfile, becomeCreator } from "@/api/user"
-import Loader from "@/components/Loader"
-import { toast } from "react-hot-toast"
-import { useDispatch } from "react-redux"
-import { setUser } from "@/slice/userSlice"
-
-// This is a mock of your Redux state and API calls for demonstration purposes.
-// You can replace these with your actual Redux and API logic.
-interface UserData {
-  id: string
-  username: string
-  email: string
-  role: string
-  profileImage: string
-  is_profile_completed: boolean
-}
+"use client";
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { Camera, User, Mail, Shield, Edit3, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { updateProfile, becomeCreator } from "@/api/user";
+import Loader from "@/components/Loader";
+import { toast } from "react-hot-toast";
+import { setUser } from "@/slice/userSlice";
+import profilePlaceholder from "@/assets/profile.png";
 
 export default function ProfilePage() {
-  const user = useSelector((state: any) => state.user)
+  const user = useSelector((state: any) => state.user);
   const dispatch = useDispatch();
-  const isDark = user.theme === "dark"
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  //console.log("User Data:", user)
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [username, setUsername] = useState(user.username || "");
+  const [profileImage, setProfileImage] = useState(
+    user.profile_picture && user.profile_picture.trim() !== ""
+      ? user.profile_picture
+      : profilePlaceholder.src
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
+  const [isBecomingCreator, setIsBecomingCreator] = useState(false);
 
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [username, setUsername] = useState(user.username)
-  const [profileImage, setProfileImage] = useState(user.profileImage)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [showCreatorModal, setShowCreatorModal] = useState(false)
-  const [isBecomingCreator, setIsBecomingCreator] = useState(false)
-
-  // Store original values to compare against
-  const [originalUsername, setOriginalUsername] = useState(user.username)
-  const [originalProfileImage, setOriginalProfileImage] = useState(user.profileImage)
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
+  const [originalUsername, setOriginalUsername] = useState(user.username || "");
+  const [originalProfileImage, setOriginalProfileImage] = useState(
+    user.profile_picture && user.profile_picture.trim() !== ""
+      ? user.profile_picture
+      : profilePlaceholder.src
+  );
 
   useEffect(() => {
     if (!user.isLogin) {
-      router.push("/login")
-      return
+      router.push("/login");
+      return;
     }
-    setUsername(user.username)
-    setProfileImage(user.profileImage)
-    setOriginalUsername(user.username)
-    setOriginalProfileImage(user.profileImage)
-    setIsLoading(false)
-  }, [user])
+    setUsername(user.username || "");
+    setProfileImage(
+      user.profile_picture && user.profile_picture.trim() !== ""
+        ? user.profile_picture
+        : profilePlaceholder.src
+    );
+    setOriginalUsername(user.username || "");
+    setOriginalProfileImage(
+      user.profile_picture && user.profile_picture.trim() !== ""
+        ? user.profile_picture
+        : profilePlaceholder.src
+    );
+    setIsLoading(false);
+  }, [user, router]);
 
-  // Function to check if there are any changes
   const hasChanges = () => {
-    const usernameChanged = username !== originalUsername
-    const imageChanged = imageFile !== null
-    return usernameChanged || imageChanged
-  }
+    const usernameChanged = username !== originalUsername;
+    const imageChanged = imageFile !== null;
+    return usernameChanged || imageChanged;
+  };
 
-  const handleAvatarClick = () => {
-    // Programmatically click the hidden file input.
-    fileInputRef.current?.click()
-  }
+  const handleAvatarClick = () => fileInputRef.current?.click();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      // Create a temporary URL for the selected image to show a preview.
-      const tempUrl = URL.createObjectURL(file)
-      setImageFile(file)
-      setProfileImage(tempUrl)
+      const tempUrl = URL.createObjectURL(file);
+      setImageFile(file);
+      setProfileImage(tempUrl);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    if (!hasChanges()) return;
 
-    // Don't submit if there are no changes
-    if (!hasChanges()) {
-      return
-    }
-
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      // In a real app, you'd upload the file if it has changed and get back a URL.
-      const updatedFields = { username, profileImage }
-      const form = new FormData()
-      if (imageFile) {
-        form.append("profile_picture", imageFile)
-      }
-      form.append("username", username)
-      const response = await updateProfile(form)
-      
+      const form = new FormData();
+      form.append("username", username);
+      if (imageFile) form.append("profile_picture", imageFile);
 
-      if(response.status==200){
-        toast.success("Profile updated successfully!")
-        // Update original values after successful save
-        setOriginalUsername(username)
-        setOriginalProfileImage(profileImage)
-        setImageFile(null) // Reset image file after successful upload
-        dispatch(setUser(response?.data?.user)); // Update Redux store with new user data
+      const response = await updateProfile(form);
+      if (response?.status === 200) {
+        toast.success("Profile updated successfully!");
+        const updatedUser = response.data.user;
+
+        const safeProfile =
+          updatedUser.profile_picture &&
+          updatedUser.profile_picture.trim() !== ""
+            ? updatedUser.profile_picture
+            : profilePlaceholder.src;
+
+        dispatch(setUser({ ...updatedUser, profile_picture: safeProfile }));
+
+        setOriginalUsername(username);
+        setOriginalProfileImage(safeProfile);
+        setImageFile(null);
+      } else {
+        toast.error("Error updating profile. Please try again.");
       }
     } catch (error) {
-      console.error("Error updating profile:", error)
-      toast.error("Unable to update profile. Please try again.")
+      console.error("Error updating profile:", error);
+      toast.error("Unable to update profile. Please try again.");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    // Reset to original values
-    setUsername(originalUsername)
-    setProfileImage(originalProfileImage)
-    setImageFile(null)
-  }
+    setUsername(originalUsername);
+    setProfileImage(originalProfileImage);
+    setImageFile(null);
+  };
 
   const handleBecomeCreator = async () => {
-    setIsBecomingCreator(true)
+    setIsBecomingCreator(true);
     try {
-      const response = await becomeCreator()
-      toast.success("Congratulations! You are now a creator!")
-      setShowCreatorModal(false)
-      // router.push("/dashboard")
-      // window.location.reload();
-      window.location.href = "/dashboard"
-      // For now, we'll just close the modal
+      const response = await becomeCreator();
+      toast.success("Congratulations! You are now a creator!");
+      setShowCreatorModal(false);
+      window.location.href = "/dashboard";
     } catch (error) {
-      console.error("Error becoming creator:", error)
-      toast.error("Failed to become creator. Please try again.")
+      console.error("Error becoming creator:", error);
+      toast.error("Failed to become creator. Please try again.");
     } finally {
-      setIsBecomingCreator(false)
+      setIsBecomingCreator(false);
     }
-    }
+  };
 
-  if (isLoading) {
-    return <Loader></Loader>
-  }
+  if (isLoading) return <Loader />;
 
   return (
     <div className="min-h-screen theme-bg-primary transition-colors duration-300 md:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-6 md:mb-8 text-center">
-          <h1 className="text-2xl md:text-4xl font-bold theme-text-primary mb-2">Profile Settings</h1>
-          <p className="text-sm md:text-lg theme-text-secondary">Manage your account information and preferences</p>
+          <h1 className="text-2xl md:text-4xl font-bold theme-text-primary mb-2">
+            Profile Settings
+          </h1>
+          <p className="text-sm md:text-lg theme-text-secondary">
+            Manage your account information and preferences
+          </p>
         </div>
 
-        {/* Main Profile Card */}
+        {/* Profile Card */}
         <div className="theme-bg-card backdrop-blur-sm rounded-4xl shadow-2xl overflow-hidden theme-border">
-          {/* Hero Section */}
           <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
           </div>
 
-          {/* Content */}
           <div className="relative md:px-8 lg:px-12 pb-12 -mt-24">
             <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-12 space-y-8 lg:space-y-0">
-              {/* Left Side - Profile Display */}
+              {/* Left Side */}
               <div className="flex flex-col items-center lg:items-start space-y-6 lg:w-1/3">
                 {/* Profile Picture */}
                 <div className="relative group">
@@ -172,8 +164,12 @@ export default function ProfilePage() {
                   >
                     <div className="w-28 h-28 md:h-40 md:w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
                       <img
-                        src={profileImage || "/placeholder.svg?height=160&width=160&query=profile"}
-                        alt={username}
+                        src={
+                          profileImage && profileImage.trim() !== ""
+                            ? profileImage
+                            : profilePlaceholder.src
+                        }
+                        alt="Profile"
                         className="h-full w-full rounded-full object-cover theme-bg-card"
                       />
                     </div>
@@ -196,14 +192,17 @@ export default function ProfilePage() {
                   accept="image/png, image/jpeg, image/gif"
                 />
 
-                {/* User Info Cards */}
+                {/* User Info */}
                 <div className="w-full space-y-4">
                   <div className="text-center lg:text-left">
-                    <h2 className="text-xl md:text-3xl font-bold theme-text-primary mb-2">{user.username}</h2>
-                    <p className="theme-text-secondary text-base md:text-lg mb-2 md:mb-4">Welcome back!</p>
+                    <h2 className="text-xl md:text-3xl font-bold theme-text-primary mb-2">
+                      {username}
+                    </h2>
+                    <p className="theme-text-secondary text-base md:text-lg mb-2 md:mb-4">
+                      Welcome back!
+                    </p>
                   </div>
 
-                  {/* Info Cards */}
                   <div className="space-y-3">
                     <div className="theme-bg-secondary rounded-xl p-4 theme-border">
                       <div className="flex items-center space-x-3">
@@ -211,8 +210,12 @@ export default function ProfilePage() {
                           <Mail className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium theme-text-muted">Email</p>
-                          <p className="theme-text-primary font-semibold text-sm md:text-base">{user.email}</p>
+                          <p className="text-sm font-medium theme-text-muted">
+                            Email
+                          </p>
+                          <p className="theme-text-primary font-semibold text-sm md:text-base">
+                            {user.email}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -223,27 +226,20 @@ export default function ProfilePage() {
                           <Shield className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium theme-text-muted">Role</p>
+                          <p className="text-sm font-medium theme-text-muted">
+                            Role
+                          </p>
                           <p className="theme-text-primary font-semibold capitalize text-sm md:text-base">
                             {user.role}
                           </p>
                         </div>
                       </div>
                     </div>
-
-                    {user.role !== "creator" && (
-                      <div className="theme-bg-secondary rounded-xl p-4 theme-border">
-                        <div className="flex flex-col gap-8 justify-between">
-                          <div className="flex items-center space-x-3">
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Right Side - Edit Form */}
+              {/* Right Side */}
               <div className="lg:w-2/3">
                 <div className="theme-bg-secondary rounded-4xl p-4 md:p-8 shadow-lg theme-border">
                   <div className="mb-8">
@@ -251,34 +247,41 @@ export default function ProfilePage() {
                       <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-2">
                         <User className="w-5 h-5 md:h-6 md:w-6 text-white" />
                       </div>
-                      <h3 className="text-lg md:text-2xl font-bold theme-text-primary">Edit Profile</h3>
+                      <h3 className="text-lg md:text-2xl font-bold theme-text-primary">
+                        Edit Profile
+                      </h3>
                     </div>
                     <p className="theme-text-secondary text-sm md:text-base">
-                      Update your profile information. Your email address cannot be changed for security reasons.
+                      Update your profile information. Your email address cannot
+                      be changed for security reasons.
                     </p>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2">
-                        <label htmlFor="username" className="block text-sm font-semibold theme-text-primary mb-3">
+                        <label
+                          htmlFor="username"
+                          className="block text-sm font-semibold theme-text-primary mb-3"
+                        >
                           Username
                         </label>
-                        <div className="relative">
-                          <input
-                            id="username"
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter your username"
-                            required
-                            className="w-full h-10 md:h-14 rounded-xl theme-input px-4 py-3 text-sm md:text-base theme-text-primary placeholder:theme-text-muted transition-all duration-200"
-                          />
-                        </div>
+                        <input
+                          id="username"
+                          type="text"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="Enter your username"
+                          required
+                          className="w-full h-10 md:h-14 rounded-xl theme-input px-4 py-3 text-sm md:text-base theme-text-primary placeholder:theme-text-muted transition-all duration-200"
+                        />
                       </div>
 
                       <div className="md:col-span-2">
-                        <label htmlFor="email" className="block text-sm font-semibold theme-text-primary mb-3">
+                        <label
+                          htmlFor="email"
+                          className="block text-sm font-semibold theme-text-primary mb-3"
+                        >
                           Email Address
                         </label>
                         <div className="relative">
@@ -301,7 +304,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 pt-6 theme-border-t">
                       <button
                         type="button"
@@ -335,7 +337,10 @@ export default function ProfilePage() {
 
         {showCreatorModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreatorModal(false)} />
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowCreatorModal(false)}
+            />
             <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 theme-bg-card theme-border">
               <button
                 onClick={() => setShowCreatorModal(false)}
@@ -347,11 +352,14 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-5 w-5 text-blue-500" />
-                  <h2 className="text-xl font-bold theme-text-primary">Switch to Creator Account</h2>
+                  <h2 className="text-xl font-bold theme-text-primary">
+                    Switch to Creator Account
+                  </h2>
                 </div>
 
                 <div className="theme-text-secondary text-sm">
-                  Would you like to switch to a creator account? This will give you access to:
+                  Would you like to switch to a creator account? This will give
+                  you access to:
                   <ul className="mt-2 space-y-1 text-sm">
                     <li>• Content creation access</li>
                     <li>• Basic analytics</li>
@@ -364,7 +372,7 @@ export default function ProfilePage() {
                   <button
                     onClick={() => setShowCreatorModal(false)}
                     disabled={isBecomingCreator}
-                    className="w-full sm:w-auto px-4 py-2 border-2 border-gray-300 dark:border-gray-600 theme-text-primary  dark:hover:bg-gray-700 focus:ring-gray-500 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2 border-2 border-gray-300 dark:border-gray-600 theme-text-primary dark:hover:bg-gray-700 focus:ring-gray-500 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -392,5 +400,5 @@ export default function ProfilePage() {
         )}
       </div>
     </div>
-  )
+  );
 }

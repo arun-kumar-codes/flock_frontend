@@ -381,7 +381,7 @@ export default function VideoDetailPage() {
 
             {/* Video Info */}
             <div className="theme-bg-card rounded-lg p-6 shadow-sm theme-border">
-              <h1 className="text-2xl font-bold theme-text-primary mb-4">
+              <h1 className="text-sm sm:text-lg md:text-xl font-bold theme-text-primary mb-4 leading-snug">
                 {video.video?.title || "Untitled Video"}
               </h1>
 
@@ -423,9 +423,9 @@ export default function VideoDetailPage() {
               </div>
 
               {/* Description */}
-              <div className="mb-6">
+              <div className="">
                 <div
-                  className="theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words"
+                  className="text-sm sm:text-lg md:text-lg theme-text-secondary leading-relaxed prose prose-sm max-w-none break-words"
                   dangerouslySetInnerHTML={{
                     __html:
                       video.video?.description || "No description available",
@@ -532,7 +532,7 @@ export default function VideoDetailPage() {
                   id={params.id}
                   title={video.video?.title || "Check out this video"}
                   summary={video.video?.description || ""}
-                  onCopied={(url) => console.log("Shared URL:", url)}
+                  onCopied={(url: string) => console.log("Shared URL:", url)}
                 />
               </div>
             </div>

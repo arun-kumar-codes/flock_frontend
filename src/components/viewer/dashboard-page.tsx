@@ -214,41 +214,26 @@ export default function DashboardPage() {
   const [isLoadingTrending, setIsLoadingTrending] = useState(true);
   const [trendingError, setTrendingError] = useState("");
   const [currentTrendingIndex, setCurrentTrendingIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
+  
   // Most Viewed content state
   const [mostViewedContent, setMostViewedContent] = useState<ContentItem[]>([]);
   const [isLoadingMostViewed, setIsLoadingMostViewed] = useState(true);
   const [mostViewedError, setMostViewedError] = useState("");
-  const [isDraggingMostViewed, setIsDraggingMostViewed] = useState(false);
-  const [startXMostViewed, setStartXMostViewed] = useState(0);
-  const [scrollLeftMostViewed, setScrollLeftMostViewed] = useState(0);
 
   // Most Liked content state
   const [mostLikedContent, setMostLikedContent] = useState<ContentItem[]>([]);
   const [isLoadingMostLiked, setIsLoadingMostLiked] = useState(true);
   const [mostLikedError, setMostLikedError] = useState("");
-  const [isDraggingMostLiked, setIsDraggingMostLiked] = useState(false);
-  const [startXMostLiked, setStartXMostLiked] = useState(0);
-  const [scrollLeftMostLiked, setScrollLeftMostLiked] = useState(0);
 
   // Creators state
   const [creators, setCreators] = useState<Creator[]>([]);
   const [isLoadingCreators, setIsLoadingCreators] = useState(true);
   const [creatorsError, setCreatorsError] = useState("");
-  const [isDraggingCreators, setIsDraggingCreators] = useState(false);
-  const [startXCreators, setStartXCreators] = useState(0);
-  const [scrollLeftCreators, setScrollLeftCreators] = useState(0);
 
   // Blog state
   const [blogs, setBlogs] = useState<ContentItem[]>([]);
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(true);
   const [blogsError, setBlogsError] = useState("");
-  const [isDraggingBlogs, setIsDraggingBlogs] = useState(false);
-  const [startXBlogs, setStartXBlogs] = useState(0);
-  const [scrollLeftBlogs, setScrollLeftBlogs] = useState(0);
 
   // Video overlay state
   const [showVideoOverlay, setShowVideoOverlay] = useState(false);
@@ -720,211 +705,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Mouse and touch event handlers for carousel
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.pageX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const x = e.touches[0].pageX;
-    const walk = (x - startX) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  // Creators mouse and touch event handlers
-  const handleCreatorsMouseDown = (e: React.MouseEvent) => {
-    setIsDraggingCreators(true);
-    setStartXCreators(e.pageX);
-  };
-
-  const handleCreatorsMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingCreators) return;
-    e.preventDefault();
-    const x = e.pageX;
-    const walk = (x - startXCreators) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftCreators - walk;
-  };
-
-  const handleCreatorsMouseUp = () => {
-    setIsDraggingCreators(false);
-  };
-
-  const handleCreatorsMouseLeave = () => {
-    setIsDraggingCreators(false);
-  };
-
-  const handleCreatorsTouchStart = (e: React.TouchEvent) => {
-    setIsDraggingCreators(true);
-    setStartXCreators(e.touches[0].pageX);
-  };
-
-  const handleCreatorsTouchMove = (e: React.TouchEvent) => {
-    if (!isDraggingCreators) return;
-    const x = e.touches[0].pageX;
-    const walk = (x - startXCreators) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftCreators - walk;
-  };
-
-  const handleCreatorsTouchEnd = () => {
-    setIsDraggingCreators(false);
-  };
-
-  // Blog mouse and touch event handlers
-  const handleBlogsMouseDown = (e: React.MouseEvent) => {
-    setIsDraggingBlogs(true);
-    setStartXBlogs(e.pageX);
-  };
-
-  const handleBlogsMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingBlogs) return;
-    e.preventDefault();
-    const x = e.pageX;
-    const walk = (x - startXBlogs) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftBlogs - walk;
-  };
-
-  const handleBlogsMouseUp = () => {
-    setIsDraggingBlogs(false);
-  };
-
-  const handleBlogsMouseLeave = () => {
-    setIsDraggingBlogs(false);
-  };
-
-  const handleBlogsTouchStart = (e: React.TouchEvent) => {
-    setIsDraggingBlogs(true);
-    setStartXBlogs(e.touches[0].pageX);
-  };
-
-  const handleBlogsTouchMove = (e: React.TouchEvent) => {
-    if (!isDraggingBlogs) return;
-    const x = e.touches[0].pageX;
-    const walk = (x - startXBlogs) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftBlogs - walk;
-  };
-
-  const handleBlogsTouchEnd = () => {
-    setIsDraggingBlogs(false);
-  };
-
-  // Most Viewed mouse and touch event handlers
-  const handleMostViewedMouseDown = (e: React.MouseEvent) => {
-    setIsDraggingMostViewed(true);
-    setStartXMostViewed(e.pageX);
-  };
-
-  const handleMostViewedMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingMostViewed) return;
-    e.preventDefault();
-    const x = e.pageX;
-    const walk = (x - startXMostViewed) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftMostViewed - walk;
-  };
-
-  const handleMostViewedMouseUp = () => {
-    setIsDraggingMostViewed(false);
-  };
-
-  const handleMostViewedMouseLeave = () => {
-    setIsDraggingMostViewed(false);
-  };
-
-  const handleMostViewedTouchStart = (e: React.TouchEvent) => {
-    setIsDraggingMostViewed(true);
-    setStartXMostViewed(e.touches[0].pageX);
-  };
-
-  const handleMostViewedTouchMove = (e: React.TouchEvent) => {
-    if (!isDraggingMostViewed) return;
-    const x = e.touches[0].pageX;
-    const walk = (x - startXMostViewed) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftMostViewed - walk;
-  };
-
-  const handleMostViewedTouchEnd = () => {
-    setIsDraggingMostViewed(false);
-  };
-
-  // Most Liked mouse and touch event handlers
-  const handleMostLikedMouseDown = (e: React.MouseEvent) => {
-    setIsDraggingMostLiked(true);
-    setStartXMostLiked(e.pageX);
-  };
-
-  const handleMostLikedMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingMostLiked) return;
-    e.preventDefault();
-    const x = e.pageX;
-    const walk = (x - startXMostLiked) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftMostLiked - walk;
-  };
-
-  const handleMostLikedMouseUp = () => {
-    setIsDraggingMostLiked(false);
-  };
-
-  const handleMostLikedMouseLeave = () => {
-    setIsDraggingMostLiked(false);
-  };
-
-  const handleMostLikedTouchStart = (e: React.TouchEvent) => {
-    setIsDraggingMostLiked(true);
-    setStartXMostLiked(e.touches[0].pageX);
-  };
-
-  const handleMostLikedTouchMove = (e: React.TouchEvent) => {
-    if (!isDraggingMostLiked) return;
-    const x = e.touches[0].pageX;
-    const walk = (x - startXMostLiked) * 2;
-    const container = e.currentTarget as HTMLElement;
-    container.scrollLeft = scrollLeftMostLiked - walk;
-  };
-
-  const handleMostLikedTouchEnd = () => {
-    setIsDraggingMostLiked(false);
-  };
-
-  // Handle Flock video button click
-  const handleFlockVideoClick = () => {
-    setShowVideoOverlay(true);
-  };
-
   // Handle video end - redirect to videos section
   const handleVideoEnd = () => {
     setShowVideoOverlay(false);
@@ -1092,29 +872,24 @@ export default function DashboardPage() {
             <div className="relative">
               {/* Trending Content Cards - Scrollable */}
               <div
-                className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseLeave}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onScroll={(e) => setScrollLeft(e.currentTarget.scrollLeft)}
-              >
+                  className="
+                    flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory 
+                    scrollbar-hide pb-4 px-1
+                  "
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
                 {filteredTrendingContent.length > 0 ? (
                   filteredTrendingContent.map((item, index) => (
                     <div
                       key={`trending-${item.type}-${item.id}`}
-                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
+                      className="group cursor-pointer flex-shrink-0 w-full md:w-100 snap-center"
                       onClick={() => handleTrendingCardClick(item)}
                     >
                       <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
                         <div
-  className="relative w-full rounded-3xl bg-black overflow-hidden flex items-center justify-center"
-  style={{ aspectRatio: "16 / 9" }}
->
+                          className="relative w-full rounded-3xl bg-black overflow-hidden flex items-center justify-center"
+                          style={{ aspectRatio: "16 / 9" }}
+                        >
                           {item.type === "video" ? (
                             <img
                               src={
@@ -1261,18 +1036,11 @@ export default function DashboardPage() {
             <div className="relative">
               {/* Most Viewed Content Cards - Scrollable */}
               <div
-                className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                onMouseDown={handleMostViewedMouseDown}
-                onMouseMove={handleMostViewedMouseMove}
-                onMouseUp={handleMostViewedMouseUp}
-                onMouseLeave={handleMostViewedMouseLeave}
-                onTouchStart={handleMostViewedTouchStart}
-                onTouchMove={handleMostViewedTouchMove}
-                onTouchEnd={handleMostViewedTouchEnd}
-                onScroll={(e) =>
-                  setScrollLeftMostViewed(e.currentTarget.scrollLeft)
-                }
+                className="
+                  flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory 
+                  scrollbar-hide pb-4 px-1
+                "
+                style={{ WebkitOverflowScrolling: "touch" }}
               >
                 {filteredMostViewedContent.length > 0 ? (
                   filteredMostViewedContent.map((item, index) => (
@@ -1432,18 +1200,11 @@ export default function DashboardPage() {
             <div className="relative">
               {/* Most Liked Content Cards - Scrollable */}
               <div
-                className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                onMouseDown={handleMostLikedMouseDown}
-                onMouseMove={handleMostLikedMouseMove}
-                onMouseUp={handleMostLikedMouseUp}
-                onMouseLeave={handleMostLikedMouseLeave}
-                onTouchStart={handleMostLikedTouchStart}
-                onTouchMove={handleMostLikedTouchMove}
-                onTouchEnd={handleMostLikedTouchEnd}
-                onScroll={(e) =>
-                  setScrollLeftMostLiked(e.currentTarget.scrollLeft)
-                }
+                className="
+                  flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory 
+                  scrollbar-hide pb-4 px-1
+                "
+                style={{ WebkitOverflowScrolling: "touch" }}
               >
                 {filteredMostLikedContent.length > 0 ? (
                   filteredMostLikedContent.map((item, index) => (
@@ -1599,18 +1360,11 @@ export default function DashboardPage() {
             <div className="relative">
               {/* Creators Content Cards - Scrollable */}
               <div
-                className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                onMouseDown={handleCreatorsMouseDown}
-                onMouseMove={handleCreatorsMouseMove}
-                onMouseUp={handleCreatorsMouseUp}
-                onMouseLeave={handleCreatorsMouseLeave}
-                onTouchStart={handleCreatorsTouchStart}
-                onTouchMove={handleCreatorsTouchMove}
-                onTouchEnd={handleCreatorsTouchEnd}
-                onScroll={(e) =>
-                  setScrollLeftCreators(e.currentTarget.scrollLeft)
-                }
+                className="
+                  flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory 
+                  scrollbar-hide pb-4 px-1
+                "
+                style={{ WebkitOverflowScrolling: "touch" }}
               >
                 {creators.length > 0
                   ? creators.map((creator, index) => (

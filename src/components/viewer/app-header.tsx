@@ -89,14 +89,6 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     const pathSegments = pathname.split("/").filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1];
 
-      // Only show "Hello <username>!" if user is logged in
-  if (lastSegment === "viewer") {
-    if (user?.isLogin && user?.username) {
-      return `Hello ${user.username}!`;
-    }
-    return "Dashboard"; // fallback if not logged in
-  }
-
     switch (lastSegment) {
       case "blogs":
         return "Blog Posts";
@@ -111,59 +103,23 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
       case "history":
         return "History";
       default:
-        return "Dashboard";
-    }
-  };
-
-  // Get page description
-  const getPageDescription = () => {
-    const title = getPageTitle();
-    switch (title) {
-      case "Dashboard":
-        return "Welcome to your content hub";
-      case "Blog Posts":
-        return "Discover and read amazing articles";
-      case "Videos":
-        return "Watch and explore video content";
-      case "Profile":
-        return "Manage your account settings";
-      case "Settings":
-        return "Customize your experience";
-      case "Favorites":
-        return "Your saved content";
-      case "History":
-        return "Recently viewed content";
-      default:
         return "";
     }
   };
 
   return (
     <header
-        className={`${inter.className} fixed top-0 right-0 z-30 h-16 transition-all duration-300 theme-bg-primary mb-2 ${
-          isSidebarExpanded ? "left-64" : "left-16"
-        }`}
+        className={`${inter.className} fixed top-0 right-0 z-30 h-16 transition-all duration-300 theme-bg-primary mb-0 ${
+          isSidebarExpanded ? "lg:left-64" : "lg:left-16"
+        } left-0`}
       >
       <div className="flex items-center justify-between h-full px-4 mt-2 md:px-8 ">
         <div className="flex items-center space-x-4 mb-4">
           <div
-            className={`flex flex-col justify-center ${
+            className={`flex flex-col justify-end ml-10 ${
               getPageTitle().includes("Hello") && "cursor-pointer"
             }`}
           >
-            <div
-              className="flex items-center space-x-2 "
-              onClick={handleDashboardChange}
-            >
-              <h1
-                className="text-lg sm:text-xl font-medium text-[#C14C42] leading-none"
-              >
-                {getPageTitle()}
-              </h1>
-            </div>
-            <p className="text-xs md:text-sm theme-text-secondary mt-1 font-medium opacity-80">
-              {getPageDescription()}
-            </p>
           </div>
         </div>
 
@@ -203,13 +159,19 @@ export function HeaderNavbar({ isSidebarExpanded }: HeaderNavbarProps) {
     title="View Profile"
   >
     <div className="w-10 h-10 rounded-full overflow-hidden border-2 theme-border theme-bg-secondary transition-all duration-300">
-      <Image
-        src={user.profileImage || "/placeholder-profile.png"}
-        alt="Profile"
-        width={40}
-        height={40}
-        className="w-full h-full object-cover"
-      />
+      {user.profileImage ? (
+        <Image
+          src={user.profileImage}
+          alt="Profile"
+          width={40}
+          height={40}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="flex items-center justify-center w-full h-full bg-white">
+          <User className="w-5 h-5 text-gray-400" />
+        </div>
+      )}
     </div>
   </button>
 

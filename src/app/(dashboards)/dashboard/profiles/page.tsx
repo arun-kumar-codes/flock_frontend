@@ -158,11 +158,17 @@ export default function ProfilePage() {
                     title="Change profile picture"
                   >
                     <div className="h-28 w-28 md:h-40 md:w-40 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-2xl">
-                      <img
-                        src={profileImage?profileImage:placeholderImg}
-                        alt={username}
-                        className="h-full w-full rounded-full object-cover bg-white"
-                      />
+                      {profileImage ? (
+                        <img
+                          src={profileImage}
+                          alt={username}
+                          className="h-full w-full rounded-full object-cover bg-white"
+                        />
+                      ) : (
+                        <div className="h-full w-full rounded-full bg-white flex items-center justify-center">
+                          <User className="w-12 h-12 text-gray-400" />
+                        </div>
+                      )}
                     </div>
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                       <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">

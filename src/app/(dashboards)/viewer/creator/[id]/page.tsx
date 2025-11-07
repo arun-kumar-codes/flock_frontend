@@ -130,7 +130,7 @@ export default function CreatorProfilePage() {
           </h1>
           <div className="flex text-xl justify-center md:justify-start gap-8 text-sm">
             <div className="text-center">
-              <p className="theme-text-primary">Flocks</p>
+              <p className="theme-text-primary">Flock</p>
               <p className="font-semibold theme-text-primary">
                 {creator.followers_count}
               </p>
@@ -296,7 +296,7 @@ export default function CreatorProfilePage() {
                               id={video.id.toString()}
                               title={video.title}
                               summary={video.description || ""}
-                              onCopied={(url) => console.log("Shared video URL:", url)}
+                              onCopied={(url: string) => console.log("Shared URL:", url)}
                             />
                           </div>
                         </div>
@@ -406,7 +406,7 @@ export default function CreatorProfilePage() {
                               id={blog.id.toString()}
                               title={blog.title}
                               summary={blog.excerpt || ""}
-                              onCopied={(url) => console.log("Shared blog URL:", url)}
+                              onCopied={(url: string) => console.log("Shared URL:", url)}
                             />
                           </div>
                         </div>

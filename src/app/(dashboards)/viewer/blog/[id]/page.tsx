@@ -348,7 +348,7 @@ export default function BlogDetailPage() {
 
             {/* Blog Info */}
             <div className="theme-bg-card rounded-lg p-6 shadow-sm theme-border">
-              <h1 className="text-3xl font-bold theme-text-primary mb-4">
+              <h1 className="text-sm sm:text-lg md:text-lg font-bold theme-text-primary mb-4">
                 {blog.blog?.title || "Untitled Blog"}
               </h1>
 
@@ -368,10 +368,11 @@ export default function BlogDetailPage() {
                 </span>
               </div>
 
+
               {/* Author Info */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shrink-0">
                     {blog.blog?.author?.profile_picture ? (
                       <Image
                         src={blog.blog.author.profile_picture}
@@ -385,7 +386,7 @@ export default function BlogDetailPage() {
                     )}
                   </div>
                   <div>
-                    <p className="font-medium theme-text-primary">
+                    <p className="font-medium theme-text-primary text-base">
                       {blog.blog?.author?.username || "Unknown Author"}
                     </p>
                   </div>
@@ -393,37 +394,35 @@ export default function BlogDetailPage() {
 
                 {/* Follow Button */}
                 {blog.blog?.author?.id !== user?.id && (
-                  <div className="flex justify-end sm:justify-start">
-                    <button
-                      onClick={handleFollow}
-                      disabled={isFollowingLoading}
-                      className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer text-sm sm:text-base ${
-                        isFollowing
-                          ? "bg-green-400 text-gray-700 hover:bg-green-500"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                      } disabled:opacity-50`}
-                    >
-                      {isFollowingLoading ? (
-                        <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : isFollowing ? (
-                        <>
-                          <UserCheck className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span>Following</span>
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span>Follow</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleFollow}
+                    disabled={isFollowingLoading}
+                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isFollowing
+                        ? "bg-green-400 text-gray-800 hover:bg-green-500"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    } disabled:opacity-50`}
+                  >
+                    {isFollowingLoading ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : isFollowing ? (
+                      <>
+                        <UserCheck className="w-4 h-4" />
+                        <span>Following</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        <span>Follow</span>
+                      </>
+                    )}
+                  </button>
                 )}
               </div>
 
               {/* Blog Content */}
-              <div className="mb-6">
-                <div className="prose prose-lg max-w-none dark:prose-invert text-black dark:text-white">
+              <div className="">
+                <div className="text-sm sm:text-lg md:text-lg prose prose-lg max-w-none dark:prose-invert text-black dark:text-white">
                   <TipTapContentDisplay content={blog.blog?.content || ""} />
                 </div>
               </div>
