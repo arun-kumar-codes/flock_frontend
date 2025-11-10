@@ -1361,7 +1361,7 @@ export default function DashboardPage() {
               {/* Creators Content Cards - Scrollable */}
               <div
                 className="
-                  flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory 
+                  flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory 
                   scrollbar-hide pb-4 px-1
                 "
                 style={{ WebkitOverflowScrolling: "touch" }}
@@ -1370,7 +1370,7 @@ export default function DashboardPage() {
                   ? creators.map((creator, index) => (
                       <div
                         key={`creator-${creator.id}`}
-                        className="group cursor-pointer flex-shrink-0 w-full md:w-64"
+                        className="group cursor-pointer flex-shrink-0 w-[150px] sm:w-[180px] md:w-50"
                         onClick={() => router.push(`/viewer/creator/${creator.id}`)}
                       >
                         <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
