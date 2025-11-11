@@ -132,6 +132,21 @@ export default function VideoPage() {
   const user = useSelector((state: any) => state.user);
   const isDark = user.theme === "dark";
 
+  // ---- Auth helpers ----
+const isAuthenticated = Boolean(user?.isLogin);
+
+const goLoginWithNext = (nextPath: string) => {
+  router.push(`/login?next=${encodeURIComponent(nextPath)}`);
+};
+
+const requireAuth = (nextPath: string, cb: () => void) => {
+  if (!isAuthenticated) {
+    goLoginWithNext(nextPath);
+    return;
+  }
+  cb();
+};
+
   // Video states
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -321,10 +336,13 @@ export default function VideoPage() {
     return views.toString();
   };
 
-  const handleVideoClick = async (video: Video) => {
-    router.push(`/viewer/video/${video.id}`);
+  const handleVideoClick = (video: Video) => {
+  const next = `/viewer/video/${video.id}`;
+  requireAuth(next, () => {
+    router.push(next);
     setShowContentMenu(null);
-  };
+  });
+};
 
   const handleLikeToggle = async (e: any, videoId: number) => {
     e.stopPropagation();

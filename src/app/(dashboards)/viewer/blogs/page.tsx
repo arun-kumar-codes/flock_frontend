@@ -104,6 +104,21 @@ export default function BlogPage() {
   }>({});
   const contentMenuRef = useRef<HTMLDivElement>(null);
 
+  // ---- Auth helpers ----
+const isAuthenticated = Boolean(user?.isLogin);
+
+const goLoginWithNext = (nextPath: string) => {
+  router.push(`/login?next=${encodeURIComponent(nextPath)}`);
+};
+
+const requireAuth = (nextPath: string, cb: () => void) => {
+  if (!isAuthenticated) {
+    goLoginWithNext(nextPath);
+    return;
+  }
+  cb();
+};
+
   const isDark = user.theme === "dark";
 
   //console.log(user);
@@ -169,8 +184,11 @@ export default function BlogPage() {
   };
 
   const handleBlogClick = (blog: Blog) => {
-    router.push(`/viewer/blog/${blog.id}`);
+  const next = `/viewer/blog/${blog.id}`;
+  requireAuth(next, () => {
+    router.push(next);
     setShowContentMenu(null);
+  });
   };
 
   const fetchBlogs = async () => {

@@ -187,6 +187,21 @@ export default function DashboardPage() {
   const router = useRouter();
   const user = useSelector((state: any) => state.user);
 
+  // ---- Auth helpers (add once) ----
+    const isAuthenticated = Boolean(user?.isLogin);
+
+    const goLoginWithNext = (nextPath: string) => {
+      router.push(`/login?next=${encodeURIComponent(nextPath)}`);
+    };
+
+    const requireAuth = (nextPath: string, cb: () => void) => {
+      if (!isAuthenticated) {
+        goLoginWithNext(nextPath);
+        return;
+      }
+      cb();
+    };
+
   const [content, setContent] = useState<ContentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
@@ -625,14 +640,15 @@ export default function DashboardPage() {
     return views.toString();
   };
 
-  const handleVideoClick = async (video: Video) => {
-    router.push(`/viewer/video/${video.id}`);
-  };
+  const handleVideoClick = (video: Video) => {
+  const next = `/viewer/video/${video.id}`;
+  requireAuth(next, () => router.push(next));
+};
 
-  const handleBlogClick = (blog: Blog) => {
-    router.push(`/viewer/blog/${blog.id}`);
-    setShowContentMenu(null);
-  };
+const handleBlogClick = (blog: Blog) => {
+  const next = `/viewer/blog/${blog.id}`;
+  requireAuth(next, () => router.push(next));
+};
 
   const handleVideoLikeToggle = (e: any, videoId: number) => {
     e.stopPropagation();
@@ -1371,7 +1387,10 @@ export default function DashboardPage() {
                       <div
                         key={`creator-${creator.id}`}
                         className="group cursor-pointer flex-shrink-0 w-[150px] sm:w-[180px] md:w-50"
-                        onClick={() => router.push(`/viewer/creator/${creator.id}`)}
+                        onClick={() => {
+                              const next = `/viewer/creator/${creator.id}`;
+                              requireAuth(next, () => router.push(next));
+                            }}
                       >
                         <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
                           <div className="aspect-[3/4] relative overflow-hidden">
