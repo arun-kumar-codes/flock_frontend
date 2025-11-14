@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
 import ShareButton from "@/components/viewer/ShareButton";
@@ -90,7 +90,12 @@ export default function VideoDetailPage() {
 
   const [watchTime, setWatchTime] = useState(0);
   const [lastWatchTimeUpdate, setLastWatchTimeUpdate] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+const [totalWatchTime, setTotalWatchTime] = useState<number>(0);
+const watchTimeRef = useRef<number>(0);
   console.log("window url", videoUrl);
+
+
   useEffect(() => {
     const fetchVideo = async () => {
       try {
@@ -150,6 +155,7 @@ export default function VideoDetailPage() {
 
           // Increment view count
           await addView(params.id);
+          setStartTime(Date.now());
         } else {
           console.error("No video data received");
           setError("Video not found");
@@ -185,6 +191,37 @@ export default function VideoDetailPage() {
 
   // Note: Watch time tracking is disabled for iframe videos due to CORS restrictions
   // Cloudflare Stream handles analytics on their end
+
+  useEffect(() => {
+  if (!startTime) return;
+
+  const timer = setInterval(() => {
+    const now = Date.now();
+    const session = Math.floor((now - startTime) / 1000);
+
+    setTotalWatchTime(prev => prev + 1);
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [startTime]);
+
+useEffect(() => {
+  if (totalWatchTime === 0) return;
+
+  if (totalWatchTime % 20 === 0) {
+    addWatchTime(String(params.id), 20);
+    console.log("⏱ Sent 20 seconds watch time");
+  }
+}, [totalWatchTime, params.id]);
+
+useEffect(() => {
+  return () => {
+    if (totalWatchTime > 0) {
+      addWatchTime(String(params.id), totalWatchTime);
+      console.log("⏱ Sent leftover watch time:", totalWatchTime);
+    }
+  };
+}, [totalWatchTime, params.id]);
 
   const handleLike = async () => {
     try {

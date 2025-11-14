@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getEarning, setupStripeAccount, getStripeAccount, removeStripeAccount, refreshStripeAccount, requestWithdrawal, withdrawalHistory, setupPayPalAccount, requestPayPalWithdrawal, payPalWithdrawalHistory, getPayPalAccount, removePayPalAccount } from "@/api/earnings";
+import { getEarning, setupStripeAccount, getStripeAccount, removeStripeAccount, refreshStripeAccount, requestWithdrawal, withdrawalHistory, setupPayPalAccount, requestPayPalWithdrawal, payPalWithdrawalHistory, getPayPalAccount, removePayPalAccount, checkPayPalPayoutStatus } from "@/api/earnings";
 import { DollarSign, TrendingUp, Clock, CheckCircle, CreditCard, ArrowUpRight, Wallet, Plus, RefreshCw, Trash2 } from "lucide-react"
 import Loader from "@/components/Loader2";
 import toast from "react-hot-toast";
@@ -77,8 +77,8 @@ export default function PayoutPage() {
         // Check PayPal account
         const paypalResponse = await getPayPalAccount();
         if (paypalResponse?.status === 200 && paypalResponse.data?.success) {
-          const account = paypalResponse.data.account;
-          if (account?.account_status === "verified") {
+          const account = paypalResponse.data.paypal;
+          if (account?.connected === true || account?.status === "verified") {
             setIsAccountConnected(true);
             setIsAccountPending(false);
             setConnectedProvider("paypal");
@@ -108,29 +108,71 @@ export default function PayoutPage() {
 
 
   const fetchWithdrawalHistory = async () => {
-    try {
-      if (connectedProvider === 'stripe') {
-        const response = await withdrawalHistory();
-        if (response?.status === 200 && response.data?.success) {
-          setWithdrawals(response.data.withdrawals || []);
-        } else {
-          setWithdrawals([]);
-        }
-      } else if (connectedProvider === "paypal") {
-      const response = await payPalWithdrawalHistory();
+  try {
+    let response;
+
+    if (connectedProvider === "stripe") {
+      response = await withdrawalHistory();
       if (response?.status === 200 && response.data?.success) {
         setWithdrawals(response.data.withdrawals || []);
       } else {
         setWithdrawals([]);
       }
     }
-    } catch (error) {
-      console.error("Error Fetching withdrawal history.");
-      setWithdrawals([]);
-    } finally {
-      setIsHistoryLoading(false);
+
+    else if (connectedProvider === "paypal") {
+      response = await payPalWithdrawalHistory();
+      if (response?.status === 200 && response.data?.success) {
+        const list = response.data.withdrawals || []; 
+
+        // Auto-check PayPal payouts that are still processing
+        for (const item of list) {
+          if (item.status === "processing" && item.transaction_id) {
+            const statusResponse = await checkPayPalPayoutStatus(item.transaction_id);
+
+            if (statusResponse?.status === 200) {
+              // If status has changed, refresh everything
+              if (statusResponse.data.status !== "processing") {
+                const updatedEarnings = await getEarning();
+                setEarningsData(updatedEarnings.data);
+
+                const updatedHistory = await payPalWithdrawalHistory();
+                setWithdrawals(updatedHistory.data.paypal.withdrawals || []);
+                return;
+              }
+            }
+          }
+        }
+
+        // Finally set withdrawals
+        setWithdrawals(list);
+      } else {
+        setWithdrawals([]);
+      }
     }
+  } catch (error) {
+    console.error("Error Fetching withdrawal history.");
+    setWithdrawals([]);
+  } finally {
+    setIsHistoryLoading(false);
   }
+};
+
+
+useEffect(() => {
+  if (connectedProvider !== "paypal") return;
+
+  // Only poll if there are pending payouts
+  const hasProcessing = withdrawals.some(w => w.status === "processing");
+  if (!hasProcessing) return;
+
+  const interval = setInterval(() => {
+    fetchWithdrawalHistory();
+  }, 20000);
+
+  return () => clearInterval(interval);
+}, [connectedProvider, withdrawals]);
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -222,11 +264,11 @@ export default function PayoutPage() {
       }
     } 
     else if (connectedProvider === "paypal") {
-      // ✅ Correct logic for PayPal
+      // Correct logic for PayPal
       const response = await getPayPalAccount();
       if (response.status === 200 && response.data?.success) {
-        const account = response.data.account;
-        if (account?.account_status === "verified") {
+        const account = response.data.paypal;
+        if (account?.connected === true || account?.status === "verified") {
           setIsAccountConnected(true);
           setIsAccountPending(false);
           setShowVerifyAgain(false);
@@ -268,8 +310,8 @@ export default function PayoutPage() {
       // PayPal doesn't use onboarding links — simply re-fetch the account
       const response = await getPayPalAccount();
       if (response?.status === 200 && response.data?.success) {
-        const account = response.data.account;
-        if (account.account_status === "verified") {
+        const account = response.data.paypal;
+        if (account.connected === true || account.status === "verified") {
           toast.success("PayPal account verified successfully 🎉");
           setIsAccountConnected(true);
           setIsAccountPending(false);
@@ -456,7 +498,7 @@ export default function PayoutPage() {
                       ? 'Stripe'
                       : connectedProvider === 'paypal'
                       ? 'PayPal'
-                      : 'Payoneer'} account is connected 🎉
+                      : 'Paypal'} account is connected 🎉
                     </p>
                     <button
                       onClick={handleRemoveAccount}
@@ -541,7 +583,7 @@ export default function PayoutPage() {
                 {!isAccountConnected && onboardingUrl && (
                   <div className="space-y-4 text-center">
                     <p className="text-gray-700">
-                      Please complete your {connectedProvider === 'stripe' ? 'Stripe' : 'Payoneer'} onboarding to start receiving payouts.
+                      Please complete your {connectedProvider === 'stripe' ? 'Stripe' : 'Paypal'} onboarding to start receiving payouts.
                     </p>
                     <a
                       href={onboardingUrl}
@@ -560,7 +602,7 @@ export default function PayoutPage() {
                       <>
                         <p className="text-gray-700 font-medium">
                           <span className="text-xl font-bold text-red-600 p-1">!!!</span>
-                          Your {connectedProvider === 'stripe' ? 'Stripe' : 'Payoneer'} account status is pending.
+                          Your {connectedProvider === 'stripe' ? 'Stripe' : 'Paypal'} account status is pending.
                         </p>
                         <div className="flex justify-center gap-4">
                           <button

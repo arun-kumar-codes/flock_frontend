@@ -137,7 +137,7 @@ export async function requestPayPalWithdrawal(amount: number) {
 
 export async function payPalWithdrawalHistory() {
   try {
-    const response = await axiosInstance.get("/paypal/withdrawal-history");
+    const response = await axiosInstance.get("/earnings/withdrawal-history");
     return response;
   } catch (error: any) {
     console.error("Error fetching PayPal withdrawal history:", error);
@@ -154,3 +154,14 @@ export const removePayPalAccount = async () => {
     return error.response;
   }
 };
+
+
+export async function checkPayPalPayoutStatus(batchId: string) {
+  try {
+    const response = await axiosInstance.get(`/paypal/check-paypal-status/${batchId}`);
+    return response;
+  } catch (error:any) {
+    console.error("Error checking PayPal payout status:", error);
+    return error.response;
+  }
+}
