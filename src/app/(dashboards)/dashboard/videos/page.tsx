@@ -47,6 +47,7 @@ import {
   editVideoComment,
   deleteVideoComment,
   getTaskStatus,
+  cancelUpload,
 } from "@/api/content";
 import TipTapEditor from "@/components/tiptap-editor";
 import TipTapContentDisplay from "@/components/tiptap-content-display";
@@ -183,6 +184,8 @@ export default function VideoDashboard() {
     new Date(new Date().getTime() + 30 * 60 * 1000)
   );
 
+  const [canCancel, setCanCancel] = useState(false);
+
   // Like state for view modal
   const [isLiked, setIsLiked] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -214,6 +217,11 @@ export default function VideoDashboard() {
   const [deletingCommentId, setDeletingCommentId] = useState<number | null>(
     null
   );
+
+  const [uploadTaskId, setUploadTaskId] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const uploadTaskIdRef = useRef<string | null>(null);
 
   // Loading states for different actions
   const [loadingActions, setLoadingActions] = useState<{
@@ -332,66 +340,87 @@ const updateToast = (id: string, updates: Partial<{
 }
 
 
-  // Polling function
-  const pollTaskStatus = async (taskId: string, toastId: string) => {
-    try {
-      const response = await getTaskStatus(taskId);
-      const { state, status, result, error } = response.data;
+// Polling function
+const pollTaskStatus = async (taskId: string, toastId: string) => {
+  try {
+    const response = await getTaskStatus(taskId);
+    const { state, status, result, error } = response.data;
 
     if (state === 'SUCCESS') {
-  // Stop polling
-  if (pollingIntervalRef.current) {
-    clearInterval(pollingIntervalRef.current)
-    pollingIntervalRef.current = null
-  }
-  setPollingTaskId(null)
+      // Stop polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      setPollingTaskId(null)
 
-  // ✅ CLEAR LOCALSTORAGE
-  localStorage.removeItem('videoUploadPolling')
+      // CLEAR LOCALSTORAGE
+      localStorage.removeItem('videoUploadPolling')
 
-  // ✅ Update toast to success
-  updateToast(toastId, {
-    type: 'success',
-    message: 'Upload Successful!',
-    description: result?.message || 'Your video has been uploaded successfully.'
-  })
+      // Update toast to success
+      updateToast(toastId, {
+        type: 'success',
+        message: 'Upload Successful!',
+        description: result?.message || 'Your video has been uploaded successfully.'
+      })
 
-   // ✅ Remove success toast after duration
-  setTimeout(() => removeToast(toastId), 5000)
+      // Remove success toast after duration
+      setTimeout(() => removeToast(toastId), 5000)
 
-  // Refresh video list
-  await fetchUserVideos()
+      // Refresh video list
+      await fetchUserVideos()
 
-} else if (state === 'FAILURE') {
-  // Stop polling
-  if (pollingIntervalRef.current) {
-    clearInterval(pollingIntervalRef.current)
-    pollingIntervalRef.current = null
-  }
-  setPollingTaskId(null)
+    } else if (state === 'FAILURE') {
+      // Stop polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      setPollingTaskId(null)
 
-  // ✅ CLEAR LOCALSTORAGE
-  localStorage.removeItem('videoUploadPolling')
+      // CLEAR LOCALSTORAGE
+      localStorage.removeItem('videoUploadPolling')
 
-  // ✅ Update toast to error
-  updateToast(toastId, {
-    type: 'error',
-    message: 'Upload Failed',
-    description: error || 'There was an error uploading your video.'
-  })
+      // Update toast to error
+      updateToast(toastId, {
+        type: 'error',
+        message: 'Upload Failed',
+        description: error || 'There was an error uploading your video.'
+      })
 
-  setTimeout(() => removeToast(toastId), 7000)
+      setTimeout(() => removeToast(toastId), 7000)
 
-} else if (state === 'STARTED') {
-      // ✅ Update toast when upload actually starts
+    } 
+    // ADD THIS NEW CASE FOR CANCELLED
+    else if (state === 'CANCELLED') {
+      // Stop polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      setPollingTaskId(null)
+
+      // CLEAR LOCALSTORAGE
+      localStorage.removeItem('videoUploadPolling')
+
+      // Update toast to info/warning
+      updateToast(toastId, {
+        type: 'error',
+        message: 'Upload Cancelled',
+        description: 'Your video upload was cancelled.'
+      })
+
+      setTimeout(() => removeToast(toastId), 5000)
+
+    }
+    else if (state === 'STARTED') {
+      // Update toast when upload actually starts
       updateToast(toastId, {
         type: 'loading',
         message: 'Uploading Video...',
         description: status || 'Your video is being uploaded to the server.',
       })
-
     }
-    // 🔹 ADD THIS NEW CASE ↓↓↓
     else if (state === 'PENDING') {
       // This ensures the "Processing" toast updates properly while queued
       updateToast(toastId, {
@@ -400,29 +429,29 @@ const updateToast = (id: string, updates: Partial<{
         description: 'Preparing your upload, please wait...',
       })
     }
-    // 🔹 END ADDITION
 
- } catch (error) {
-  console.error('Error polling task status:', error)
-  // Stop polling on error
-  if (pollingIntervalRef.current) {
-    clearInterval(pollingIntervalRef.current)
-    pollingIntervalRef.current = null
+  } catch (error) {
+    console.error('Error polling task status:', error)
+    // Stop polling on error
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+    setPollingTaskId(null)
+
+    // CLEAR LOCALSTORAGE
+    localStorage.removeItem('videoUploadPolling')
+
+    updateToast(toastId, {
+      type: 'error',
+      message: 'Error Checking Status',
+      description: 'Could not check upload status. Please refresh the page.'
+    })
+
+    setTimeout(() => removeToast(toastId), 7000)
   }
-  setPollingTaskId(null)
-
-  // ✅ CLEAR LOCALSTORAGE
-  localStorage.removeItem('videoUploadPolling')
-
-  updateToast(toastId, {
-    type: 'error',
-    message: 'Error Checking Status',
-    description: 'Could not check upload status. Please refresh the page.'
-  })
-
-  setTimeout(() => removeToast(toastId), 7000)
 }
-}
+
 
 // Cleanup polling on unmount
 useEffect(() => {
@@ -1321,6 +1350,7 @@ useEffect(() => {
     e.preventDefault();
     setCreateError("");
     setCreateSuccess("");
+    setCanCancel(false);
 
     // Validation
     if (!videoForm.title.trim()) {
@@ -1362,8 +1392,8 @@ useEffect(() => {
       if (uploadToastId) removeToast(uploadToastId);
       uploadToastId = addToast({
         type: "loading",
-        message: "Processing video...",
-        description: "Please wait while we prepare your upload.",
+        message: "Initiated",
+        description: "Please wait, we are in process Dont cancel yet",
       });
 
       const formData = new FormData();
@@ -1400,9 +1430,23 @@ useEffect(() => {
         formData.append("scheduled_at", scheduledAt.toISOString());
       }
 
-      const response = await createVideo(formData);
+      // Create abort controller
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current!.signal;
+
+      setIsUploading(true);
+
+      const response = await createVideo(formData, signal);
 
    if (response?.status === 202 && response?.data?.task_id) {
+    
+    // Unlock cancel button AFTER the API accepted the video
+    setCanCancel(true);
+
+    const taskId = response.data.task_id;
+      setUploadTaskId(taskId);
+      uploadTaskIdRef.current = taskId;
+
   if (response?.data?.video_id) {
     setCreatedVideoId(response.data.video_id.toString());
   }
@@ -1413,8 +1457,6 @@ useEffect(() => {
     description: 'Preparing your video for upload.',
   })
 
-  // Start polling for task status
-  const taskId = response.data.task_id
   setPollingTaskId(taskId)
 
   // SAVE TO LOCALSTORAGE
@@ -1481,6 +1523,23 @@ useEffect(() => {
       setIsCreating(false);
     }
   };
+
+  const handleCancelUpload = async () => {
+  try {
+    // Abort browser upload
+    abortControllerRef.current?.abort();
+
+    // Cancel Celery task
+    if (uploadTaskIdRef.current) {
+      await cancelUpload(uploadTaskIdRef.current);
+    }
+
+    setIsUploading(false);
+    setCreateError("Upload cancelled.");
+  } catch (err) {
+    console.error("Cancel failed:", err);
+  }
+};
 
   const handleFormChange = (
     field: keyof CreateVideoData,
@@ -3233,28 +3292,44 @@ useEffect(() => {
 
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-8 pt-6 border-t border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateModal(false);
-                      setVideoPreview(null);
-                      setThumbnailPreview(null);
-                      setVideoError("");
-                      setCreateError("");
-                      setCreateSuccess("");
-                      setKeywordInput("");
-                      if (videoInputRef.current) {
-                        videoInputRef.current.value = "";
-                      }
-                      if (thumbnailInputRef.current) {
-                        thumbnailInputRef.current.value = "";
-                      }
-                    }}
-                    disabled={isCreating}
-                    className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancel
-                  </button>
+
+                  {/* Cancel Upload (visible only while uploading) */}
+                  {isUploading ? (
+                    <button
+                      type="button"
+                      onClick={handleCancelUpload}
+                      disabled={!canCancel}
+                      className={`flex-1 px-6 py-3 rounded-lg transition-colors
+                      ${canCancel 
+                        ? "bg-red-600 text-white hover:bg-red-700" 
+                        : "bg-white text-slate-400 border border-slate-200 cursor-not-allowed opacity-50"
+                      }`}
+                    >
+                      Cancel Upload
+                    </button>
+                  ) : (
+                    /* Normal Cancel Button Before Upload Starts */
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCreateModal(false);
+                        setVideoPreview(null);
+                        setThumbnailPreview(null);
+                        setVideoError("");
+                        setCreateError("");
+                        setCreateSuccess("");
+                        setKeywordInput("");
+                        if (videoInputRef.current) videoInputRef.current.value = "";
+                        if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+                      }}
+                      disabled={!canCancel}
+                      className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                  )}
+
+                  {/* Upload Button */}
                   <button
                     type="submit"
                     disabled={

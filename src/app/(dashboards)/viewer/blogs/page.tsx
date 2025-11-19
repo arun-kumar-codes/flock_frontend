@@ -13,7 +13,7 @@ import {
   Share2,
 } from "lucide-react";
 import Image from "next/image";
-import ShareButton from "@/components/viewer/ShareButton";
+import ShareButton from "@/components/ShareButton";
 import SearchIcon from "@/assets/Search_Icon.svg";
 import {
   getBlog,

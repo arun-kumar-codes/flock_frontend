@@ -12,6 +12,7 @@ interface userLoginData{
 
       username_or_email:string,
       password:string,
+      rememberMe?: boolean;
 
 }
 
@@ -63,3 +64,33 @@ export async function logIn(userData:userLoginData){
     }
   
 }
+
+
+
+export async function verifyEmail(email: string, code: string) {
+  try {
+    const response = await axios.post("/auth/verify-email", {
+      email,
+      code,
+    });
+    return response;
+  } catch (error: any) {
+    console.error("Error verifying email:", error);
+    return error.response;
+  }
+}
+
+
+
+export async function resendVerification(email: string) {
+  try {
+    const response = await axios.post("/auth/resend-verification", {
+      email,
+    });
+    return response;
+  } catch (error: any) {
+    console.error("Error resending verification:", error);
+    return error.response;
+  }
+}
+

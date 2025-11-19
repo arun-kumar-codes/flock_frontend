@@ -10,7 +10,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import Loader from "@/components/Loader";
 import Image from "next/image";
 import Lottie from "lottie-react";
-import logoAnimation from "@/assets/logo animation.json";
+import logoAnimation from "@/assets/logo-animation.json";
 import bird from "@/assets/whiteflock.png";
 import { motion } from "framer-motion";
 import loginBg from "@/assets/LSbg.jpg";
@@ -89,6 +89,7 @@ export default function Login() {
     username_or_email: "",
     password: "",
     recaptchaToken: "",
+    rememberMe: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,10 +141,22 @@ export default function Login() {
     }
 
     try {
-      const response = await logIn(formData);
+      const response = await logIn({
+        ...formData,
+        rememberMe: formData.rememberMe,   
+      });
+      if (response.data?.email_not_verified) {
+        router.push(`/signup?verify=${response.data.email}`);
+        return;
+      }
       if (response.status === 200) {
         localStorage.setItem("access_token", response.data.access_token);
-        localStorage.setItem("refresh_token", response.data.refresh_token);
+        if (response.data.refresh_token) {
+          localStorage.setItem("refresh_token", response.data.refresh_token);
+        } else {
+          // ensure no refresh token stored from earlier sessions
+          localStorage.removeItem("refresh_token");
+        }
         const user = response.data.user;
         if (user.role.toLowerCase() === "admin") {
           router.push("/admin");
@@ -280,6 +293,23 @@ const itemVariants = {
               )}
             </div>
 
+            {/* Remember Me */}
+            <div className="flex items-center gap-2 mt-1 mb-1">
+              <input
+                type="checkbox"
+                id="remember_me"
+                checked={formData.rememberMe}
+                className="bg-white"
+                onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+              />
+              <label
+                htmlFor="remember_me"
+                className="text-xs text-black cursor-pointer"
+              >
+                Remember Me
+              </label>
+            </div>
+
 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
   {/* Sign In button */}
   <button
@@ -314,12 +344,21 @@ const itemVariants = {
             <SocialLogIn />
           </form>
 
-          <p className="mt-4 text-black text-xs">
-            Don't have an account?{" "}
-            <Link href="/signup" className="font-bold text-white hover:text-purple-700">
-              Create Account
-            </Link>
-          </p>
+         <div className="flex justify-between items-center w-full mt-4 text-xs px-1">
+  <span className="text-black">
+    Don't have an account?{" "}
+    <Link href="/signup" className="font-bold text-white hover:text-purple-700">
+      Create Account
+    </Link>
+  </span>
+</div>
+         <Link
+    href="/forgot-password"
+    className="ml-1 mt-2 text-xs font-bold text-purple-700 underline hover:text-white"
+  >
+    Forgot Your Password?
+  </Link> 
+
         </motion.div>
 
         {/* Right side grid */}

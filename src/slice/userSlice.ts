@@ -7,7 +7,8 @@ interface User {
   email: string;
   role: string;
   profileImage?: string;
-   bio?: string;
+  bio?: string;
+  dob?: string | null; 
   is_profile_completed?: boolean;
   loading?: boolean;
   isLogin: boolean;
@@ -26,6 +27,7 @@ const initialState: User = {
   profileImage: "",
   is_profile_completed: true,
   bio: "",
+  dob: null,  
   loading: true,
   isLogin: false,
   theme: storedTheme || "light",
@@ -43,6 +45,7 @@ const userSlice = createSlice({
       // state.is_profile_completed = action.payload.is_profile_completed;
       state.profileImage = action.payload.profile_picture || "";
       state.bio = action.payload.bio || "";
+      state.dob = action.payload.dob || null; 
       state.loading = false;
       state.isLogin = true;
 

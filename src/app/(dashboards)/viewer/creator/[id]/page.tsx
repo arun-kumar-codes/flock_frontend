@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
 import { getCreatorById } from "@/api/user";
 import Loader from "@/components/Loader";
@@ -7,13 +8,20 @@ import Image from "next/image";
 import placeholderImg from "../../../../../assets/profile.png";
 import VideoIcon from "@/assets/Video_Icon.svg";
 import { UserIcon } from "lucide-react";
-import ShareButton from "@/components/viewer/ShareButton";
+import ShareButton from "@/components/ShareButton";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs";
+import { addFollowing, removeFollowing } from "@/api/content";
+
+interface Blog {
+  blog: {
+    is_following_author?: boolean;
+  };
+}
 
 const stripHtmlAndDecode = (html: string): string => {
   if (!html) return "";
@@ -60,11 +68,15 @@ const formatDate = (dateString: string) => {
 };
 
 export default function CreatorProfilePage() {
+  const user = useSelector((state: any) => state.user);
   const router = useRouter();
   const { id } = useParams();
   const [creator, setCreator] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("videos");
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+
 
   // Load creator + only published videos/blogs
   useEffect(() => {
@@ -88,6 +100,16 @@ export default function CreatorProfilePage() {
             videos: publishedVideos,
             blogs: publishedBlogs,
           });
+          if (res?.status === 200) {
+  const { creator, videos, blogs } = res.data;
+
+  setCreator({
+    ...creator,
+    videos: publishedVideos,
+    blogs: publishedBlogs,
+  });
+  setIsFollowing(creator.is_following_author || false);
+}
         } else {
           setCreator(null);
         }
@@ -105,6 +127,34 @@ export default function CreatorProfilePage() {
   const handleVideoClick = (videoId: number) => {
     router.push(`/viewer/video/${videoId}`);
   };
+
+  const handleFollowToggle = async () => {
+  if (isFollowingLoading) return;
+
+  setIsFollowingLoading(true);
+
+  try {
+    const creatorId = String(creator.id);
+
+    const response = isFollowing
+      ? await removeFollowing(creatorId)
+      : await addFollowing(creatorId);
+
+    if (response?.status === 200 || response?.success) {
+      setIsFollowing(!isFollowing);
+
+      setCreator((prev: any) => ({
+        ...prev,
+        followers_count: prev.followers_count + (isFollowing ? -1 : 1),
+      }));
+    }
+  } catch (err) {
+    console.error("Follow error:", err);
+  } finally {
+    setIsFollowingLoading(false);
+  }
+};
+
 
   if (isLoading) return <Loader />;
   if (!creator) return <div className="theme-text-primary">Creator not found</div>;
@@ -128,6 +178,30 @@ export default function CreatorProfilePage() {
           <h1 className="text-3xl theme-text-primary font-bold mb-2">
             {creator.username}
           </h1>
+          {/* Follow Button (not for your own profile) */}
+{creator.id !== user.id && (
+  <button
+    onClick={handleFollowToggle}
+    disabled={isFollowingLoading}
+    className={`
+      mt-1 mb-3 px-4 py-2 rounded-lg text-sm font-medium
+      transition-all duration-200
+      ${isFollowing
+        ? "bg-green-400 text-black hover:bg-green-500"
+        : "bg-blue-600 text-white hover:bg-blue-700"
+      }
+      disabled:opacity-50 disabled:cursor-not-allowed
+    `}
+  >
+    {isFollowingLoading ? (
+      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+    ) : isFollowing ? (
+      "Unfollow"
+    ) : (
+      "Follow"
+    )}
+  </button>
+)}
           <div className="flex text-xl justify-center md:justify-start gap-8 text-sm">
             <div className="text-center">
               <p className="theme-text-primary">Flock</p>

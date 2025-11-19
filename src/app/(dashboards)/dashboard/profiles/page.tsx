@@ -1,15 +1,14 @@
 "use client"
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Camera, User, Mail, Shield, Edit3 } from "lucide-react"
+import { Camera, User, Mail, Shield, Edit3, Calendar, Eye, EyeOff } from "lucide-react"
 import { useSelector } from "react-redux"
-import { updateProfile } from "@/api/user"
+import { updateProfile, changePassword } from "@/api/user"
 import Loader2 from "@/components/Loader2"
 import { toast } from "react-hot-toast"
 import placeholderImg from "../../../../assets/profile.png";
 import { useDispatch } from "react-redux"
 import { setUser } from "@/slice/userSlice";
-
 
 interface UserData {
   id: string
@@ -33,6 +32,17 @@ export default function ProfilePage() {
   const [profileImage, setProfileImage] = useState(initialUser.profileImage)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading,setisLoading]=useState(true);
+
+  // Change Password fields
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // Visibility Toggles
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Store original values to compare against
   const [originalUsername, setOriginalUsername] = useState(initialUser.username)
@@ -117,6 +127,38 @@ export default function ProfilePage() {
       setIsSaving(false)
     }
   }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!currentPassword || !newPassword || !confirmPassword)
+    return toast.error("All fields are required");
+
+  if (newPassword !== confirmPassword)
+    return toast.error("New passwords do not match");
+
+  setIsChangingPassword(true);
+
+  try {
+    const res = await changePassword({
+      currentPassword,
+      newPassword,
+    });
+
+    if (res?.status === 200) {
+      toast.success("Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      toast.error(res?.data?.error || "Failed to change password");
+    }
+  } catch {
+    toast.error("Something went wrong");
+  } finally {
+    setIsChangingPassword(false);
+  }
+};
 
   const handleCancel = () => {
     // Reset to original values
@@ -221,6 +263,25 @@ export default function ProfilePage() {
                         </div>
                       </div>
                     </div>
+<div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
+  <div className="flex items-center space-x-3">
+    <div className="bg-green-500 rounded-lg p-2">
+      <Calendar className="md:h-5 md:w-5 h-4 w-4 text-white" />
+    </div>
+    <div>
+      <p className="text-sm font-medium text-gray-600">Date of Birth</p>
+      <p className="text-gray-900 font-semibold">
+        {initialUser.dob
+          ? new Date(initialUser.dob).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : "Not provided"}
+      </p>
+    </div>
+  </div>
+</div>
                   </div>
                 </div>
               </div>
@@ -322,6 +383,96 @@ export default function ProfilePage() {
                       </button>
                     </div>
                   </form>
+
+  {/* CHANGE PASSWORD CARD */}
+  <div className="mb-8 mt-6">
+    <div className="flex items-center space-x-3 mb-4">
+      <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-lg p-2">
+        <Shield className="h-4 w-4 md:h-6 md:w-6 text-white" />
+      </div>
+      <h3 className="text-lg md:text-2xl font-bold text-gray-900">
+        Change Password
+      </h3>
+    </div>
+    <p className="text-gray-600 text-sm md:text-base">
+      Update your account password securely.
+      <p className="text-red-500 text-sm">Protocol - Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character.</p>
+    </p>
+  </div>
+
+  <form onSubmit={handleChangePassword} className="space-y-6">
+
+    {/* Current Password */}
+    <div className="relative">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Current Password
+      </label>
+      <input
+        type={showCurrent ? "text" : "password"}
+        value={currentPassword}
+        onChange={(e) => setCurrentPassword(e.target.value)}
+        placeholder="Enter current password"
+        className="w-full h-10 md:h-14 rounded-xl border-2 border-gray-200 bg-white px-4 pr-12 py-3 focus:ring-blue-500 focus:border-blue-500"
+        required
+      />
+      <div
+        className="absolute right-4 top-[60%] -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
+        onClick={() => setShowCurrent(!showCurrent)}
+      >
+        {showCurrent ? <EyeOff size={20} /> : <Eye size={20} />}
+      </div>
+    </div>
+
+    {/* New Password */}
+    <div className="relative">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        New Password
+      </label>
+      <input
+        type={showNew ? "text" : "password"}
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        placeholder="Enter new password"
+        className="w-full h-10 md:h-14 rounded-xl border-2 border-gray-200 bg-white px-4 pr-12 py-3 focus:ring-blue-500 focus:border-blue-500"
+        required
+      />
+      <div
+        className="absolute right-4 top-[60%] -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
+        onClick={() => setShowNew(!showNew)}
+      >
+        {showNew ? <EyeOff size={20} /> : <Eye size={20} />}
+      </div>
+    </div>
+
+    {/* Confirm Password */}
+    <div className="relative">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Confirm New Password
+      </label>
+      <input
+        type={showConfirm ? "text" : "password"}
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        placeholder="Confirm new password"
+        className="w-full h-10 md:h-14 rounded-xl border-2 border-gray-200 bg-white px-4 pr-12 py-3 focus:ring-blue-500 focus:border-blue-500"
+        required
+      />
+      <div
+        className="absolute right-4 top-[60%] -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
+        onClick={() => setShowConfirm(!showConfirm)}
+      >
+        {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      disabled={isChangingPassword}
+      className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-pink-600 to-red-600 text-white font-semibold shadow-lg hover:from-pink-700 hover:to-red-700 transition-all duration-200"
+    >
+      {isChangingPassword ? "Updating..." : "Change Password"}
+    </button>
+  </form>
                 </div>
               </div>
             </div>

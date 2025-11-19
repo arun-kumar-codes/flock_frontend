@@ -10,7 +10,7 @@ import {
 import SearchIcon from "@/assets/Search_Icon.svg";
 import VideoIcon from "@/assets/Video_Icon.svg";
 import Lottie from "lottie-react";
-import logoAnimation from "@/assets/logo animation.json";
+import logoAnimation from "@/assets/logo-animation.json";
 import bannerBg from "@/assets/LSbg.jpg";
 import BlogIcon from "@/assets/BlogSvg.png";
 import Image from "next/image";
@@ -736,6 +736,10 @@ const handleBlogClick = (blog: Blog) => {
     return <Loader />;
   }
 
+  const filteredCreators = creators.filter((creator) =>
+  creator.username.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
   return (
     <div className={`min-h-screen theme-bg-primary transition-colors duration-300 ${inter.className}`}>
       <div className="lg:px-2 py-4">
@@ -832,7 +836,7 @@ const handleBlogClick = (blog: Blog) => {
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search..."
+            placeholder="Search creators, video or blogs here"
             className="w-full bg-transparent py-2 pr-10 pl-2 
                        text-[12px] sm:text-[13px] lg:text-[14px]
                        text-gray-800 focus:outline-none placeholder:text-gray-500"
@@ -1336,85 +1340,76 @@ const handleBlogClick = (blog: Blog) => {
           )}
         </div>
 
-        {/* All Creators Section */}
-        <div className="mb-8">
-          {/* Creators Header */}
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl md:text-2xl font-semibold theme-text-primary ml-2">
-              All Creators
-            </h2>
-            {/* <button
-              onClick={() => router.push("/viewer/creators")}
-              className="text-black hover:text-gray-700 transition-colors duration-200 font-medium"
+       {/* All Creators Section */}
+<div className="mb-8">
+  <div className="flex items-center justify-between mb-2">
+    <h2 className="text-xl md:text-2xl font-semibold theme-text-primary ml-2">
+      All Creators
+    </h2>
+  </div>
+
+  {isLoadingCreators ? (
+    <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={`loading-creator-${index}`}
+          className="animate-pulse flex-shrink-0 w-full md:w-64"
+        >
+          <div className="bg-gray-200 rounded-2xl min-h-[300px]"></div>
+        </div>
+      ))}
+    </div>
+  ) : creatorsError ? (
+    <div className="text-center py-8">
+      <p className="text-red-500">{creatorsError}</p>
+      <button
+        onClick={fetchCreators}
+        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+  ) : (
+    <div className="relative">
+      <div
+        className="
+          flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory
+          scrollbar-hide pb-4 px-1
+        "
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        {filteredCreators.length > 0 ? (
+          filteredCreators.map((creator) => (
+            <div
+              key={`creator-${creator.id}`}
+              className="group cursor-pointer flex-shrink-0 w-[150px] sm:w-[180px] md:w-50"
+              onClick={() => {
+                const next = `/viewer/creator/${creator.id}`;
+                requireAuth(next, () => router.push(next));
+              }}
             >
-              View All &gt;
-            </button> */}
-          </div>
-
-          {isLoadingCreators ? (
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div
-                  key={`loading-creator-${index}`}
-                  className="animate-pulse flex-shrink-0 w-full md:w-64"
-                >
-                  <div className="bg-gray-200 rounded-2xl min-h-[300px]"></div>
-                </div>
-              ))}
-            </div>
-          ) : creatorsError ? (
-            <div className="text-center py-8">
-              <p className="text-red-500">{creatorsError}</p>
-              <button
-                onClick={fetchCreators}
-                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          ) : (
-            <div className="relative">
-              {/* Creators Content Cards - Scrollable */}
-              <div
-                className="
-                  flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory 
-                  scrollbar-hide pb-4 px-1
-                "
-                style={{ WebkitOverflowScrolling: "touch" }}
-              >
-                {creators.length > 0
-                  ? creators.map((creator, index) => (
-                      <div
-                        key={`creator-${creator.id}`}
-                        className="group cursor-pointer flex-shrink-0 w-[150px] sm:w-[180px] md:w-50"
-                        onClick={() => {
-                              const next = `/viewer/creator/${creator.id}`;
-                              requireAuth(next, () => router.push(next));
-                            }}
-                      >
-                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
-                          <div className="aspect-[3/4] relative overflow-hidden">
-                            {creator.profile_picture ? (
-                              <Image
-                                src={creator.profile_picture}
-                                alt={creator.username || "Creator"}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                <div className="text-center">
-                                  <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <UserIcon className="w-10 h-10 text-gray-500" />
-                                  </div>
-                                  <p className="text-sm text-gray-500 font-medium">
-                                    {creator.username || "Creator"}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Creator Name Overlay - Only on Hover and when profile picture exists */}
+              <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
+                <div className="aspect-[3/4] relative overflow-hidden">
+                  {creator.profile_picture ? (
+                    <Image
+                      src={creator.profile_picture}
+                      alt={creator.username}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <UserIcon className="w-10 h-10 text-gray-500" />
+                        </div>
+                        <p className="text-sm text-gray-500 font-medium">
+                          {creator.username || "Creator"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {/* Creator Name Overlay - Only on Hover and when profile picture exists */}
                             {creator.profile_picture && (
                               <div className="absolute inset-0 bg-black/0 transition-all duration-300 flex items-end mb-2 px-2">
                                 <div className="w-full bg-white/20 px-4 py-3 text-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
@@ -1423,37 +1418,33 @@ const handleBlogClick = (blog: Blog) => {
                                   </h3>
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  : // Fallback cards when no creators are available
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <div
-                        key={`fallback-creator-${index}`}
-                        className="group cursor-pointer flex-shrink-0 w-full md:w-64"
-                      >
-                        <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                          <div className="aspect-[3/4] relative overflow-hidden">
-                            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                  <PlayIcon className="w-8 h-8 text-gray-500" />
-                                </div>
-                                <p className="text-sm text-gray-500">
-                                  No creators available
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                          )}
+                </div>
               </div>
             </div>
-          )}
-        </div>
+          ))
+        ) : (
+          /* EMPTY STATE — MATCHES TRENDING STYLE */
+          <div className="flex-shrink-0 w-full text-center py-8">
+            <div className="bg-white rounded-4xl shadow-sm p-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Image src={SearchIcon} alt="Search" className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  No creators found
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  Try adjusting your search or filter criteria
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>
 
         {/* Blog Articles Section */}
         {/* <div className="mb-8">

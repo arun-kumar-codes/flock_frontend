@@ -269,7 +269,7 @@ export async function  getDashboardContent(creatorId?:string|undefined) {
 }
 
 
-export async function createVideo(data: any) {
+export async function createVideo(data: any, signal?: AbortSignal) {
   try {
     const response = await axiosInstance.post('/video/create', data, {
       headers: {
@@ -637,6 +637,81 @@ export async function getBlogsByCreator (blogId: any) {
     return response;
   } catch (error:any) {
     console.error("Error getting video", error);
+    return error.response;
+  }
+}
+
+
+export async function hideVideoComment(commentId: any) {
+  try {
+    const response = await axiosInstance.patch(`/video/comment/${commentId}/hide`);
+    return response;
+  } catch (error: any) {
+    console.error("Error hiding video comment:", error);
+    return error.response;
+  }
+}
+
+
+export async function unhideVideoComment(commentId: any) {
+  try {
+    const response = await axiosInstance.patch(`/video/comment/${commentId}/unhide`);
+    return response;
+  } catch (error: any) {
+    console.error("Error unhiding video comment:", error);
+    return error.response;
+  }
+}
+
+
+export async function creatorDeleteVideoComment(commentId: any) {
+  try {
+    const response = await axiosInstance.delete(`/video/comment/${commentId}/creator-delete`);
+    return response;
+  } catch (error: any) {
+    console.error("Error deleting viewer comment on video:", error);
+    return error.response;
+  }
+}
+
+
+export async function hideBlogComment(commentId: any) {
+  try {
+    const response = await axiosInstance.patch(`/blog/comment/${commentId}/hide`);
+    return response;
+  } catch (error: any) {
+    console.error("Error hiding blog comment:", error);
+    return error.response;
+  }
+}
+
+
+export async function unhideBlogComment(commentId: any) {
+  try {
+    const response = await axiosInstance.patch(`/blog/comment/${commentId}/unhide`);
+    return response;
+  } catch (error: any) {
+    console.error("Error unhiding blog comment:", error);
+    return error.response;
+  }
+}
+
+
+export async function creatorDeleteBlogComment(commentId: any) {
+  try {
+    const response = await axiosInstance.delete(`/blog/comment/${commentId}/creator-delete`);
+    return response;
+  } catch (error: any) {
+    console.error("Error deleting viewer comment on blog:", error);
+    return error.response;
+  }
+}
+
+
+export async function cancelUpload(taskId: string) {
+  try {
+    return await axiosInstance.post(`/video/cancel-upload/${taskId}`);
+  } catch (error: any) {
     return error.response;
   }
 }

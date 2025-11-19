@@ -11,7 +11,7 @@ import {
   ArrowRightIcon,
   Share2,
 } from "lucide-react";
-import ShareButton from "@/components/viewer/ShareButton";
+import ShareButton from "@/components/ShareButton";
 import Image from "next/image";
 import SearchIcon from "@/assets/Search_Icon.svg";
 import VideoIcon from "@/assets/Video_Icon.svg";

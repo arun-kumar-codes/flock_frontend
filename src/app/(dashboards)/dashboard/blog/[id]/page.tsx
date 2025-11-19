@@ -3,7 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Image from "next/image";
-import ShareButton from "@/components/viewer/ShareButton";
+import ShareButton from "@/components/ShareButton";
 import {
   getBlogById,
   addComment,
@@ -11,6 +11,9 @@ import {
   deleteComment,
   viewBLog,
   toggleBlogLike,
+  hideBlogComment,
+  unhideBlogComment,
+  creatorDeleteBlogComment,
 } from "@/api/content";
 import {
   ArrowLeft,
@@ -46,6 +49,7 @@ interface Blog {
       comment: string;
       commented_at: string;
       commented_by: number;
+      is_hidden: boolean;
       commenter: {
         id: number;
         username: string;
@@ -689,6 +693,70 @@ export default function DashboardBlogDetailPage() {
                                     )}
                                   </div>
                                 )}
+                                {/* Creator Moderation Menu (for other people's comments) */}
+{blog.blog?.author?.id === user?.id && comment.commenter?.id !== user?.id && (
+  <div className="relative comment-menu-container">
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        setShowCommentMenu(showCommentMenu === comment.id ? null : comment.id);
+      }}
+      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors cursor-pointer"
+    >
+      <MoreVertical className="w-4 h-4 theme-text-secondary" />
+    </button>
+
+    {showCommentMenu === comment.id && (
+      <div className="absolute right-5 top-0 w-36 theme-bg-card rounded-lg shadow-lg border theme-border z-20">
+
+        {/* HIDE / UNHIDE */}
+        {comment.is_hidden ? (
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              await unhideBlogComment(comment.id);
+              const updated = await getBlogById(params.id);
+              if (updated?.data) setBlog(updated.data);
+              setShowCommentMenu(null);
+            }}
+            className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+          >
+            <span>Unhide</span>
+          </button>
+        ) : (
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              await hideBlogComment(comment.id);
+              const updated = await getBlogById(params.id);
+              if (updated?.data) setBlog(updated.data);
+              setShowCommentMenu(null);
+            }}
+            className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+          >
+            <span>Hide</span>
+          </button>
+        )}
+
+        {/* CREATOR DELETE */}
+        <button
+          onClick={async (e) => {
+            e.stopPropagation();
+            await creatorDeleteBlogComment(comment.id);
+            const updated = await getBlogById(params.id);
+            if (updated?.data) setBlog(updated.data);
+            setShowCommentMenu(null);
+          }}
+          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 cursor-pointer"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>Delete</span>
+        </button>
+
+      </div>
+    )}
+  </div>
+)}
                               </div>
 
                               {isEditing ? (
@@ -724,6 +792,13 @@ export default function DashboardBlogDetailPage() {
                                 </div>
                               ) : (
                                 <div>
+
+                                  {/* HIDDEN BADGE — only creator sees this */}
+                                  {comment.is_hidden && blog.blog.author.id === user.id && (
+                                    <span className="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded-md">
+                                      Hidden (only visible to you)
+                                    </span>
+                                  )}
                                   <p className="theme-text-secondary text-sm leading-relaxed">
                                     {comment.comment || "No comment text"}
                                   </p>

@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import Loader2 from "@/components/Loader2"
 import Lottie from "lottie-react";
-import logoAnimation from "@/assets/logo animation.json";
+import logoAnimation from "@/assets/logo-animation.json";
 import bannerBg from "@/assets/LSbg.jpg";
 
 

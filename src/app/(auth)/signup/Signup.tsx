@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { EyeIcon, EyeOffIcon, CalendarIcon } from "lucide-react";
 import SocialLogIn from "@/components/SocialLogIn";
-import { signUp } from "@/api/auth";
-import { useRouter } from "next/navigation";
+import { signUp, verifyEmail, resendVerification } from "@/api/auth";
+import { useRouter, useSearchParams } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from "react-hot-toast";
 import Loader from "@/components/Loader";
 import Image from "next/image";
 import Lottie from "lottie-react";
-import logoAnimation from "@/assets/logo animation.json";
+import logoAnimation from "@/assets/logo-animation.json";
 import bird from "@/assets/whiteflock.png";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -90,6 +90,7 @@ export default function Signup() {
     email: "",
     username: "",
     password: "",
+    dob: "", 
     recaptchaToken: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -102,6 +103,10 @@ export default function Signup() {
   const router = useRouter();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
   const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [verifyError, setVerifyError] = useState("");
 
   const handleChange = (name: string, value: string) => {
     if (name === "email") value = value.toLowerCase();
@@ -126,6 +131,59 @@ export default function Signup() {
       setErrors((prev) => ({ ...prev, recaptcha: "" }));
     }
   };
+
+  // VALIDATE REAL DATE (DD/MM/YYYY)
+function isValidDOB(dobStr: string) {
+  const [dd, mm, yyyy] = dobStr.split("/").map(Number);
+
+  // Required parts
+  if (!dd || !mm || !yyyy) return false;
+
+  // Logical ranges
+  if (mm < 1 || mm > 12) return false;
+  if (dd < 1 || dd > 31) return false;
+  if (yyyy < 1900 || yyyy > new Date().getFullYear()) return false;
+
+  // Create real date
+  const dateObj = new Date(yyyy, mm - 1, dd);
+
+  // Verify JS didn’t auto-correct invalid date
+  return (
+    dateObj.getFullYear() === yyyy &&
+    dateObj.getMonth() === mm - 1 &&
+    dateObj.getDate() === dd
+  );
+}
+
+const params = useSearchParams();
+useEffect(() => {
+  const verifyEmail = params.get("verify");
+
+  if (verifyEmail) {
+    setUserEmail(verifyEmail);
+    setShowVerification(true);  // OPEN OTP SCREEN ONLY
+  }
+}, [params]);
+
+// Auto-trigger resend OTP when coming from login
+useEffect(() => {
+  const emailFromLogin = params.get("verify");
+
+  if (emailFromLogin) {
+    setUserEmail(emailFromLogin);
+    setShowVerification(true);
+
+    // Automatically send a new OTP when opened via login
+    resendVerification(emailFromLogin)
+      .then(() => {
+        toast.success("Verification code sent again!");
+      })
+      .catch(() => {
+        toast.error("Failed to send verification code");
+      });
+  }
+}, []);
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -169,6 +227,11 @@ export default function Signup() {
     if (!formData.recaptchaToken)
       newErrors.recaptcha = "Please complete the reCAPTCHA verification";
 
+    // VALIDATE DOB BEFORE SUBMIT
+      if (formData.dob && !isValidDOB(formData.dob)) {
+        newErrors.dob = "Please enter a valid date.";
+      }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setIsSubmitting(false);
@@ -176,10 +239,18 @@ export default function Signup() {
     }
 
     try {
+      // FIX DOB FORMAT BEFORE SUBMIT
+      if (formData.dob) {
+        const parts = formData.dob.split("/");
+        if (parts.length === 3) {
+          const [dd, mm, yyyy] = parts;
+          formData.dob = `${yyyy}-${mm}-${dd}`; // Convert to YYYY-MM-DD
+        }
+      }
       const response = await signUp(formData);
       if (response.status === 201) {
-        toast.success("Account created successfully!");
-        router.push("/login");
+        setUserEmail(formData.email);     // store email
+        setShowVerification(true);        // show OTP screen
       } else {
         setErrorMessage(
           response?.data?.error || "Error creating account. Please try again."
@@ -193,6 +264,36 @@ export default function Signup() {
       recaptchaRef.current?.reset();
     }
   };
+
+  const handleVerify = async () => {
+  if (!verificationCode) {
+    setVerifyError("Please enter the 6-digit verification code");
+    return;
+  }
+
+  const res = await verifyEmail(
+    userEmail,
+    verificationCode,
+  );
+
+  if (res?.status === 200) {
+    toast.success("Email verified! Your account is now activated.");
+    router.push("/login");
+  } else {
+    setVerifyError(res?.data?.error || "Invalid verification code");
+  }
+};
+
+
+const handleResend = async () => {
+  const res = await resendVerification(userEmail);
+  if (res?.status === 200) {
+    toast.success("Verification code resent!");
+  } else {
+    toast.error(res?.data?.error || "Failed to resend code");
+  }
+};
+
 
   if (isLoading) return <Loader />;
 
@@ -254,6 +355,9 @@ export default function Signup() {
             with your community. Your creative universe awaits.
           </p>
 
+        {!showVerification ? (
+          <>
+            {/* SIGNUP FORM */}
           <form onSubmit={handleSubmit} className="space-y-3">
             <input
               id="email"
@@ -286,6 +390,64 @@ export default function Signup() {
             {errors.username && (
               <p className="text-xs text-red-600">{errors.username}</p>
             )}
+
+{/* DOB FIELD */}
+<div className="relative">
+
+  {/* Visible custom DD/MM/YYYY typed input */}
+  <input
+    type="text"
+    placeholder="Enter your Date of Birth (DD/MM/YYYY)"
+    value={formData.dob}
+    maxLength={10}
+    onChange={(e) => {
+      let input = e.target.value.replace(/[^\d]/g, "");
+
+      if (input.length > 2 && input.length <= 4) {
+        input = input.slice(0, 2) + "/" + input.slice(2);
+      } else if (input.length > 4) {
+        input = input.slice(0, 2) + "/" + input.slice(2, 4) + "/" + input.slice(4, 8);
+      }
+
+      setFormData({ ...formData, dob: input });
+      setErrors({ ...errors, dob: "" });
+    }}
+    className={`w-full rounded-full border-2 px-2 py-1 pr-10 text-slate-900 bg-white
+  focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 text-xs
+  ${errors.dob ? "border-red-400 focus:border-red-500" : "border-slate-200"}`}
+    required
+  />
+
+  {/* Hidden date input — NOT overlapping anything */}
+  <input
+    id="hiddenDOB"
+    type="date"
+    className="hidden"
+    onChange={(e) => {
+      if (!e.target.value) return;
+
+      const [y, m, d] = e.target.value.split("-");
+      const formatted = `${d}/${m}/${y}`;
+
+      setFormData({ ...formData, dob: formatted });
+      setErrors({ ...errors, dob: "" });
+    }}
+  />
+
+  {/* Calendar icon triggers the hidden date picker */}
+  <CalendarIcon
+    onClick={() => {
+      const picker = document.getElementById("hiddenDOB") as HTMLInputElement;
+      picker?.showPicker?.();
+    }}
+    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4 cursor-pointer"
+  />
+</div>
+
+{errors.dob && (
+  <p className="text-xs text-red-600">{errors.dob}</p>
+)}
+
 
             <div className="relative">
               <input
@@ -329,7 +491,7 @@ export default function Signup() {
       ? "Too short"
       : /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(formData.password)
       ? "Strong password"
-      : "Add uppercase, number & special character"}
+      : "Must be alleast 8 digit, and uppercase, number & special character"}
   </p>
 )}
 
@@ -398,7 +560,57 @@ export default function Signup() {
 
             <SocialLogIn />
           </form>
+          </>
+) : (
+  <>
+    {/* ⭐ EMAIL VERIFICATION VIEW ⭐ */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg w-full max-w-sm"
+    >
+      <h2 className="text-xl font-bold text-[#684098] mb-3">Verify Your Email</h2>
 
+      <p className="text-sm text-gray-700 mb-4">
+        A verification code has been sent to:
+        <br />
+        <span className="font-semibold">{userEmail}</span>
+      </p>
+
+      <input
+        type="text"
+        maxLength={6}
+        value={verificationCode}
+        onChange={(e) => {
+          setVerificationCode(e.target.value);
+          setVerifyError("");
+        }}
+        placeholder="Enter verification code"
+        className="w-full rounded-full border-2 px-4 py-2 text-sm border-gray-300 focus:border-indigo-500 outline-none"
+      />
+
+      {verifyError && (
+        <p className="text-xs text-red-600 mt-2">{verifyError}</p>
+      )}
+
+      <button
+        onClick={handleVerify}
+        className="w-full mt-4 bg-[#684098] text-white py-2 rounded-full text-sm font-semibold hover:bg-[#58328a] transition"
+      >
+        Verify Email
+      </button>
+
+      <button
+        type="button"
+        onClick={handleResend}
+        className="w-full mt-3 text-xs text-[#684098] underline"
+      >
+        Resend Verification Code
+      </button>
+    </motion.div>
+  </>
+)}
           <p className="mt-4 text-black text-xs">
             Already have an account?{" "}
             <Link

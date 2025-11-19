@@ -47,15 +47,41 @@ export async function updateProfile(data: any) {
   }
 }
 
-export async function changePassword(data: any) {
+
+export async function forgotPassword(data: any) {
+  // { email }
   try {
-    const response = await axiosInstance.put('/auth/change-password', data);
+    const response = await axiosInstance.post('/auth/forgot-password', data);
     return response;
-  } catch (error:any) {
-    console.error("Error changing password:", error);
+  } catch (error: any) {
+    console.error("Error sending forgot password email:", error);
     return error.response;
   }
 }
+
+
+export async function resetPassword(data: any) {
+  // { token, new_password }
+  try {
+    const response = await axiosInstance.post('/auth/reset-password', data);
+    return response;
+  } catch (error: any) {
+    console.error("Error resetting password:", error);
+    return error.response;
+  }
+}
+
+
+export async function changePassword(data: any) { 
+  try { 
+    const response = await axiosInstance.put('/auth/change-password', data); 
+    return response; 
+  } catch (error:any) { 
+    console.error("Error changing password:", error); 
+    return error.response; 
+  } 
+}
+
 
 export async function getAllUser() {
   try {

@@ -1,10 +1,10 @@
 "use client";
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Camera, User, Mail, Shield, Edit3, X } from "lucide-react";
+import { Camera, User, Mail, Shield, Edit3, X, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { updateProfile, becomeCreator } from "@/api/user";
+import { updateProfile, becomeCreator, changePassword } from "@/api/user";
 import Loader from "@/components/Loader";
 import { toast } from "react-hot-toast";
 import { setUser } from "@/slice/userSlice";
@@ -27,6 +27,15 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showCreatorModal, setShowCreatorModal] = useState(false);
   const [isBecomingCreator, setIsBecomingCreator] = useState(false);
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const [originalUsername, setOriginalUsername] = useState(user.username || "");
   const [originalProfileImage, setOriginalProfileImage] = useState(
@@ -130,6 +139,44 @@ setProfileImage(newProfile);
       setIsSaving(false);
     }
   };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    toast.error("All fields are required");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    toast.error("New passwords do not match");
+    return;
+  }
+
+  setIsChangingPassword(true);
+
+  try {
+    const res = await changePassword({
+      currentPassword,
+      newPassword,
+    });
+
+    if (res?.status === 200) {
+      toast.success("Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      toast.error(res?.data?.error || "Failed to change password");
+    }
+
+  } catch (err) {
+    toast.error("Something went wrong");
+  } finally {
+    setIsChangingPassword(false);
+  }
+};
+
 
   const handleCancel = () => {
     setUsername(originalUsername);
@@ -348,6 +395,96 @@ setProfileImage(newProfile);
                       </button>
                     </div>
                   </form>
+
+                  {/* CHANGE PASSWORD CARD */}
+              <div className="mb-8 mt-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-lg p-2">
+                    <Shield className="w-5 h-5 md:h-6 md:w-6 text-white" />
+                  </div>
+                  <h3 className="text-lg md:text-2xl font-bold theme-text-primary">
+                    Change Password
+                  </h3>
+                </div>
+                <p className="theme-text-secondary text-sm md:text-base">
+                  Update your account password safely and securely.
+                  <p className="text-red-500 text-sm">Protocol - Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character.</p>
+                </p>
+              </div>
+
+              <form onSubmit={handleChangePassword} className="space-y-6">
+                {/* Current Password */}
+<div className="relative">
+  <label className="block text-sm font-semibold theme-text-primary mb-2">
+    Current Password
+  </label>
+  <input
+    type={showCurrentPassword ? "text" : "password"}
+    value={currentPassword}
+    onChange={(e) => setCurrentPassword(e.target.value)}
+    placeholder="Enter current password"
+    className="w-full h-10 md:h-14 rounded-xl theme-input px-4 pr-12 py-3"
+    required
+  />
+  <div
+    className="absolute right-4 top-[69%] -translate-y-1/2 cursor-pointer text-gray-500"
+    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+  >
+    {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </div>
+</div>
+
+{/* New Password */}
+<div className="relative">
+  <label className="block text-sm font-semibold theme-text-primary mb-2">
+    New Password
+  </label>
+  <input
+    type={showNewPassword ? "text" : "password"}
+    value={newPassword}
+    onChange={(e) => setNewPassword(e.target.value)}
+    placeholder="Enter new password"
+    className="w-full h-10 md:h-14 rounded-xl theme-input px-4 pr-12 py-3"
+    required
+  />
+  <div
+    className="absolute right-4 top-[69%] -translate-y-1/2 cursor-pointer text-gray-500"
+    onClick={() => setShowNewPassword(!showNewPassword)}
+  >
+    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </div>
+</div>
+
+{/* Confirm Password */}
+<div className="relative">
+  <label className="block text-sm font-semibold theme-text-primary mb-2">
+    Confirm New Password
+  </label>
+  <input
+    type={showConfirmPassword ? "text" : "password"}
+    value={confirmPassword}
+    onChange={(e) => setConfirmPassword(e.target.value)}
+    placeholder="Confirm new password"
+    className="w-full h-10 md:h-14 rounded-xl theme-input px-4 pr-12 py-3"
+    required
+  />
+  <div
+    className="absolute right-4 top-[69%] -translate-y-1/2 cursor-pointer text-gray-500"
+    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+  >
+    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </div>
+</div>
+
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="w-full px-6 py-3 rounded-xl theme-button-primary text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  {isChangingPassword ? "Updating..." : "Change Password"}
+                </button>
+              </form>
+
                 </div>
               </div>
             </div>

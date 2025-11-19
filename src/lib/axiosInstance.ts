@@ -41,34 +41,43 @@ axiosInstance.interceptors.response.use(
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
+
+      // IMPORTANT: If no refresh token → user did NOT select Remember Me
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        // No silent login → force logout
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        //console.log("Refresh Token:", refreshToken);
+        // Call refresh endpoint
         const response = await axios.post(
           `${baseURL}/auth/refresh`,
           {},
           {
-            headers:{
-              'Content-Type': 'application/json', 
+            headers: {
+              'Content-Type': 'application/json',
               'Authorization': `Bearer ${refreshToken}`
             }
           }
-         
         );
 
         const newAccessToken = response.data.access_token;
 
-        // Save new token and update original request
+        // Save new token and update original request headers
         localStorage.setItem('access_token', newAccessToken);
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${newAccessToken}`;
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        originalRequest.headers['Authorization'] = `Bearer newAccessToken`;
 
         // Retry the original request
         return axiosInstance(originalRequest);
+
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
-        // Optionally, redirect to login
-        localStorage.clear()
+        localStorage.clear();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
