@@ -8,7 +8,7 @@ import Image from "next/image"
 import { useSelector, useDispatch } from "react-redux"
 import profileImg from "@/assets/profile.png"
 import { logOut } from "@/slice/userSlice"
-import Logo from "@/assets/Logo.png"
+import Logo from "@/assets/Flock-LOGO.png"
 import Exit from '@/assets/Exit.svg'
 import ExitIcon from "@/assets/logout-icon.png"
 import Login from '@/assets/Login.svg'
@@ -103,21 +103,17 @@ export function CustomSidebar({ onExpandChange, forceOpen = false }: CustomSideb
         {/* Sidebar Header / Logo */}
 <div className="flex items-center justify-center py-4 mt-3">
   <div className="flex items-center space-x-3">
-    <div className="w-10 h-10 flex items-center justify-center rounded-xl">
+    <div className={`flex items-center justify-center rounded-xl transition-all duration-300 
+    ${open ? "w-50 h-10" : "w-20 h-10"}`}>
       <Image
         src={Logo}
         alt="Flock Logo"
-        width={48}
-        height={48}
+       width={open ? 80 : 48}
+        height={open ? 80 : 48}
         className="object-contain drop-shadow-md"
         priority
       />
     </div>
-    {open && ( // CHANGED: use `open`
-              <span className="text-2xl font-bold text-[#2C50A2] tracking-tight transition-all duration-300">
-                Flock
-              </span>
-      )}
   </div>
 </div>
 

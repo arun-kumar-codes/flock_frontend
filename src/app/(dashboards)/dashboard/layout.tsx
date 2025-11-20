@@ -19,7 +19,7 @@ import { logOut } from "@/slice/userSlice";
 import { Suspense } from "react";
 import Loader2 from "@/components/Loader2";
 import { toggleUserRole } from "@/api/content";
-import Logo from "@/assets/Logo.png";
+import Logo from "@/assets/Flock-LOGO.png";
 import Exit from "@/assets/logout-icon.png";
 import HomeIcon from "@/assets/Home-icon.svg";
 import BlogIcon from "@/assets/blog-icon.png";
@@ -201,21 +201,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo */}
         <div className="flex items-center justify-center py-2 mt-3">
           <div className="flex items-center space-x-1">
-            <div className="w-10 h-10 flex items-center justify-center rounded-xl">
+           <div className={`flex items-center justify-center rounded-xl transition-all duration-300
+              ${isExpanded ? "w-50 h-10" : "w-20 h-10"}
+            `}>
               <Image
                 src={Logo}
                 alt="Flock Logo"
-                width={48}
-                height={48}
+                 width={isExpanded ? 80 : 48}
+                  height={isExpanded ? 80 : 48}
                 className="object-contain drop-shadow-md"
                 priority
               />
             </div>
-            {isExpanded && (
-              <span className="text-2xl font-bold text-[#2C50A2] tracking-tight transition-all duration-300">
-                Flock
-              </span>
-            )}
           </div>
         </div>
 
