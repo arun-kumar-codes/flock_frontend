@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import ClientBlogPage from "./ClientBlogPage";
 
 export async function generateMetadata(
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
-  const { id } = params;
+
+  const { id } = await props.params;  // FIX
 
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blog/${id}`, {
@@ -45,12 +46,17 @@ export async function generateMetadata(
   }
 }
 
-export default async function BlogPage({ params }: { params: { id: string } }) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blog/${params.id}`, {
+export default async function BlogPage(
+  props: { params: Promise<{ id: string }> }
+) {
+
+  const { id } = await props.params;  // FIX
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blog/${id}`, {
     cache: "no-store",
   });
 
   const data = await res.json();
 
-  return <ClientBlogPage initialBlog={data} blogId={params.id} />;
+  return <ClientBlogPage initialBlog={data} blogId={id} />;
 }

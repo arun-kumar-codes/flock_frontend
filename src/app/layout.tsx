@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_PUBLIC_URL || "http://116.202.210.102:3001"
+  ),
   title: "Flock",
   description:
     "A modern, secure, and user-friendly platform for managing content.",
