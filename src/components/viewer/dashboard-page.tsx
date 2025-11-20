@@ -581,43 +581,43 @@ export default function DashboardPage() {
   };
 
   // Filter function for main content
-  const filterContent = (items: ContentItem[]) => {
-    const searchText = searchTerm.toLowerCase();
+ const filterContent = (items: ContentItem[]) => {
+  const safeSearch = (searchTerm || "").toLowerCase();
 
-    return items.filter((item) => {
-      const matchesContentType =
-        contentTypeFilter === "all" ||
-        (contentTypeFilter === "videos" && item.type === "video") ||
-        (contentTypeFilter === "blogs" && item.type === "blog");
+  return items.filter((item) => {
+    const matchesContentType =
+      contentTypeFilter === "all" ||
+      (contentTypeFilter === "videos" && item.type === "video") ||
+      (contentTypeFilter === "blogs" && item.type === "blog");
 
-      if (!matchesContentType) return false;
+    if (!matchesContentType) return false;
 
-      if (searchText === "") return true; // Show all if no search term
+    if (safeSearch === "") return true;
 
-      if (item.type === "video") {
-        const plainDescription = stripHtmlAndDecode(item.description);
-        return (
-          item.title.toLowerCase().includes(searchText) ||
-          item.creator.username.toLowerCase().includes(searchText) ||
-          plainDescription.toLowerCase().includes(searchText) ||
-          (Array.isArray(item.keywords) &&
-            item.keywords.some((kw: any) =>
-              kw.toLowerCase().includes(searchText)
-            ))
-        );
-      } else {
-        return (
-          item.title.toLowerCase().includes(searchText) ||
-          item.author.username.toLowerCase().includes(searchText) ||
-          (item.excerpt && item.excerpt.toLowerCase().includes(searchText)) ||
-          (Array.isArray(item.keywords) &&
-            item.keywords.some((kw: any) =>
-              kw.toLowerCase().includes(searchText)
-            ))
-        );
-      }
-    });
-  };
+    // Safe getters
+    const safe = (v: any) => (v?.toString()?.toLowerCase() || "");
+
+    if (item.type === "video") {
+      const plainDescription = stripHtmlAndDecode(item.description || "");
+
+      return (
+        safe(item.title).includes(safeSearch) ||
+        safe(item.creator?.username).includes(safeSearch) ||
+        safe(plainDescription).includes(safeSearch) ||
+        (Array.isArray(item.keywords) &&
+          item.keywords.some((kw: any) => safe(kw).includes(safeSearch)))
+      );
+    } else {
+      return (
+        safe(item.title).includes(safeSearch) ||
+        safe(item.author?.username).includes(safeSearch) ||
+        safe(item.excerpt).includes(safeSearch) ||
+        (Array.isArray(item.keywords) &&
+          item.keywords.some((kw: any) => safe(kw).includes(safeSearch)))
+      );
+    }
+  });
+};
 
   const filteredTrendingContent = filterContent(trendingContent);
   const filteredMostViewedContent = filterContent(mostViewedContent);
@@ -737,7 +737,7 @@ const handleBlogClick = (blog: Blog) => {
   }
 
   const filteredCreators = creators.filter((creator) =>
-  creator.username.toLowerCase().includes(searchTerm.toLowerCase())
+  (creator.username || "").toLowerCase().includes((searchTerm || "").toLowerCase())
 );
 
   return (

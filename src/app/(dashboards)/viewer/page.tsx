@@ -46,7 +46,7 @@ export default function ViewerDashboard() {
 
   // Effect: handle redirect and loading. Safe checks with optional chaining.
   useEffect(() => {
-    const role = user?.role?.toLowerCase() || null
+    const role = (user?.role || "").toLowerCase() || null
     if (!role) {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
