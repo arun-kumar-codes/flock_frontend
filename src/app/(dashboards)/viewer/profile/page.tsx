@@ -32,6 +32,9 @@ export default function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [dob, setDob] = useState(user.dob || "");
+  const [originalDob, setOriginalDob] = useState(user.dob || "");
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -52,6 +55,9 @@ useEffect(() => {
 
   setUsername(user.username);
   setOriginalUsername(user.username);
+
+  setDob(user.dob || "");
+  setOriginalDob(user.dob || "");
 
   // ✅ Normalize both possible keys (profile_picture or profileImage)
   const validProfile =
@@ -301,6 +307,27 @@ setProfileImage(newProfile);
                         </div>
                       </div>
                     </div>
+
+                    <div className="theme-bg-secondary rounded-xl p-4 theme-border">
+  <div className="flex items-center space-x-3">
+    <div className="bg-green-500 rounded-lg p-2">
+      <User className="h-4 w-4 md:h-5 md:w-5 text-white" />
+    </div>
+    <div>
+      <p className="text-sm font-medium theme-text-muted">Date of Birth</p>
+      <p className="theme-text-primary font-semibold text-sm md:text-base">
+        {dob
+          ? new Date(dob).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : "Not provided"}
+      </p>
+    </div>
+  </div>
+</div>
+
                   </div>
                 </div>
               </div>
