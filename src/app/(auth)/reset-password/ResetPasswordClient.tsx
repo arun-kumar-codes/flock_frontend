@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { resetPassword } from "@/api/user";
 import Image from "next/image";
 import Bg from "@/assets/LSbg.jpg";
-import Logo from "@/assets/FlockLogo.png";
+import Logo from "@/assets/Flock-LOGO.png";
 import { motion } from "framer-motion";
 import { EyeIcon, EyeOffIcon, CheckCircle2 } from "lucide-react";
 

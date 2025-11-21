@@ -4,7 +4,7 @@ import { forgotPassword } from "@/api/user";
 import Image from "next/image";
 import Bg from "@/assets/LSbg.jpg";
 import { motion } from "framer-motion";
-import Logo from "@/assets/FlockLogo.png"; 
+import Logo from "@/assets/Flock-LOGO.png"; 
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
