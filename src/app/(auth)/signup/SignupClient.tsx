@@ -491,7 +491,7 @@ const handleResend = async () => {
       ? "Too short"
       : /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(formData.password)
       ? "Strong password"
-      : "Must be alleast 8 digit, and uppercase, number & special character"}
+      : "Must be at least 8 digits, and an upper case, number & special character"}
   </p>
 )}
 
