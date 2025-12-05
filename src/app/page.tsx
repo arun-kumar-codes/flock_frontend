@@ -14,6 +14,8 @@ export default function Home() {
   const dispatch = useDispatch();
   const user=useSelector((state:any)=>state.user);
   
+  const router = useRouter();
+  
   useEffect(() => {
     
     const detectTheme = () => {
@@ -25,9 +27,10 @@ export default function Home() {
     detectTheme()
     const theme = localStorage.getItem('theme') || 'light';
     // dispatch(setTheme(theme));
-  }, []);
-  const router=useRouter();
-  router.push("/viewer");
+    
+    // Navigate to viewer page after component mounts (client-side only)
+    router.push("/viewer");
+  }, [router]);
   
   return (
    <Loader></Loader>

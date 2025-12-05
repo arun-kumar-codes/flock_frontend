@@ -36,14 +36,6 @@ export default function AboutUsPage() {
               />
             </Link>
           </div>
-
-          {/* About Us Title - Center */}
-          <div className="flex-1 flex justify-center">
-            <h1 className="text-4xl md:text-4xl lg:text-4xl font-extrabold text-white drop-shadow-2xl tracking-tight">
-              ABOUT US
-            </h1>
-          </div>
-
           {/* Login/Signup Buttons - Right Most */}
           <div className="flex items-center gap-3 md:gap-4 lg:gap-5">
             <Link
@@ -56,76 +48,19 @@ export default function AboutUsPage() {
               href="/signup"
               className="bg-[#2D9CB8] text-sm md:text-base lg:text-lg text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
-              Join Flock
+              Join The Flock
             </Link>
           </div>
         </div>
       </header>
-
-      {/* Tagline Section */}
-      <div className="relative z-10 pb-6 md:pb-8">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-base md:text-lg lg:text-xl text-white/95 font-medium max-w-3xl mx-auto drop-shadow-lg leading-relaxed">
-            Empowering creators to own their audience, publish their voice, and earn from their work
-          </p>
-        </div>
-      </div>
-
-      {/* Footer Links at Bottom of Hero Section */}
-      <div className="relative z-10 pb-6 md:pb-8">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 lg:gap-8 pt-4 border-t border-white/20">
-            <Link
-              href="/contact"
-              className="text-white/90 hover:text-white text-sm md:text-base font-medium hover:underline transition-all hover:scale-105"
-            >
-              Contact Us
-            </Link>
-            <span className="text-white/40">•</span>
-            <Link
-              href="/policy/privacy-policy"
-              className="text-white/90 hover:text-white text-sm md:text-base font-medium hover:underline transition-all hover:scale-105"
-            >
-              Privacy Policy
-            </Link>
-            <span className="text-white/40">•</span>
-            <Link
-              href="/policy/terms-of-service"
-              className="text-white/90 hover:text-white text-sm md:text-base font-medium hover:underline transition-all hover:scale-105"
-            >
-              Terms of Service
-            </Link>
-            <span className="text-white/40">•</span>
-            <Link
-              href="/policy/community-guidelines"
-              className="text-white/90 hover:text-white text-sm md:text-base font-medium hover:underline transition-all hover:scale-105"
-            >
-              Community Guidelines
-            </Link>
-            <span className="text-white/40">•</span>
-            <Link
-              href="/policy/acceptable-use-policy"
-              className="text-white/90 hover:text-white text-sm md:text-base font-medium hover:underline transition-all hover:scale-105"
-            >
-              Acceptable Use Policy
-            </Link>
-            <span className="text-white/40">•</span>
-            <Link
-              href="/policy/safety-policy"
-              className="text-white/90 hover:text-white text-sm md:text-base font-medium hover:underline transition-all hover:scale-105"
-            >
-              Safety Policy
-            </Link>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content - Full Width Sections */}
       <div className="relative z-10">
         {/* Who We Are - Featured Section */}
         <section className="bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-50 px-6 md:px-12 lg:px-16 py-12 md:py-16 border-t border-purple-200/50">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-purple-900 text-center mb-4 -mt-4">About Us</h2>
+            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6">
               Who We Are
             </h2>
               <div className="space-y-4 text-gray-700 text-lg leading-relaxed">

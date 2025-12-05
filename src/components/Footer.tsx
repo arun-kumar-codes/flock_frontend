@@ -3,6 +3,8 @@ export default function Footer() {
     { label: "About Us", href: "/about-us" },  
     { label: "Terms of Service", href: "/policy/terms-of-service" },
     { label: "Privacy Policy", href: "/policy/privacy-policy" },
+    { label: "Cookie & Tracking Policy", href: "/policy/cookie-policy" },
+    { label: "Safety Policy", href: "/policy/safety-policy" },
     { label: "Community Guidelines", href: "/policy/community-guidelines" },
     { label: "Acceptable Use Policy", href: "/policy/acceptable-use-policy" },
     { label: "Creator Licensing", href: "/policy/creator-licensing" },
