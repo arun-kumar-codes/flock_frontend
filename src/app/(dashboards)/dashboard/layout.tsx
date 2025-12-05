@@ -257,6 +257,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
+        {/* About Us (desktop) */}
+<div className="p-3 relative">
+  <button
+    onClick={() => router.push("/about-us")}
+    className="w-full flex items-center px-3 py-2 text-black hover:text-gray-900 
+               cursor-pointer hover:bg-gray-300 rounded-lg transition-colors duration-200 
+               group min-w-0"
+  >
+    <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
+      <UsersRound className="w-5 h-5 text-black" />
+    </div>
+
+    {isExpanded && (
+      <span className="ml-3 font-medium whitespace-nowrap">About Us</span>
+    )}
+  </button>
+
+  {!isExpanded && (
+    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white 
+                    text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity 
+                    duration-200 pointer-events-none whitespace-nowrap z-50 top-1/2 
+                    -translate-y-1/2">
+      About Us
+    </div>
+  )}
+</div>
+
         {/* Logout (desktop) */}
         <div className="p-3 border-t border-gray-200 relative" ref={logoutRef}>
           <button
@@ -326,6 +353,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               );
             })}
           </nav>
+
+          {/* About Us (mobile) */}
+<div className="p-3">
+  <button
+    onClick={() => {
+      router.push("/about-us");
+      setIsExpanded(false);
+    }}
+    className="w-full flex items-center px-3 py-2 text-black hover:text-gray-900 
+               cursor-pointer hover:bg-gray-300 rounded-lg transition-colors duration-200 
+               group min-w-0"
+  >
+    <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
+      <UsersRound className="w-5 h-5 text-black" />
+    </div>
+
+    <span className="ml-3 font-medium whitespace-nowrap">About Us</span>
+  </button>
+</div>
 
           {/* Logout (mobile) */}
           <div className="p-3 border-t border-gray-300 mt-auto">

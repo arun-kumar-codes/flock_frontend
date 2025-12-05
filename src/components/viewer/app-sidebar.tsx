@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { UserIcon, LogOutIcon, TrendingUpIcon } from "lucide-react"
+import { UserIcon, LogOutIcon, TrendingUpIcon, Users } from "lucide-react"
 import HomeIconSvg from "@/assets/Home-icon.svg"
 import Image from "next/image"
 import { useSelector, useDispatch } from "react-redux"
@@ -193,6 +193,33 @@ export function CustomSidebar({ onExpandChange, forceOpen = false }: CustomSideb
           })}
         </nav>
       </div>
+
+      {/* About Us Link */}
+      <div
+  className={`absolute bottom-20 left-0 right-0 transition-all duration-300 ${
+    open ? "p-4" : "px-2 py-2"
+  }`}
+>
+  <button
+    onClick={() => router.push("/about-us")}
+    className="
+      w-full flex items-center space-x-3 
+      px-4 py-2.5 rounded-lg 
+      cursor-pointer text-black
+      hover:bg-gray-300 
+      transition-all duration-200
+    "
+    title={!open ? "About Us" : undefined}
+  >
+    <Users className="w-6 h-6 flex-shrink-0 text-black" />
+
+    <span
+      className={`transition-opacity duration-300 whitespace-nowrap font-medium ${textVisibility}`}
+    >
+      About Us
+    </span>
+  </button>
+</div>
 
       {/* User Profile & Logout OR Sign In */}
       {user.isLogin ? (

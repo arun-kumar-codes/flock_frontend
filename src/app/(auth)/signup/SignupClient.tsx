@@ -529,6 +529,29 @@ const handleResend = async () => {
               <p className="text-xs text-red-600">{errors.confirmPassword}</p>
             )}
 
+            {/* Terms and Privacy Policy Acknowledgment */}
+            <div className="text-center py-2">
+              <p className="text-[12px] sm:text-[13px] text-black leading-relaxed">
+                By creating an account, you agree to our{" "}
+                <Link
+                  href="/policy/terms-of-service"
+                  className="text-white hover:text-purple-900 underline font-semibold"
+                  target="_blank"
+                >
+                  Terms of Service
+                </Link>
+                {" "}and{" "}
+                <Link
+                  href="/policy/privacy-policy"
+                  className="text-white hover:text-purple-900 underline font-semibold"
+                  target="_blank"
+                >
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+            </div>
+
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
               <button
                 type="submit"

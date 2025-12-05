@@ -31,6 +31,9 @@ export default function PayoutPage() {
   const [isHistoryLoading, setIsHistoryLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10;
+  const [showPolicyCheckbox, setShowPolicyCheckbox] = useState(false)
+  const [policyAgreed, setPolicyAgreed] = useState(false)
+  const [pendingProvider, setPendingProvider] = useState<PaymentProvider>(null)
 
   useEffect(() => {
     const fetchEarnings = async () => {
@@ -182,56 +185,85 @@ useEffect(() => {
     }).format(amount)
   }
 
-  const handleConnectAccount = async (provider: PaymentProvider) => {
+  const handleConnectAccount = (provider: PaymentProvider) => {
+    // Show policy checkbox instead of calling API immediately
+    setPendingProvider(provider)
+    setShowPolicyCheckbox(true)
+    setPolicyAgreed(false)
+  }
+
+  const proceedWithConnection = async () => {
+    if (!policyAgreed) {
+      toast.error("Please agree to the Monetization Rules & Payment Terms to continue")
+      return
+    }
+
+    if (!pendingProvider) {
+      toast.error("No payment provider selected")
+      return
+    }
+
     try {
-      if (provider === 'stripe') {
+      if (pendingProvider === 'stripe') {
         const response = await setupStripeAccount()
         if (response?.status === 200) {
           setOnboardingUrl(response.data.onboarding_url)
           setIsAccountConnected(false)
           setIsAccountPending(false)
           setConnectedProvider('stripe')
+          setShowPolicyCheckbox(false)
+          setPendingProvider(null)
+          setPolicyAgreed(false)
         } else {
           console.error("Stripe Setup Failed:", response?.data)
         }
-      } else if (provider === "paypal") {
-  try {
-    const response = await setupPayPalAccount(); // no prompt; backend handles OAuth
-    if (response?.status === 200 && response.data?.success) {
-      const { onboarding_url, status } = response.data;
+      } else if (pendingProvider === "paypal") {
+        try {
+          const response = await setupPayPalAccount(); // no prompt; backend handles OAuth
+          if (response?.status === 200 && response.data?.success) {
+            const { onboarding_url, status } = response.data;
 
-      if (onboarding_url) {
-        // open PayPal OAuth page
-        window.open(onboarding_url, "_blank");
-        toast("Redirecting to PayPal for verification...", { icon: "🔗" });
-      }
+            if (onboarding_url) {
+              // open PayPal OAuth page
+              window.open(onboarding_url, "_blank");
+              toast("Redirecting to PayPal for verification...", { icon: "🔗" });
+            }
 
-      if (status === "already_active") {
-        toast.success("Your PayPal account is already connected 🎉");
-        setConnectedProvider("paypal");
-        setIsAccountConnected(true);
-        setIsAccountPending(false);
-      } else if (status === "existing_incomplete") {
-        toast("Continue your PayPal onboarding.", { icon: "⏳" });
-        setConnectedProvider("paypal");
-        setIsAccountPending(true);
-        setIsAccountConnected(false);
-        setOnboardingUrl(onboarding_url);
-      } else if (status === "new_created") {
-        toast("PayPal onboarding started ✅");
-        setConnectedProvider("paypal");
-        setIsAccountPending(true);
-        setIsAccountConnected(false);
-        setOnboardingUrl(onboarding_url);
+            if (status === "already_active") {
+              toast.success("Your PayPal account is already connected 🎉");
+              setConnectedProvider("paypal");
+              setIsAccountConnected(true);
+              setIsAccountPending(false);
+              setShowPolicyCheckbox(false)
+              setPendingProvider(null)
+              setPolicyAgreed(false)
+            } else if (status === "existing_incomplete") {
+              toast("Continue your PayPal onboarding.", { icon: "⏳" });
+              setConnectedProvider("paypal");
+              setIsAccountPending(true);
+              setIsAccountConnected(false);
+              setOnboardingUrl(onboarding_url);
+              setShowPolicyCheckbox(false)
+              setPendingProvider(null)
+              setPolicyAgreed(false)
+            } else if (status === "new_created") {
+              toast("PayPal onboarding started ✅");
+              setConnectedProvider("paypal");
+              setIsAccountPending(true);
+              setIsAccountConnected(false);
+              setOnboardingUrl(onboarding_url);
+              setShowPolicyCheckbox(false)
+              setPendingProvider(null)
+              setPolicyAgreed(false)
+            }
+          } else {
+            toast.error(response?.data?.error || "PayPal setup failed.");
+          }
+        } catch (error) {
+          console.error("Error connecting PayPal account:", error);
+          toast.error("Something went wrong while connecting PayPal.");
+        }
       }
-    } else {
-      toast.error(response?.data?.error || "PayPal setup failed.");
-    }
-  } catch (error) {
-    console.error("Error connecting PayPal account:", error);
-    toast.error("Something went wrong while connecting PayPal.");
-  }
-}
     } catch (error) {
       console.error("Error connecting account:", error)
     }
@@ -491,26 +523,63 @@ useEffect(() => {
 
               <div className="p-6">
                 {isAccountConnected && (
-                  <div className="text-center space-y-4">
-                    <CheckCircle className="h-10 w-10 text-green-600 mx-auto" />
-                    <p className="text-gray-700 font-medium">
-                                          Your {connectedProvider === 'stripe'
-                      ? 'Stripe'
-                      : connectedProvider === 'paypal'
-                      ? 'PayPal'
-                      : 'Paypal'} account is connected 🎉
-                    </p>
-                    <button
-                      onClick={handleRemoveAccount}
-                      className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Account
-                    </button>
+                  <div className="space-y-6">
+                    <div className="text-center space-y-4">
+                      <CheckCircle className="h-10 w-10 text-green-600 mx-auto" />
+                      <p className="text-gray-700 font-medium">
+                        Your {connectedProvider === 'stripe'
+                          ? 'Stripe'
+                          : connectedProvider === 'paypal'
+                          ? 'PayPal'
+                          : 'Paypal'} account is connected 🎉
+                      </p>
+                      <button
+                        onClick={handleRemoveAccount}
+                        className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove Account
+                      </button>
+                    </div>
+
+                    {/* Policy Acknowledgment Section */}
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <p className="text-sm text-gray-800 mb-3 text-center">
+                        By connecting a payment account, you agree to our:
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-4 text-sm">
+                        <a
+                          href="/policy/kyc-aml-policy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                        >
+                          KYC/AML Policy
+                        </a>
+                        <span className="text-gray-400">•</span>
+                        <a
+                          href="/policy/creator-licensing"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                        >
+                          Creator Licensing
+                        </a>
+                        <span className="text-gray-400">•</span>
+                        <a
+                          href="/policy/refunds-policy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                        >
+                          Refunds & Chargebacks
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                {!isAccountConnected && !isAccountPending && !onboardingUrl && (
+                {!isAccountConnected && !isAccountPending && !onboardingUrl && !showPolicyCheckbox && (
                   <div>
                     <div className="text-center mb-6">
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Choose Payment Method</h3>
@@ -539,7 +608,7 @@ useEffect(() => {
                         </div>
                       </div>
 
-                      {/* Payoneer Option */}
+                      {/* Payoneer Option (not implemented yet)*/}
                       <div
                         onClick={() => handleConnectAccount('paypal')}
                         className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-all"
@@ -558,7 +627,7 @@ useEffect(() => {
                         </div>
                       </div>
 
-                      {/* PayPal Option just UI integrate backend later*/}
+                      {/* PayPal */}
                   <div
                     onClick={() => handleConnectAccount('paypal')}
                     className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 hover:bg-blue-50 transition-all"
@@ -575,7 +644,171 @@ useEffect(() => {
                         Connect PayPal
                       </div>
                     </div>
+                      </div>
+                    </div>
+
+                    {/* Policy Acknowledgment Section */}
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <p className="text-sm text-gray-800 mb-3 text-center">
+                        By connecting a payment account, you agree to our:
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-4 text-sm">
+                        <a
+                          href="/policy/kyc-aml-policy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                        >
+                          KYC/AML Policy
+                        </a>
+                        <span className="text-gray-400">•</span>
+                        <a
+                          href="/policy/creator-licensing"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                        >
+                          Creator Licensing
+                        </a>
+                        <span className="text-gray-400">•</span>
+                        <a
+                          href="/policy/refunds-policy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                        >
+                          Refunds & Chargebacks
+                        </a>
+                      </div>
+                    </div>
                   </div>
+                )}
+
+                {/* Policy Acknowledgment Checkbox Section */}
+                {!isAccountConnected && !isAccountPending && !onboardingUrl && showPolicyCheckbox && (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        Connect {pendingProvider === 'stripe' ? 'Stripe' : pendingProvider === 'paypal' ? 'PayPal' : 'Payoneer'}
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Before enabling monetization, please review and agree to the following policies:
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start">
+                          <span className="text-gray-700 font-medium mr-2">•</span>
+                          <a
+                            href="/policy/monetization-policy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                          >
+                            Earnings & Monetization Policy
+                          </a>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-gray-700 font-medium mr-2">•</span>
+                          <a
+                            href="/policy/kyc-aml-policy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                          >
+                            KYC/AML Policy
+                          </a>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-gray-700 font-medium mr-2">•</span>
+                          <a
+                            href="/policy/refunds-policy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                          >
+                            Refunds & Chargebacks
+                          </a>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-gray-700 font-medium mr-2">•</span>
+                          <a
+                            href="/policy/creator-licensing"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                          >
+                            Creator Licensing & Ownership Agreement
+                          </a>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-gray-700 font-medium mr-2">•</span>
+                          <a
+                            href="/policy/acceptable-use-policy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                          >
+                            Acceptable Use Policy
+                          </a>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="text-gray-700 font-medium mr-2">•</span>
+                          <a
+                            href="/policy/community-guidelines"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-600 hover:text-purple-800 hover:underline font-medium transition-colors"
+                          >
+                             Community Guidelines
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-200">
+                        <label className="flex items-start cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={policyAgreed}
+                            onChange={(e) => setPolicyAgreed(e.target.checked)}
+                            className="mt-1 mr-3 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                          />
+                          <span className="text-sm text-gray-700">
+                            I agree to the{" "}
+                            <span className="font-semibold">Monetization Rules & Payment Terms</span>
+                            {" "}as outlined in the policies above.
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center gap-4">
+                      <button
+                        onClick={() => {
+                          setShowPolicyCheckbox(false)
+                          setPendingProvider(null)
+                          setPolicyAgreed(false)
+                        }}
+                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={proceedWithConnection}
+                        disabled={!policyAgreed}
+                        className={`px-6 py-2 rounded-lg text-white transition-colors ${
+                          policyAgreed
+                            ? pendingProvider === 'stripe'
+                              ? 'bg-blue-600 hover:bg-blue-700'
+                              : pendingProvider === 'paypal'
+                              ? 'bg-green-500 hover:bg-green-600'
+                              : 'bg-orange-600 hover:bg-orange-700'
+                            : 'bg-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        Proceed to Connect
+                      </button>
                     </div>
                   </div>
                 )}
