@@ -55,9 +55,9 @@ export default function CookiePolicyPage() {
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
-              COOKIE & TRACKING POLICY — FLOCKTOGETHER.XYZ
+              COOKIE & TRACKING POLICY - FLOCKTOGETHER.XYZ
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -87,17 +87,17 @@ export default function CookiePolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">1. WHAT ARE COOKIES?</h2>
               <p>Cookies are small pieces of data stored on your browser or device when you visit a website.</p>
-              <p>They help us remember your preferences, secure your session, and deliver features.</p>
+              <p>They help us remember your preferences, secure your session, and deliver essential features.</p>
               <p>Cookies may be:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li><strong>Session cookies</strong> — deleted when you close your browser</li>
-                <li><strong>Persistent cookies</strong> — remain until manually deleted or expired</li>
+                <li>Session cookies — deleted when you close your browser</li>
+                <li>Persistent cookies — remain until manually deleted or expired</li>
               </ul>
-              <p>We also use related technologies:</p>
+              <p>We also use related technologies such as:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>HTML5 local storage</li>
                 <li>Browser fingerprinting (for fraud prevention)</li>
-                <li>Device IDs (mobile environments)</li>
+                <li>Device IDs (for mobile environments)</li>
                 <li>SDK tracking (mobile apps)</li>
                 <li>Web beacons & pixels</li>
               </ul>
@@ -106,9 +106,8 @@ export default function CookiePolicyPage() {
             {/* Section 2 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">2. WHY WE USE COOKIES</h2>
-              <p>We use cookies for:</p>
-
-              <h3 className="font-semibold">2.1 Core Platform Operations</h3>
+              <p className="font-semibold">2.1 Core Platform Operations</p>
+              <p>Used for:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Account login</li>
                 <li>Session continuity</li>
@@ -117,7 +116,8 @@ export default function CookiePolicyPage() {
                 <li>Performance optimization</li>
               </ul>
 
-              <h3 className="font-semibold">2.2 Security & Abuse Prevention</h3>
+              <p className="font-semibold">2.2 Security & Abuse Prevention</p>
+              <p>Includes:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Login validation</li>
                 <li>Account fraud protection</li>
@@ -125,30 +125,33 @@ export default function CookiePolicyPage() {
                 <li>Payment/risk prevention</li>
               </ul>
 
-              <h3 className="font-semibold">2.3 Analytics & Platform Metrics</h3>
+              <p className="font-semibold">2.3 Analytics & Platform Metrics</p>
+              <p>Helps us understand platform performance, including:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Visitor count tracking</li>
-                <li>Time on page / engagement</li>
+                <li>Visitor count</li>
+                <li>Time on page</li>
                 <li>Drop-off points</li>
                 <li>User flow</li>
                 <li>Content performance</li>
               </ul>
               <p>We do not use analytics to personally identify users without consent.</p>
 
-              <h3 className="font-semibold">2.4 Advertising & Monetization</h3>
+              <p className="font-semibold">2.4 Advertising & Monetization</p>
+              <p>Used for:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Displayed content relevance</li>
-                <li>Ad frequency capping</li>
+                <li>Content relevance</li>
+                <li>Frequency capping</li>
                 <li>Demographic modeling</li>
                 <li>Geographic restrictions</li>
                 <li>Ad performance optimization</li>
               </ul>
 
-              <h3 className="font-semibold">2.5 Personalization</h3>
+              <p className="font-semibold">2.5 Personalization</p>
+              <p>Used for:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Saved preferences</li>
+                <li>Saved user preferences</li>
                 <li>Recommended content</li>
-                <li>"Follow" and subscription suggestions</li>
+                <li>Follow/subscription suggestions</li>
               </ul>
             </section>
 
@@ -156,74 +159,64 @@ export default function CookiePolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">3. TYPES OF COOKIES WE USE</h2>
 
-              <h3 className="font-semibold">A. Strictly Necessary Cookies</h3>
-              <p>Required for the Platform to function:</p>
+              <p className="font-semibold">A. Strictly Necessary Cookies</p>
+              <p>Required for Platform functionality, including:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Account authentication</li>
-                <li>Session integrity</li>
+                <li>Authentication</li>
                 <li>Security features</li>
                 <li>Payment processing</li>
                 <li>Page routing</li>
               </ul>
-              <p>You cannot opt-out of these.</p>
+              <p>These cannot be disabled.</p>
 
-              <h3 className="font-semibold">B. Functional Cookies</h3>
-              <p>Enable enhanced experiences:</p>
+              <p className="font-semibold">B. Functional Cookies</p>
+              <p>Improve user experience:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Language preferences</li>
-                <li>Theme or UI settings</li>
-                <li>Device layout memory</li>
-                <li>Playback settings</li>
+                <li>UI/theme settings</li>
+                <li>Playback preferences</li>
               </ul>
-              <p>Disabling them may reduce usability.</p>
 
-              <h3 className="font-semibold">C. Analytics / Performance Cookies</h3>
-              <p>Used to improve the Platform:</p>
+              <p className="font-semibold">C. Analytics / Performance Cookies</p>
+              <p>Used for:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Visitor insights</li>
+                <li>Feature usage</li>
                 <li>Error detection</li>
-                <li>Feature usage data</li>
-                <li>Average view duration</li>
-                <li>Content retention</li>
+                <li>Retention metrics</li>
               </ul>
-              <p>Examples:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Google Analytics</li>
-                <li>Internal analytics</li>
-              </ul>
+              <p>Examples include Google Analytics and internal analytics tools.</p>
 
-              <h3 className="font-semibold">D. Advertising & Monetization Cookies</h3>
-              <p>Used to deliver relevant advertisements and measure performance:</p>
+              <p className="font-semibold">D. Advertising & Monetization Cookies</p>
+              <p>Used by:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Google AdSense</li>
                 <li>Ezoic</li>
-                <li>Programmatic ad services</li>
-                <li>Brand integrations</li>
+                <li>Other programmatic ad partners</li>
               </ul>
               <p>These may track:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Interest categories</li>
+                <li>Interests</li>
                 <li>Engagement</li>
                 <li>Ad views</li>
                 <li>Conversions</li>
               </ul>
-              <p>These are disabled by default in GDPR regions until consent is given.</p>
+              <p>GDPR-region users must give consent before these activate.</p>
             </section>
 
             {/* Section 4 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">4. THIRD-PARTY COOKIES</h2>
-              <p>We partner with third parties who may set cookies in your browser.</p>
-              <p>Examples include:</p>
+              <p>We partner with third-party providers, including:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Google AdSense</li>
                 <li>Google Analytics</li>
                 <li>Ezoic</li>
-                <li>PayPal / Payoneer (payment verification)</li>
+                <li>PayPal / Payoneer</li>
                 <li>Stripe</li>
-                <li>Cloudflare or CDN networks</li>
+                <li>Cloudflare / CDNs</li>
               </ul>
-              <p>These providers may collect:</p>
+              <p>These providers may collect data such as:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>IP address</li>
                 <li>Device information</li>
@@ -231,15 +224,14 @@ export default function CookiePolicyPage() {
                 <li>Usage patterns</li>
                 <li>Language</li>
                 <li>Time zone</li>
-                <li>Country of access</li>
+                <li>Country</li>
               </ul>
-              <p>Third-party data is used strictly for:</p>
+              <p>They use this data for:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Fraud prevention</li>
                 <li>Payment integrity</li>
                 <li>Advertising delivery</li>
-                <li>Compliance screening</li>
-                <li>Platform performance</li>
+                <li>Compliance</li>
                 <li>Creator earnings reporting</li>
               </ul>
             </section>
@@ -247,40 +239,32 @@ export default function CookiePolicyPage() {
             {/* Section 5 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">5. MOBILE & SDK TRACKING</h2>
-              <p>If you access Flock via a mobile interface or app, we may use:</p>
+              <p>If you access Flock via mobile interface or app, we may use:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>App device IDs</li>
-                <li>OS-level identifiers</li>
-                <li>SDK-based analytics</li>
-                <li>Crash reporting frameworks</li>
+                <li>Device IDs</li>
+                <li>SDK-level analytics</li>
+                <li>Crash reporting tools</li>
               </ul>
-              <p>Examples:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Firebase</li>
-                <li>Meta SDK</li>
-                <li>App Store analytics tools</li>
-              </ul>
+              <p>Examples include Firebase, Meta SDK, and App Store diagnostics.</p>
             </section>
 
             {/* Section 6 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">6. COOKIE CONSENT (GDPR / EU / EEA / UK)</h2>
-              <p>Users in the EU/EEA/UK receive a cookie consent banner before non-essential cookies activate.</p>
-              <p>You may:</p>
+              <p>Users in regulated regions receive a consent banner before non-essential cookies activate.</p>
+              <p>Users may:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Accept all cookies</li>
                 <li>Reject non-essential cookies</li>
                 <li>Customize cookie categories</li>
               </ul>
-              <p>We do not load advertising cookies until consent is explicitly provided.</p>
+              <p>Advertising cookies only load after explicit consent.</p>
             </section>
 
             {/* Section 7 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">7. YOUR OPTIONS & OPT-OUT</h2>
-              <p>You can control cookies in three ways:</p>
-
-              <h3 className="font-semibold">7.1 Browser level</h3>
+              <p className="font-semibold">7.1 Browser Controls</p>
               <p>You may:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Clear cookies</li>
@@ -288,15 +272,15 @@ export default function CookiePolicyPage() {
                 <li>Disable tracking scripts</li>
               </ul>
 
-              <h3 className="font-semibold">7.2 In-platform settings</h3>
-              <p>Where provided, users may disable:</p>
+              <p className="font-semibold">7.2 In-Platform Settings</p>
+              <p>Where available, you may disable:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Recommendation cookies</li>
                 <li>Personalization cookies</li>
+                <li>Recommendation cookies</li>
                 <li>Ad personalization</li>
               </ul>
 
-              <h3 className="font-semibold">7.3 Third-party opt-outs</h3>
+              <p className="font-semibold">7.3 Third-Party Opt-Outs</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>
                   <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
@@ -314,13 +298,13 @@ export default function CookiePolicyPage() {
                   </a>
                 </li>
               </ul>
-              <p>Some site features may not work once disabled.</p>
+              <p>Some features may not work when cookies are disabled.</p>
             </section>
 
             {/* Section 8 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">8. GOOGLE ADSENSE & EZOIC SPECIFIC REQUIREMENTS</h2>
-              <p>Because FLOCK uses AdSense/Ezoic or similar programmatic monetization:</p>
+              <p>Because Flock uses programmatic monetization:</p>
               <p>Cookies may be used to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Personalize ads</li>
@@ -328,35 +312,29 @@ export default function CookiePolicyPage() {
                 <li>Measure performance</li>
                 <li>Detect invalid traffic</li>
               </ul>
-              <p>Google may combine user data from:</p>
+              <p>Google may combine user data from cross-services such as:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Google accounts</li>
                 <li>Search history</li>
                 <li>YouTube usage</li>
-                <li>Browser behavior</li>
               </ul>
-              <p>Users may opt out using Google controls.</p>
+              <p>Users can opt out using Google ad controls.</p>
             </section>
 
             {/* Section 9 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">9. DO-NOT-TRACK</h2>
-              <p>Do-Not-Track (DNT) browser signals may not be honored due to:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Industry fragmentation</li>
-                <li>Inconsistent technical standards</li>
-              </ul>
-              <p>We provide explicit opt-out controls instead.</p>
+              <p>Do-Not-Track signals may not be honored due to inconsistent standards.</p>
+              <p>We provide explicit cookie controls instead.</p>
             </section>
 
             {/* Section 10 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">10. STORAGE DURATION</h2>
-              <p>Different cookies have different lifespans:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li><strong>Session cookies</strong> — deleted upon browser close</li>
-                <li><strong>Persistent cookies</strong> — remain until expiration or manual deletion</li>
-                <li><strong>Local storage</strong> — retained until cleared</li>
+                <li>Session cookies delete upon browser close</li>
+                <li>Persistent cookies remain until expiration</li>
+                <li>Local storage remains until manually cleared</li>
               </ul>
               <p>We do not use perpetual cookies.</p>
             </section>
@@ -364,40 +342,39 @@ export default function CookiePolicyPage() {
             {/* Section 11 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">11. FRAUD DETECTION TECHNIQUES</h2>
-              <p>To protect users and creators, we may use:</p>
+              <p>We may deploy:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Device fingerprinting</li>
                 <li>IP rate mapping</li>
-                <li>Token airdrop detection</li>
                 <li>Anti-bot analytics</li>
                 <li>Payment token validation</li>
               </ul>
-              <p>These measures are for security and monetization integrity, not personal profiling.</p>
+              <p>These tools protect users and creators and are not used for personal profiling.</p>
             </section>
 
             {/* Section 12 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">12. CHILD PRIVACY</h2>
-              <p>Minimum age to use FLOCK: 13+</p>
+              <p>Minimum age to use Flock: 13+</p>
               <p>We do not knowingly collect:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Behavioral profiles of children</li>
-                <li>Advertising identifiers of minors</li>
-                <li>Personalized ads for users under required age thresholds</li>
+                <li>Behavioral profiles of minors</li>
+                <li>Advertising identifiers for minors</li>
+                <li>Personalized ad data from underage users</li>
               </ul>
-              <p>Creators who violate child safety may be permanently banned.</p>
+              <p>Child safety violations lead to permanent bans.</p>
             </section>
 
             {/* Section 13 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">13. DATA ACCESS & DELETION REQUESTS</h2>
-              <p>You may request:</p>
+              <p>Users may request:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Export of cookie-related data</li>
                 <li>Manual deletion of stored identifiers</li>
                 <li>Full account deletion</li>
               </ul>
-              <p>Requests are processed under our Privacy Policy.</p>
+              <p>Requests follow our Privacy Policy.</p>
             </section>
 
             {/* Section 14 */}
@@ -409,19 +386,15 @@ export default function CookiePolicyPage() {
                 <li>Meet legal requirements</li>
                 <li>Improve transparency</li>
               </ul>
-              <p>Updates are effective when posted.</p>
+              <p>Updates become effective when posted.</p>
             </section>
 
             {/* Section 15 */}
-            <section className="-space-y-1">
-              <h2 className="text-3xl font-bold mb-4">15. CONTACT US</h2>
-              <p className="mb-2">Cookie / data questions:</p>
-              <p>
-                <a href="mailto:admin@flocktogether.xyz" className="text-blue-600 underline">
-                  admin@flocktogether.xyz
-                </a>
-              </p>
-              <p className="font-bold mt-4">Legal Entity:</p>
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">15. CONTACT US</h2>
+              <p>For cookie or data questions:</p>
+              <p>support@flocktogether.xyz</p>
+              <p>Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
               <p>Sheridan, WY 82801</p>

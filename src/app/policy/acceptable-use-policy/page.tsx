@@ -64,7 +64,7 @@ export default function AcceptableUsePolicyPage() {
             <h1 className="text-3xl md:text-4xl font-extrabold">
               FLOCK ACCEPTABLE USE POLICY (AUP)
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -73,15 +73,10 @@ export default function AcceptableUsePolicyPage() {
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                This Acceptable Use Policy ("AUP") governs how users may access and use the Flock platform and associated services at 
-                <a
-                  href="https://flocktogether.xyz"
-                  className="text-blue-600 underline ml-1"
-                >
-                  https://flocktogether.xyz
-                </a> (the "Platform") operated by <p className="font-bold">Flock Together Global LLC ("Flock," "we," "our," "us").</p>
+                This Acceptable Use Policy ("AUP") governs how users may access and use the Flock
+                platform and associated services at https://flocktogether.xyz (the "Platform") operated by
+                Flock Together Global LLC ("Flock," "we," "our," "us").
               </p>
-
               <p>This AUP applies to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Creators</li>
@@ -91,9 +86,9 @@ export default function AcceptableUsePolicyPage() {
                 <li>Developers</li>
                 <li>Third-party partners</li>
               </ul>
-
               <p>By using the Platform, you agree to comply with this AUP.</p>
-              <p>Violating this policy may result in monetization loss, content removal, account suspension, or permanent ban.</p>
+              <p>Violating this policy may result in monetization loss, content removal, account suspension, or
+                permanent ban.</p>
             </section>
 
             {/* Section 1 */}
@@ -109,6 +104,14 @@ export default function AcceptableUsePolicyPage() {
                 <li>Enables fraud, spam, or monetization abuse</li>
               </ul>
               <p>Flock reserves the unilateral right to determine what constitutes abuse.</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Users may operate multiple creator accounts, but may not use them to evade
+                  enforcement, manipulate earnings, or artificially boost engagement.</li>
+                <li>Recycled content is allowed only when the creator owns full rights to upload and
+                  monetize it.</li>
+                <li>Flock may require identity verification or documentation if risk, fraud indicators, or
+                  duplicate accounts are detected.</li>
+              </ul>
             </section>
 
             {/* Section 2 */}
@@ -133,6 +136,8 @@ export default function AcceptableUsePolicyPage() {
                 <li>Pornographic materials</li>
               </ul>
               <p>Flock is not an adult services platform.</p>
+              <p>Adult-themed educational, artistic, or contextual content may still be restricted if it risks
+                exposing minors or violates regional regulations.</p>
 
               <h3 className="font-semibold">2.3 Illegal Activities</h3>
               <ul className="list-disc list-inside space-y-1">
@@ -164,6 +169,8 @@ export default function AcceptableUsePolicyPage() {
                 <li>Circumventing copyright filters</li>
               </ul>
               <p>See DMCA Policy for procedures and penalties.</p>
+              <p>Reposts from TikTok, YouTube, Instagram, or any platform must be rights-cleared or fully
+                owned by the user.</p>
             </section>
 
             {/* Section 3 */}
@@ -188,6 +195,8 @@ export default function AcceptableUsePolicyPage() {
                 <li>Paid "engagement boosting" schemes</li>
               </ul>
               <p>Monetization derived from artificial traffic is voided.</p>
+              <p>Multiple accounts used together to create an artificial network ("ring behavior") are
+                prohibited.</p>
 
               <h3 className="font-semibold">3.3 Impersonation or Deception</h3>
               <ul className="list-disc list-inside space-y-1">
@@ -197,7 +206,6 @@ export default function AcceptableUsePolicyPage() {
               </ul>
 
               <h3 className="font-semibold">3.4 Spam</h3>
-              <p>Examples:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Repetitive posting</li>
                 <li>Mass unsolicited promotions</li>
@@ -224,6 +232,8 @@ export default function AcceptableUsePolicyPage() {
                 <li>Generate sexual, violent, extremist, or misleading material</li>
               </ul>
               <p>We may request source files or proof of authorship.</p>
+              <p>Creators must clearly disclose when content is AI-generated where required by law or
+                platform guidelines.</p>
             </section>
 
             {/* Section 5 */}
@@ -238,12 +248,13 @@ export default function AcceptableUsePolicyPage() {
                 <li>Doxx (share private addresses, phone numbers, etc.)</li>
               </ul>
               <p>This includes creator vs creator conflict.</p>
+              <p>Coordinated community attacks ("brigading") are prohibited, regardless of intent or context.</p>
             </section>
 
             {/* Section 6 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">6. MISINFORMATION & FRAUD</h2>
-              <p className="font-bold">Prohibited:</p>
+              <p>Prohibited:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Fake giveaways</li>
                 <li>Pyramid schemes</li>
@@ -251,25 +262,27 @@ export default function AcceptableUsePolicyPage() {
                 <li>Investment scams ("pump and dump")</li>
                 <li>"Get rich quick" coaching</li>
               </ul>
-              <p className="font-bold">Creators must:</p>
+              <p>Creators must:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Provide truthful claims</li>
                 <li>Use proper disclaimers</li>
                 <li>Avoid exploiting vulnerable users</li>
               </ul>
+              <p>Financial, medical, or legal advice must comply with applicable laws and not misrepresent
+                credentials.</p>
             </section>
 
             {/* Section 7 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">7. COMMERCIAL ACTIVITIES</h2>
-              <p className="font-bold">Acceptable:</p>
+              <p>Acceptable:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Normal brand deals</li>
                 <li>Sponsorships</li>
                 <li>Creator-owned services</li>
                 <li>Merch sales</li>
               </ul>
-              <p className="font-bold">Prohibited:</p>
+              <p>Prohibited:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Illegal goods/services</li>
                 <li>Counterfeit products</li>
@@ -277,6 +290,7 @@ export default function AcceptableUsePolicyPage() {
                 <li>Unregistered financial offerings</li>
                 <li>Selling personal user data</li>
               </ul>
+              <p>Sponsored content must include legally required disclosures (e.g., "#ad," "paid partnership").</p>
             </section>
 
             {/* Section 8 */}
@@ -290,6 +304,8 @@ export default function AcceptableUsePolicyPage() {
                 <li>Resell or lease accounts</li>
                 <li>Share login credentials to bypass restrictions</li>
               </ul>
+              <p>Operating multiple accounts is allowed, but may not be used to artificially multiply earnings
+                or bypass enforcement.</p>
             </section>
 
             {/* Section 9 */}
@@ -302,6 +318,7 @@ export default function AcceptableUsePolicyPage() {
                 <li>Operate accounts for banned users</li>
                 <li>Use "proxy creators" to continue illegal activity</li>
               </ul>
+              <p>Creators must notify Flock if unauthorized access is suspected.</p>
             </section>
 
             {/* Section 10 */}
@@ -320,6 +337,8 @@ export default function AcceptableUsePolicyPage() {
               </ul>
               <p>Severity depends on risk, repetition, and intent.</p>
               <p>We do not owe users an opportunity to violate repeatedly.</p>
+              <p>Enforcement may apply across all accounts linked to the same phone number, device,
+                identity, or payment method.</p>
             </section>
 
             {/* Section 11 */}
@@ -352,6 +371,8 @@ export default function AcceptableUsePolicyPage() {
                 <li>Fraud indicators are present</li>
               </ul>
               <p>Appeal decisions are final.</p>
+              <p>Submitting repeated appeals or creating new accounts to circumvent decisions may result in
+                additional penalties.</p>
             </section>
 
             {/* Section 13 */}
@@ -365,6 +386,8 @@ export default function AcceptableUsePolicyPage() {
                 <li>International child safety and online harm standards</li>
               </ul>
               <p>Using Flock to evade local laws is prohibited.</p>
+              <p>Creators are responsible for understanding tax obligations in their country and for accurately
+                reporting income earned on Flock.</p>
             </section>
 
             {/* Section 14 */}
@@ -375,11 +398,11 @@ export default function AcceptableUsePolicyPage() {
             </section>
 
             {/* Section 15 */}
-            <section className="-space-y-1">
-              <h2 className="text-3xl font-bold mb-4">15. CONTACT</h2>
-              <p className="mb-2">For AUP or enforcement inquiries:</p>
-              <p>Email: admin@flocktogether.xyz</p>
-              <p className="font-bold">Legal Entity:</p>
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">15. CONTACT</h2>
+              <p>For AUP or enforcement inquiries:</p>
+              <p>Email: support@flocktogether.xyz</p>
+              <p>Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
               <p>Sheridan, WY 82801, USA</p>

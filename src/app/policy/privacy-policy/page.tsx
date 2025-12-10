@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
             <h1 className="text-3xl md:text-4xl font-extrabold">
               PRIVACY POLICY — FLOCKTOGETHER.XYZ
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -98,12 +98,16 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-3xl font-bold">1. WHO WE ARE</h2>
 
               <p className="font-bold">Flock Together Global LLC</p>
-              <p>Registered address: 30 N Gould St #53789, Sheridan, WY 82801, United States</p>
-              <p>Flock Together global LLC</p>
-
+              <p>Registered address:</p>
+              <p>30 N Gould St #53789, Sheridan, WY 82801, United States</p>
               <p>
                 We operate flocktogether.xyz, a creator-first digital content
                 and monetization system.
+              </p>
+              <p>
+                We act as the data controller for information processed in connection with your use of the
+                Platform. For certain functions (e.g., payouts), external payment partners may act as joint or
+                independent controllers.
               </p>
             </section>
 
@@ -113,7 +117,7 @@ export default function PrivacyPolicyPage() {
 
               <p>We collect personal and non-personal information in three ways:</p>
 
-              <h3 className="font-semibold">A. Information you provide to us</h3>
+              <h3 className="font-semibold">A. Information You Provide to Us</h3>
               <p>Examples include:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Name, email address, username, date of birth</li>
@@ -121,9 +125,10 @@ export default function PrivacyPolicyPage() {
                 <li>Creator content (videos, posts, descriptions, thumbnails)</li>
                 <li>Payment and withdrawal details (PayPal, Payoneer, Stripe)</li>
                 <li>Customer support communications</li>
+                <li>Identity verification documents when required</li>
               </ul>
 
-              <h3 className="font-semibold">B. Information collected automatically</h3>
+              <h3 className="font-semibold">B. Information Collected Automatically</h3>
               <p>When you access or use the Platform, we automatically collect:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Device and browser type</li>
@@ -134,10 +139,14 @@ export default function PrivacyPolicyPage() {
                 <li>Uploaded file metadata and performance</li>
               </ul>
               <p>
-                We use cookies, pixel tags, SDKs, log files, local storage, and similar technologies as described in Section 8.
+                We use cookies, pixel tags, SDKs, log files, local storage, and similar technologies as
+                described in Section 8.
               </p>
+              <p>Enhanced for transparency:</p>
+              <p>We may also collect fraud indicators (e.g., unusual session activity, rapid switching of IPs)
+                for the purpose of protecting the Platform and creators.</p>
 
-              <h3 className="font-semibold">C. Information from third-party platforms</h3>
+              <h3 className="font-semibold">C. Information From Third-Party Platforms</h3>
               <p>When you connect accounts:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Google auth profile</li>
@@ -147,7 +156,7 @@ export default function PrivacyPolicyPage() {
                 <li>Stripe / Payoneer / PayPal payout data</li>
               </ul>
               <p>
-                We receive profile details required to authenticate you and operate the Platform.
+                We receive only the profile details required to authenticate you and operate the Platform.
               </p>
             </section>
 
@@ -155,7 +164,7 @@ export default function PrivacyPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">3. USE OF YOUR INFORMATION</h2>
 
-              <p>We use your information to:</p>
+              <p>We use your information to provide, maintain, and improve the Platform.</p>
 
               <h3 className="font-semibold">Core Platform Operations</h3>
               <ul className="list-disc list-inside space-y-1">
@@ -197,6 +206,8 @@ export default function PrivacyPolicyPage() {
                 <li>Personalize targeting (where legally permitted)</li>
                 <li>Prevent invalid traffic and ad fraud</li>
               </ul>
+              <p>Enhanced for completeness:</p>
+              <p>We do not use sensitive personal data for advertising purposes.</p>
             </section>
 
             {/* Section 4 */}
@@ -212,18 +223,21 @@ export default function PrivacyPolicyPage() {
                 <li>Revenue estimates</li>
               </ul>
 
-              <p>Payment processors</p>
-              <p>We use third-party PCI-compliant providers:</p>
+              <h3 className="font-semibold">Payment Processors</h3>
+              <p>We use PCI-compliant providers:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Stripe</li>
                 <li>PayPal</li>
                 <li>Payoneer</li>
                 <li>Ezoic Advertising Platform</li>
               </ul>
-
               <p>
-                We never store your full payment credentials. We only store payout identifiers and required metadata.
+                We never store your full payment credentials; we only store payout identifiers and required
+                metadata.
               </p>
+              <p>Enhanced addition:</p>
+              <p>Creators begin earning from Day 1 after Beta, provided monetization eligibility requirements
+                are met.</p>
             </section>
 
             {/* Section 5 */}
@@ -234,7 +248,7 @@ export default function PrivacyPolicyPage() {
 
               <p>We may share your information with:</p>
 
-              <h3 className="font-semibold">Service providers</h3>
+              <h3 className="font-semibold">Service Providers</h3>
               <p>Only those necessary to operate the Platform:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Hosting and CDN partners</li>
@@ -244,7 +258,7 @@ export default function PrivacyPolicyPage() {
                 <li>Email delivery vendors</li>
               </ul>
 
-              <h3 className="font-semibold">Advertising networks</h3>
+              <h3 className="font-semibold">Advertising Networks</h3>
               <p>AdSense, Ezoic, or similar providers may receive:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Cookies</li>
@@ -254,7 +268,7 @@ export default function PrivacyPolicyPage() {
                 <li>Non-identifying usage data</li>
               </ul>
 
-              <h3 className="font-semibold">Legal and safety disclosures</h3>
+              <h3 className="font-semibold">Legal and Safety Disclosures</h3>
               <p>We may disclose information if:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Required by law, subpoena, or government inquiry</li>
@@ -262,7 +276,7 @@ export default function PrivacyPolicyPage() {
                 <li>Responding to copyright/IP claims (DMCA)</li>
               </ul>
 
-              <h3 className="font-semibold">Business transfers</h3>
+              <h3 className="font-semibold">Business Transfers</h3>
               <p>
                 If we undergo merger, acquisition, restructuring, we may transfer user information as part of the transaction.
               </p>
@@ -272,12 +286,12 @@ export default function PrivacyPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">6. CHILD & MINOR PROTECTION</h2>
               
-              <h3 className="font-semibold">Minimum age requirement</h3>
+              <h3 className="font-semibold">Minimum Age Requirement</h3>
               <p>Users must be at least 13 years old to create an account.</p>
               <p>We do not knowingly collect information from children under 13.</p>
-              <p>
-                If you believe a minor under 13 has registered: → Email: admin@flocktogether.xyz We will verify and remove their account.
-              </p>
+              <p>If you believe a minor under 13 has registered:</p>
+              <p>→ Email: admin@flocktogether.xyz</p>
+              <p>We will verify and remove the account.</p>
 
               <h3 className="font-semibold">Monetization</h3>
               <p>
@@ -292,15 +306,17 @@ export default function PrivacyPolicyPage() {
                 <li>May be visible publicly</li>
                 <li>May be indexed by search engines</li>
                 <li>May be shared through social previews</li>
-                <li>Remains discoverable even after deletion for a reasonable time in backup systems</li>
+                <li>May remain temporarily in backup systems after deletion</li>
               </ul>
-              <p>You should assume all posts are public unless otherwise stated.</p>
-              <p>We are not responsible for:</p>
+              <p>Flock is not responsible for:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>What you choose to upload</li>
-                <li>The actions of other users</li>
-                <li>Content shared outside the Platform</li>
+                <li>Content you choose to upload</li>
+                <li>How other users interact with or share your content</li>
+                <li>Off-platform distribution of your posts</li>
               </ul>
+              <p>Enhanced for clarity:</p>
+              <p>By uploading content, you grant Flock a license to host, display, monetize (if applicable),
+                and distribute the content as required to operate the Platform.</p>
             </section>
 
             <section className="space-y-4">
@@ -316,16 +332,14 @@ export default function PrivacyPolicyPage() {
               </ul>
               <p>Why we use them:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Authentication ("Remember me" login)</li>
+                <li>Authentication ("Remember Me")</li>
                 <li>Analytics</li>
                 <li>Revenue optimization</li>
                 <li>Preventing ad fraud</li>
                 <li>Improving user experience</li>
                 <li>Language and UI preferences</li>
               </ul>
-              <h3 className="font-semibold">Third-party cookies</h3>
-              <p>Advertising & measurement partners may set their own cookies.</p>
-              <p>Users may disable cookies via browser settings, but some features may stop working.</p>
+              <p>Third-party cookies may be set by advertising and measurement partners.</p>
               <p>A separate Cookie Policy will be published and linked from the footer.</p>
             </section>
 
@@ -346,18 +360,19 @@ export default function PrivacyPolicyPage() {
                 <li>Account metadata</li>
                 <li>Transaction records</li>
               </ul>
-              <p>Even after account deletion, minimal records may remain for compliance purposes.</p>
+              <p>After account deletion, minimal records may remain for compliance, audit, and tax
+                obligations.</p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">10. DATA SECURITY</h2>
               <p>We implement reasonable administrative, physical, and technical safeguards.</p>
-              <p>But no system is 100% secure.</p>
-              <p>You agree that:</p>
+              <p>You acknowledge that:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>You use the Platform at your own risk</li>
-                <li>You are responsible for securing your login credentials</li>
-                <li>We are not liable for breaches caused by third-party integrations, user actions, or device compromise</li>
+                <li>No system is fully secure</li>
+                <li>You are responsible for protecting your login credentials</li>
+                <li>We are not liable for breaches resulting from third-party integrations, compromised
+                  devices, or user actions</li>
               </ul>
             </section>
 
@@ -365,23 +380,24 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-3xl font-bold">11. YOUR RIGHTS</h2>
               <p>Depending on your jurisdiction, you may have rights to:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Access data we hold about you</li>
+                <li>Access data</li>
                 <li>Correct inaccurate information</li>
-                <li>Request deletion of your account</li>
-                <li>Restrict certain processing</li>
-                <li>Export your data ("data portability")</li>
+                <li>Request account deletion</li>
+                <li>Restrict processing</li>
+                <li>Export your information ("data portability")</li>
                 <li>Object to personalized advertising</li>
               </ul>
-              <p>We provide mechanisms to request these actions internally or by contacting support.</p>
+              <p>Requests can be made through account settings or support email.</p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">12. INTERNATIONAL TRANSFERS</h2>
-              <p>We are a U.S.-based company. Your data may be processed:</p>
+              <p>We are a U.S.-based company.</p>
+              <p>Your data may be processed:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>In the United States</li>
-                <li>Where our service providers operate</li>
-                <li>In countries with different privacy laws</li>
+                <li>By service providers worldwide</li>
+                <li>In countries with varying privacy laws</li>
               </ul>
               <p>By using the Platform, you consent to such transfers.</p>
             </section>
@@ -392,16 +408,16 @@ export default function PrivacyPolicyPage() {
               <p>If changes are material, we may:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Email you</li>
-                <li>Display a notice in the Platform</li>
+                <li>Show an in-app notice</li>
                 <li>Update the "Last Updated" date</li>
               </ul>
-              <p>Continued use after revisions = consent.</p>
+              <p>Continued use after revisions = acceptance.</p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">14. CONTACT US</h2>
               <p>If you have data-related concerns:</p>
-              <p>Email: admin@flocktogether.xyz</p>
+              <p>Email: support@flocktogether.xyz</p>
               <p>Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789, Sheridan, WY 82801, USA</p>
@@ -409,14 +425,16 @@ export default function PrivacyPolicyPage() {
 
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">15. CALIFORNIA PRIVACY DISCLOSURE (CCPA/CPRA)</h2>
-              <p>Flock does not sell personal data. We may share limited, non-identifying information with advertising partners strictly for operational purposes.</p>
+              <p>Flock does not sell personal data.</p>
               <p>California users may:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Request access</li>
                 <li>Request deletion (subject to legal requirements)</li>
-                <li>Request categories of data shared</li>
+                <li>Request categories of information shared</li>
               </ul>
-              <p>Requests can be submitted via support email.</p>
+              <p>Requests may be submitted via support email.</p>
+              <p>Enhanced addition:</p>
+              <p>California residents may opt out of "sharing" for cross-context behavioral advertising.</p>
             </section>
 
             <section className="space-y-4">
@@ -425,23 +443,25 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>Contractual necessity</li>
                 <li>Consent</li>
-                <li>Legitimate interest (security, performance analytics)</li>
+                <li>Legitimate interest (security, analytics, fraud prevention)</li>
                 <li>Legal compliance</li>
               </ul>
               <p>Data subjects may request:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>A copy of personal data</li>
-                <li>Restriction or correction</li>
+                <li>Access</li>
+                <li>Correction</li>
+                <li>Restriction</li>
                 <li>Deletion</li>
-                <li>Portable export</li>
+                <li>Portability</li>
               </ul>
-              <p>We will respond within legally required timeframes.</p>
+              <p>We will respond within the legally required timeframe.</p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">17. DMCA & COPYRIGHT CLAIMS</h2>
-              <p>Copyright removal requests must follow our DMCA Policy and include legal required details.</p>
-              <p>Removing infringing Content may require retention of metadata and correspondence.</p>
+              <p>Copyright removal requests must follow our DMCA Policy and include legally required
+                details.</p>
+              <p>Removing infringing content may require retention of metadata and correspondence.</p>
             </section>
 
             <section className="space-y-4">
@@ -450,8 +470,8 @@ export default function PrivacyPolicyPage() {
               <p>Upon deletion:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Content will be removed from public access</li>
-                <li>Some logs may remain for legal reasons</li>
-                <li>Payment records may remain for tax/audit requirements</li>
+                <li>Certain logs will remain for legal purposes</li>
+                <li>Financial records may be retained for tax and audit requirements</li>
               </ul>
               <p>Deletion is irreversible.</p>
             </section>

@@ -64,7 +64,7 @@ export default function CommunityGuidelinesPage() {
             <h1 className="text-3xl md:text-4xl font-extrabold">
 FLOCK COMMUNITY GUIDELINES
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -327,40 +327,42 @@ FLOCK COMMUNITY GUIDELINES
             {/* Section 13 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">13. AI CONTENT POLICY</h2>
-              <p>AI is permitted if:</p>
+              <p className="font-semibold">13.1 Allowed Use</p>
+              <p>AI content is permitted if:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>The creator discloses AI involvement where relevant</li>
-                <li>The work is clearly transformative</li>
-                <li>It does not replicate a person's likeness without consent</li>
-                <li>It does not mimic copyrighted IP</li>
+                <li>Disclosed when required</li>
+                <li>Transformative</li>
+                <li>Non-infringing</li>
+                <li>Not impersonating real individuals</li>
               </ul>
-              <p>Deepfakes of real humans without consent are banned.</p>
+              <p className="font-semibold">13.2 Prohibited Use</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Deepfakes of real people without consent</li>
+                <li>Use of copyrighted characters or likenesses</li>
+              </ul>
+              <p className="font-semibold">13.3 Review & Monetization</p>
+              <p>AI content may be manually reviewed prior to monetization.</p>
             </section>
 
             {/* Section 14 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">14. CREATOR RESPONSIBILITY</h2>
-              <p>Creators are responsible for:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Their content</li>
-                <li>Comment moderation on their accounts</li>
-                <li>Community conduct in their spaces</li>
-              </ul>
-              <p>Creators must:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Remove abusive comments</li>
-                <li>Report harmful users</li>
-                <li>Avoid monetizing harmful content</li>
-              </ul>
-              <p>Repeated negligence → loss of monetization.</p>
+              <p className="font-semibold">14.1 Content Ownership</p>
+              <p>Creators are responsible for all content they publish.</p>
+              <p className="font-semibold">14.2 Moderation of Communities</p>
+              <p>Creators must moderate comment sections.</p>
+              <p className="font-semibold">14.3 Reporting Harm</p>
+              <p>Creators must report harmful behaviour or users.</p>
+              <p className="font-semibold">14.4 Negligence Consequences</p>
+              <p>Repeated negligence may lead to demonetization.</p>
             </section>
 
             {/* Section 15 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">15. ENFORCEMENT ACTIONS</h2>
-              <p>We may take actions including:</p>
+              <p className="font-semibold">15.1 Possible Actions</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Content warnings</li>
+                <li>Warnings</li>
                 <li>Content removal</li>
                 <li>Feature restrictions</li>
                 <li>Demonetization</li>
@@ -368,71 +370,81 @@ FLOCK COMMUNITY GUIDELINES
                 <li>Account suspension</li>
                 <li>IP/device bans</li>
                 <li>Permanent termination</li>
-                <li>Referral to authorities</li>
+                <li>Law enforcement referrals</li>
               </ul>
-              <p>Severity depends on context, frequency, and harm potential.</p>
+              <p className="font-semibold">15.2 Severity Factors</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Harm potential</li>
+                <li>Repetition</li>
+                <li>Intent</li>
+                <li>Scale</li>
+              </ul>
+              <p className="font-semibold">15.3 Cross-Account Enforcement</p>
+              <p>Actions may extend to all linked accounts.</p>
             </section>
 
             {/* Section 16 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">16. REPORTING VIOLATIONS</h2>
-              <p>If you see content that violates these Guidelines:</p>
-              <p>Report it via the in-platform reporting features or email safety@flocktogether.xyz</p>
-              <p>Include:</p>
+              <p className="font-semibold">16.1 How to Report</p>
+              <p>Use in-platform reporting or email safety@flocktogether.xyz.</p>
+              <p className="font-semibold">16.2 Required Information</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>URL of the content</li>
-                <li>Username(s) involved</li>
-                <li>Screenshots when possible</li>
-                <li>Brief description of harm/violation</li>
+                <li>URL</li>
+                <li>Username(s)</li>
+                <li>Screenshots</li>
+                <li>Description</li>
               </ul>
-              <p>False reporting or harassment will result in penalties.</p>
+              <p className="font-semibold">16.3 False Reporting</p>
+              <p>Users who abuse reporting systems may be penalized.</p>
             </section>
 
             {/* Section 17 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">17. APPEALS</h2>
-              <p>You may appeal moderation actions once.</p>
-              <p>Appeals must:</p>
+              <p className="font-semibold">17.1 Appeal Rights</p>
+              <p>Users may appeal once.</p>
+              <p className="font-semibold">17.2 Appeal Requirements</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Be honest</li>
-                <li>Be detailed</li>
-                <li>Provide context</li>
+                <li>Honesty</li>
+                <li>Detail</li>
+                <li>Context</li>
               </ul>
-              <p>Appeals may be denied if:</p>
+              <p className="font-semibold">17.3 When Appeals Are Denied</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>You repeatedly violate rules</li>
-                <li>The content is clearly illegal</li>
-                <li>The violation falls under a zero-tolerance category</li>
+                <li>Repeat violations</li>
+                <li>Illegal content</li>
+                <li>Zero-tolerance violations</li>
               </ul>
+              <p className="font-semibold">17.4 Evasion</p>
+              <p>Evading enforcement voids appeal rights.</p>
             </section>
 
             {/* Section 18 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">18. GLOBAL COMPLIANCE</h2>
-              <p>FLOCK follows international online safety norms including:</p>
+              <p className="font-semibold">18.1 Laws Followed</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>COPPA (US child protection)</li>
-                <li>GDPR (EU user rights)</li>
-                <li>CCPA/CPRA (California privacy)</li>
-                <li>Online Safety expectations in EU/UK/Caribbean</li>
+                <li>COPPA</li>
+                <li>GDPR</li>
+                <li>CCPA/CPRA</li>
+                <li>International online safety laws</li>
               </ul>
-              <p>Creators are responsible for understanding their local laws.</p>
+              <p className="font-semibold">18.2 Creator Obligations</p>
+              <p>Creators must understand and comply with local laws and tax rules.</p>
             </section>
 
             {/* Section 19 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">19. CHANGES TO THESE GUIDELINES</h2>
-              <p>We may update these Guidelines at any time.</p>
               <p>Updates take effect when posted.</p>
-              <p>Material changes will be communicated via notice or email.</p>
+              <p>Material updates may be communicated via notice or email.</p>
             </section>
 
             {/* Section 20 */}
-            <section className="-space-y-1">
-              <h2 className="text-2xl font-bold mb-4">20. CONTACT US</h2>
-              <p className="mb-3 font-bold">Questions about these Guidelines?</p>
-              <p>Email: admin@flocktogether.xyz</p>
-              <p className="font-bold">Legal Entity:</p>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold">20. CONTACT US</h2>
+              <p>Email: support@flocktogether.xyz</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
               <p>Sheridan, WY 82801, USA</p>

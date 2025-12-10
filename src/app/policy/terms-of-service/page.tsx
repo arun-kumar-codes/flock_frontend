@@ -50,8 +50,8 @@ export default function TermsOfServicePage() {
 
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-xl p-8 md:p-12">
-          <h1 className="text-4xl font-bold text-black mb-2">Terms of Service</h1>
-          <p className="text-sm text-black mb-8">Last Updated: 04/12/25</p>
+          <h1 className="text-4xl font-bold text-black mb-2">FLOCKTOGETHER.XYZ – TERMS OF SERVICE</h1>
+          <p className="text-sm text-black mb-8">Last Updated: December 9, 2025</p>
 
           <div className="prose prose-gray max-w-none space-y-8">
             <section>
@@ -71,41 +71,43 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">1. Who We Are</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">1. WHO WE ARE</h2>
               <p className="text-black leading-relaxed">
-                Flock is a creator-first, invite-only content and monetization platform that enables approved creators to upload and distribute videos, blogs, and other content, build an audience, and earn revenue through advertising and other monetization tools.
+                Flock is a creator-first content and monetization platform that enables creators to upload and distribute videos, blogs, and other content, build an audience, and earn revenue through advertising and other monetization tools. Following the completion of our Beta phase, eligible creators may earn from their first day on the Platform, subject to our Monetization and KYC/AML policies.
               </p>
               <div className="mt-4 text-black">
                 <p className="font-semibold">Flock Together Global LLC</p>
                 <p>Principal Office: 30 N Gould St #53789, Sheridan, WY 82801, USA</p>
                 <p className="mt-2">
                   If you have questions about these Terms, you can contact us at:{" "}
-                  <a href="mailto:admin@flocktogether.xyz" className="text-blue-600 hover:underline">
-                    admin@flocktogether.xyz
+                  <a href="mailto:support@flocktogether.xyz" className="text-blue-600 hover:underline">
+                    support@flocktogether.xyz
                   </a>
                 </p>
               </div>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">2. Eligibility</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">2. ELIGIBILITY</h2>
               
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">2.1 Minimum Age</h3>
-              <ul className="list-disc pl-6 space-y-2 text-black">
-                <li>You must be at least <strong>13 years old</strong> to create an account or use the Platform.</li>
-                <li>If you are under the age of majority in your jurisdiction, you may only use the Platform under the supervision of a parent or legal guardian who agrees to be bound by these Terms on your behalf.</li>
-              </ul>
+              <p className="text-black leading-relaxed">
+                You must be at least 13 years old to create an account or use the Platform.
+              </p>
+              <p className="text-black leading-relaxed">
+                If you are under the age of majority in your jurisdiction, you may only use the Platform under the supervision of a parent or legal guardian who agrees to be bound by these Terms on your behalf.
+              </p>
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">2.2 Monetization & Payout Eligibility</h3>
               <p className="text-black leading-relaxed mb-3">
-                To participate in any <strong>monetization</strong> features (including earning revenue from ads, payouts, sponsorship features, or other paid tools), you must:
+                To participate in any monetization features (including earning revenue from ads, payouts, sponsorship features, or other paid tools), you must:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
-                <li>Be at least <strong>18 years old</strong>, or</li>
+                <li>Be at least 18 years old, or</li>
                 <li>Have documented consent and ongoing supervision from a parent/legal guardian who manages any payout method on your behalf.</li>
               </ul>
               <p className="text-black leading-relaxed mt-3">
-                We may require <strong>identity verification</strong>, tax information, and payout method verification before enabling monetization or processing withdrawals.
+                We may require identity verification, tax information, and payout method verification before enabling monetization or processing withdrawals.
               </p>
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">2.3 Legal Capacity</h3>
@@ -117,19 +119,19 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">3. Your Account</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">3. YOUR ACCOUNT</h2>
               
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">3.1 Registration</h3>
               <p className="text-black leading-relaxed mb-2">
                 To use certain features, you must create an account. When you register, you agree to:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
-                <li>Provide accurate, current, and complete information (including <strong>date of birth</strong>, email, and display name);</li>
+                <li>Provide accurate, current, and complete information (including date of birth, email, and display name);</li>
                 <li>Maintain and promptly update your information;</li>
                 <li>Keep your login credentials confidential.</li>
               </ul>
               <p className="text-black leading-relaxed mt-3">
-                We may offer <strong>email/password</strong> signup and <strong>social logins</strong> (e.g., Google, Facebook, etc.). You authorize us to access certain information from those third-party accounts in accordance with our Privacy Policy.
+                We may offer email/password signup and social logins (e.g., Google, Facebook, etc.). You authorize us to access certain information from those third-party accounts in accordance with our Privacy Policy.
               </p>
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">3.2 Security</h3>
@@ -160,11 +162,11 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">4. The Platform & License to You</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">4. THE PLATFORM & LICENSE TO YOU</h2>
               <p className="text-black leading-relaxed">
-                Subject to these Terms, we grant you a <strong>limited, non-exclusive, non-transferable, revocable</strong> license to access and use the Platform for personal, non-commercial use or, if you are a creator, for your professional creator activities on Flock.
+                Subject to these Terms, we grant you a limited, non-exclusive, non-transferable, revocable license to access and use the Platform for personal, non-commercial use or, if you are a creator, for your professional creator activities on Flock.
               </p>
-              <p className="text-black leading-relaxed mt-4 mb-2">You agree <strong>not</strong> to:</p>
+              <p className="text-black leading-relaxed mt-4 mb-2">You agree not to:</p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>Reverse engineer, decompile, or attempt to extract the source code of any part of the Platform;</li>
                 <li>Bypass or circumvent any security or access controls;</li>
@@ -176,7 +178,7 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">5. Your Content</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">5. YOUR CONTENT</h2>
               
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">5.1 Definitions</h3>
               <p className="text-black leading-relaxed">
@@ -185,7 +187,7 @@ export default function TermsOfServicePage() {
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">5.2 Ownership</h3>
               <p className="text-black leading-relaxed mb-2">
-                You retain all <strong>ownership rights</strong> in and to your Content, subject to the licenses you grant to us in these Terms.
+                You retain all ownership rights in and to your Content, subject to the licenses you grant to us in these Terms.
               </p>
               <p className="text-black leading-relaxed mt-3 mb-2">You represent and warrant that:</p>
               <ul className="list-disc pl-6 space-y-2 text-black">
@@ -196,7 +198,7 @@ export default function TermsOfServicePage() {
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">5.3 License to Flock</h3>
               <p className="text-black leading-relaxed mb-2">
-                By using the Platform and uploading Content, you grant Flock a <strong>worldwide, non-exclusive, royalty-free, sublicensable, transferable license</strong> to:
+                By using the Platform and uploading Content, you grant Flock a worldwide, non-exclusive, royalty-free, sublicensable, transferable license to:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>Host, store, reproduce, adapt, modify, format, distribute, publicly display, publicly perform, and otherwise make your Content available in connection with operating, improving, marketing, and promoting the Platform;</li>
@@ -225,11 +227,11 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">6. Prohibited Conduct & Content</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">6. PROHIBITED CONDUCT & CONTENT</h2>
               <p className="text-black leading-relaxed mb-3">
-                You agree that you will <strong>not</strong> use the Platform to:
+                You agree that you will not use the Platform to:
               </p>
-              <ol className="list-decimal pl-6 space-y-3 text-black">
+              <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>Violate any law, regulation, or third-party rights;</li>
                 <li>
                   Post or share Content that is:
@@ -250,19 +252,19 @@ export default function TermsOfServicePage() {
                     <li>Any activity that disrupts or overloads the Platform.</li>
                   </ul>
                 </li>
-              </ol>
+              </ul>
               <p className="text-black leading-relaxed mt-4">
-                We will publish more detailed <strong>Community Guidelines</strong> and an <strong>Acceptable Use Policy</strong>, which are incorporated by reference into these Terms. Violation of those documents is deemed a violation of these Terms.
+                We will publish more detailed Community Guidelines and an Acceptable Use Policy, which are incorporated by reference into these Terms. Violation of those documents is deemed a violation of these Terms.
               </p>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">7. DMCA / Copyright & IP Complaints</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">7. DMCA / COPYRIGHT & IP COMPLAINTS</h2>
               <p className="text-black leading-relaxed mb-3">
                 We respect intellectual property rights and expect our users to do the same.
               </p>
               <p className="text-black leading-relaxed mb-3">
-                If you believe Content on the Platform infringes your copyright, you may submit a takedown notice under the <strong>Digital Millennium Copyright Act (DMCA)</strong> to our designated agent:
+                If you believe Content on the Platform infringes your copyright, you may submit a takedown notice under the Digital Millennium Copyright Act (DMCA) to our designated agent:
               </p>
               <div className="bg-gray-50 p-4 rounded-lg text-black">
                 <p className="font-semibold">DMCA Agent</p>
@@ -270,8 +272,8 @@ export default function TermsOfServicePage() {
                 <p>Principal Office: 30 N Gould St #53789, Sheridan, WY 82801, USA</p>
                 <p>
                   Email:{" "}
-                  <a href="mailto:admin@flocktogether.xyz" className="text-blue-600 hover:underline">
-                    admin@flocktogether.xyz
+                  <a href="mailto:support@flocktogether.xyz" className="text-blue-600 hover:underline">
+                    support@flocktogether.xyz
                   </a>
                 </p>
               </div>
@@ -285,18 +287,18 @@ export default function TermsOfServicePage() {
                 <li>Your physical or electronic signature.</li>
               </ul>
               <p className="text-black leading-relaxed mt-4">
-                We may remove or disable access to the allegedly infringing Content and, where appropriate, terminate repeat infringers' accounts. We will also provide a <strong>counter-notification process</strong> in line with applicable law.
+                We may remove or disable access to the allegedly infringing Content and, where appropriate, terminate repeat infringers' accounts. We will also provide a counter-notification process in line with applicable law.
               </p>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">8. Monetization, Payments & Withdrawals</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">8. MONETIZATION, PAYMENTS & WITHDRAWALS</h2>
               <p className="text-black leading-relaxed mb-4">
                 Certain creators may be eligible to earn revenue through advertisements, sponsorships, bonuses, or other monetization tools we may offer ("Monetization Features").
               </p>
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">8.1 No Guarantee of Earnings</h3>
-              <p className="text-black leading-relaxed mb-2">Flock does <strong>not guarantee</strong> that:</p>
+              <p className="text-black leading-relaxed mb-2">Flock does not guarantee that:</p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>You will be approved for Monetization Features;</li>
                 <li>You will earn any minimum amount;</li>
@@ -308,10 +310,10 @@ export default function TermsOfServicePage() {
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">8.2 Revenue Calculation & Reporting</h3>
               <p className="text-black leading-relaxed mb-3">
-                We may report estimated earnings in your creator dashboard. These numbers are <strong>estimates only</strong> and may be adjusted after reconciliation with our advertising partners and payment providers.
+                We may report estimated earnings in your creator dashboard. These numbers are estimates only and may be adjusted after reconciliation with our advertising partners and payment providers.
               </p>
               <p className="text-black leading-relaxed mb-2">
-                We will publish a separate <strong>Earnings & Monetization Policy</strong>, which will describe:
+                We will publish a separate Earnings & Monetization Policy, which will describe:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>Eligible content and traffic;</li>
@@ -324,7 +326,7 @@ export default function TermsOfServicePage() {
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">8.3 Payout Methods</h3>
               <p className="text-black leading-relaxed mb-2">
-                We may use third-party providers such as <strong>Stripe, PayPal, Payoneer, Ezoic, and others</strong> to process:
+                We may use third-party providers such as Stripe, PayPal, Payoneer, and others to process:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>Creator earnings;</li>
@@ -332,7 +334,7 @@ export default function TermsOfServicePage() {
                 <li>Refunds (where applicable).</li>
               </ul>
               <p className="text-black leading-relaxed mt-3">
-                By enabling a payout method, you agree to be bound by the <strong>terms of those third-party providers</strong>, and you authorize Flock to share necessary information with them.
+                By enabling a payout method, you agree to be bound by the terms of those third-party providers, and you authorize Flock to share necessary information with them.
               </p>
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">8.4 Thresholds & Timing</h3>
@@ -356,21 +358,21 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">9. Third-Party Services & Links</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">9. THIRD-PARTY SERVICES & LINKS</h2>
               <p className="text-black leading-relaxed mb-2">The Platform may include:</p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>Links to third-party websites or services;</li>
                 <li>Integrations with third-party tools (e.g., logins, analytics, ad networks, payout providers).</li>
               </ul>
               <p className="text-black leading-relaxed mt-4">
-                We do <strong>not</strong> control or endorse third-party services and are not responsible for their content, policies, or practices. You use them at your own risk and must comply with their terms and privacy policies.
+                We do not control or endorse third-party services and are not responsible for their content, policies, or practices. You use them at your own risk and must comply with their terms and privacy policies.
               </p>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">10. Privacy</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">10. PRIVACY</h2>
               <p className="text-black leading-relaxed mb-2">
-                Your use of the Platform is also governed by our <strong>Privacy Policy</strong>, which explains:
+                Your use of the Platform is also governed by our Privacy Policy, which explains:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>What data we collect;</li>
@@ -383,7 +385,7 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">11. Data, Security & Compliance</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">11. DATA, SECURITY & COMPLIANCE</h2>
               <p className="text-black leading-relaxed mb-4">
                 We implement commercially reasonable administrative, technical, and physical safeguards to protect your data and the Platform's integrity.
               </p>
@@ -396,12 +398,12 @@ export default function TermsOfServicePage() {
                 <li>You are responsible for maintaining backups of your own Content where appropriate.</li>
               </ul>
               <p className="text-black leading-relaxed mt-4">
-                We may be subject to <strong>US, EU, Caribbean, and other data protection laws</strong>, and will make good-faith efforts to comply with applicable obligations, including but not limited to GDPR-style and local privacy frameworks, where they apply.
+                We may be subject to US, EU, Caribbean, and other data protection laws, and will make good-faith efforts to comply with applicable obligations, including but not limited to GDPR-style and local privacy frameworks, where they apply.
               </p>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">12. Beta Features & Experiments</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">12. BETA FEATURES & EXPERIMENTS</h2>
               <p className="text-black leading-relaxed mb-2">
                 From time to time, we may experiment with new features, interfaces, or monetization tools ("Beta Features"). These may be:
               </p>
@@ -416,9 +418,9 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">13. Disclaimer of WARRANTIES</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">13. DISCLAIMER OF WARRANTIES</h2>
               <p className="text-black leading-relaxed mb-3">
-                TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE PLATFORM AND ALL CONTENT, FEATURES, AND SERVICES ARE PROVIDED <strong>"AS IS" AND "AS AVAILABLE"</strong>, WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING BUT NOT LIMITED TO:
+                To the maximum extent permitted by law, the Platform and all content, features, and services are provided "as is" and "as available," without warranties of any kind, whether express, implied, or statutory, including but not limited to:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT;</li>
@@ -430,34 +432,34 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">14. Limitation of Liability</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">14. LIMITATION OF LIABILITY</h2>
               <p className="text-black leading-relaxed mb-3">
-                TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT WILL FLOCK, ITS OWNERS, DIRECTORS, OFFICERS, EMPLOYEES, CONTRACTORS, OR AGENTS BE LIABLE FOR:
+                To the maximum extent permitted by law, in no event will Flock, its owners, directors, officers, employees, contractors, or agents be liable for:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
-                <li>ANY INDIRECT, INCIDENTAL, CONSEQUENTIAL, SPECIAL, PUNITIVE, OR EXEMPLARY DAMAGES;</li>
-                <li>ANY LOSS OF PROFITS, REVENUE, GOODWILL, OR DATA;</li>
-                <li>ANY BUSINESS INTERRUPTION OR OTHER COMMERCIAL DAMAGES OR LOSSES,</li>
+                <li>any indirect, incidental, consequential, special, punitive, or exemplary damages;</li>
+                <li>any loss of profits, revenue, goodwill, or data;</li>
+                <li>any business interruption or other commercial damages or losses,</li>
               </ul>
               <p className="text-black leading-relaxed mt-3">
-                ARISING OUT OF OR IN CONNECTION WITH YOUR USE OF (OR INABILITY TO USE) THE PLATFORM, EVEN IF WE HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+                arising out of or in connection with your use of (or inability to use) the Platform, even if we have been advised of the possibility of such damages.
               </p>
               <p className="text-black leading-relaxed mt-4 mb-2">
-                IN NO EVENT WILL OUR TOTAL AGGREGATE LIABILITY ARISING OUT OF OR IN CONNECTION WITH THESE TERMS OR YOUR USE OF THE PLATFORM EXCEED THE GREATER OF:
+                In no event will our total aggregate liability arising out of or in connection with these Terms or your use of the Platform exceed the greater of:
               </p>
-              <ol className="list-decimal pl-6 space-y-2 text-black">
-                <li>THE AMOUNT YOU HAVE PAID TO FLOCK (IF ANY) IN THE SIX (6) MONTHS PRIOR TO THE EVENT GIVING RISE TO THE CLAIM; OR</li>
-                <li>ONE HUNDRED U.S. DOLLARS (USD $100).</li>
-              </ol>
+              <ul className="list-disc pl-6 space-y-2 text-black">
+                <li>the amount you have paid to Flock (if any) in the six (6) months prior to the event giving rise to the claim; or</li>
+                <li>one hundred U.S. dollars (USD $100).</li>
+              </ul>
               <p className="text-black leading-relaxed mt-4">
                 Some jurisdictions do not allow certain exclusions or limitations of liability, so some of the above may not apply to you.
               </p>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">15. Indemnification</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">15. INDEMNIFICATION</h2>
               <p className="text-black leading-relaxed mb-2">
-                You agree to <strong>defend, indemnify, and hold harmless</strong> Flock and its affiliates, officers, directors, employees, contractors, and agents from and against any claims, demands, losses, liabilities, damages, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:
+                You agree to defend, indemnify, and hold harmless Flock and its affiliates, officers, directors, employees, contractors, and agents from and against any claims, demands, losses, liabilities, damages, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-black">
                 <li>Your use of the Platform;</li>
@@ -471,11 +473,11 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">16. Governing Law & Dispute Resolution</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">16. GOVERNING LAW & DISPUTE RESOLUTION</h2>
               
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">16.1 Governing Law</h3>
               <p className="text-black leading-relaxed">
-                These Terms are governed by and construed in accordance with the laws of the <strong>State of Wyoming, USA</strong>, without regard to its conflict of laws principles, and applicable federal law.
+                These Terms are governed by and construed in accordance with the laws of the State of Wyoming, USA, without regard to its conflict of laws principles, and applicable federal law.
               </p>
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">16.2 Informal Resolution</h3>
@@ -489,7 +491,7 @@ export default function TermsOfServicePage() {
 
               <h3 className="text-xl font-semibold text-black mt-6 mb-3">16.3 Arbitration</h3>
               <p className="text-black leading-relaxed mb-3">
-                Except where prohibited by law, any dispute arising out of or relating to these Terms or the Platform that cannot be resolved informally will be resolved by <strong>binding arbitration</strong> administered by a recognized arbitration body (e.g., AAA or JAMS) in English, with a single arbitrator, in a venue reasonably selected by Flock.
+                Except where prohibited by law, any dispute arising out of or relating to these Terms or the Platform that cannot be resolved informally will be resolved by binding arbitration administered by a recognized arbitration body (e.g., AAA or JAMS) in English, with a single arbitrator, in a venue reasonably selected by Flock.
               </p>
               <p className="text-black leading-relaxed mb-2">You and Flock agree that:</p>
               <ul className="list-disc pl-6 space-y-2 text-black">
@@ -502,7 +504,7 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">17. Changes to These Terms</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">17. CHANGES TO THESE TERMS</h2>
               <p className="text-black leading-relaxed mb-2">
                 We may update these Terms from time to time. When we do:
               </p>
@@ -516,25 +518,23 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">18. Other Important Terms</h2>
-              <ul className="list-disc pl-6 space-y-3 text-black">
-                <li>
-                  <strong>Entire Agreement:</strong> These Terms, together with our Privacy Policy and any other referenced policies, constitute the entire agreement between you and Flock.
-                </li>
-                <li>
-                  <strong>Severability:</strong> If any provision is held invalid or unenforceable, the remaining provisions will remain in full force and effect.
-                </li>
-                <li>
-                  <strong>No Waiver:</strong> Our failure to enforce any provision of these Terms is not a waiver of our right to do so later.
-                </li>
-                <li>
-                  <strong>Assignment:</strong> You may not assign these Terms or any rights or obligations under them without our prior written consent. We may assign these Terms as part of a merger, acquisition, asset sale, or by operation of law.
-                </li>
-              </ul>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">18. OTHER IMPORTANT TERMS</h2>
+              <p className="text-black leading-relaxed">
+                <strong>Entire Agreement:</strong> These Terms, together with our Privacy Policy and any other referenced policies, constitute the entire agreement between you and Flock.
+              </p>
+              <p className="text-black leading-relaxed">
+                <strong>Severability:</strong> If any provision is held invalid or unenforceable, the remaining provisions will remain in full force and effect.
+              </p>
+              <p className="text-black leading-relaxed">
+                <strong>No Waiver:</strong> Our failure to enforce any provision of these Terms is not a waiver of our right to do so later.
+              </p>
+              <p className="text-black leading-relaxed">
+                <strong>Assignment:</strong> You may not assign these Terms or any rights or obligations under them without our prior written consent. We may assign these Terms as part of a merger, acquisition, asset sale, or by operation of law.
+              </p>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-black mt-8 mb-4">19. Contact Us</h2>
+              <h2 className="text-3xl font-bold text-black mt-8 mb-4">19. CONTACT US</h2>
               <p className="text-black leading-relaxed mb-3">
                 If you have questions about these Terms, you may contact us at:
               </p>
@@ -542,8 +542,8 @@ export default function TermsOfServicePage() {
                 <p className="font-semibold">Flock Together Global LLC</p>
                 <p>
                   Email:{" "}
-                  <a href="mailto:admin@flocktogether.xyz" className="text-blue-600 hover:underline">
-                    admin@flocktogether.xyz
+                  <a href="mailto:support@flocktogether.xyz" className="text-blue-600 hover:underline">
+                    support@flocktogether.xyz
                   </a>
                 </p>
               </div>

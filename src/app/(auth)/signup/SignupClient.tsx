@@ -345,14 +345,13 @@ const handleResend = async () => {
           <h2
             className="text-[25px] font-bold text-[#684098] leading-[1.2] mb-4"
           >
-            Join Your <br /> Creative Universe
+            Build Your Nest. Find Your Flock. Take Flight.
           </h2>
 
           <p
             className={"text-black font-normal text-[13.5px] leading-[1.5] tracking-normal mb-6"}
           >
-            Create your account and start sharing, discovering, & connecting
-            with your community. Your creative universe awaits.
+            Create freely. Earn fairly. With earnings that start from your first view.
           </p>
 
         {!showVerification ? (
@@ -556,7 +555,7 @@ const handleResend = async () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-full bg-[#684098] px-20 py-2 text-xs text-white uppercase tracking-wide hover:bg-[#58328a] transition"
+                className="rounded-full bg-[#684098] px-20 py-4 text-xs text-white uppercase tracking-wide hover:bg-[#58328a] transition whitespace-nowrap"
               >
                 {isSubmitting ? "Creating..." : "Create Account"}
               </button>

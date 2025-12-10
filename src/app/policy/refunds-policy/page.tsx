@@ -64,7 +64,7 @@ export default function RefundPolicyPage() {
             <h1 className="text-3xl md:text-4xl font-extrabold">
               REFUNDS, CHARGEBACKS & PURCHASES POLICY — FLOCKTOGETHER.XYZ
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -177,7 +177,7 @@ export default function RefundPolicyPage() {
             {/* Section 5 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">5. INVALID OR FRAUDULENT PAYMENTS</h2>
-              <p>Examples:</p>
+              <p>Examples include:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Stolen cards</li>
                 <li>Unauthorized PayPal / Payoneer accounts</li>
@@ -217,9 +217,8 @@ export default function RefundPolicyPage() {
               <h2 className="text-3xl font-bold">7. PROCESSOR ERRORS</h2>
               <p>If payments fail due to:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Stripe outage</li>
-                <li>Payoneer flags</li>
-                <li>PayPal AML requirements</li>
+                <li>Payment processor outage</li>
+                <li>Risk or AML flags by the provider</li>
                 <li>Regional banking limitations</li>
                 <li>Sanction restrictions</li>
               </ul>
@@ -230,7 +229,7 @@ export default function RefundPolicyPage() {
                 <li>Foreign exchange loss</li>
                 <li>Processing suspension</li>
               </ul>
-              <p>We will assist, but:</p>
+              <p>We will assist where possible, but:</p>
               <p>The payment provider is the sole party responsible for resolving processor-level errors.</p>
             </section>
 
@@ -240,11 +239,11 @@ export default function RefundPolicyPage() {
               <p>If content is removed for violating:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Community Guidelines</li>
-                <li>DMCA Policy</li>
+                <li>DMCA & Copyright Policy</li>
                 <li>Acceptable Use Policy</li>
-                <li>Monetization Policy</li>
+                <li>Monetization / Earnings Policy</li>
               </ul>
-              <p>→ Earnings tied to that content may be forfeited.</p>
+              <p>Earnings tied to that content may be forfeited.</p>
               <p>We are not obligated to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Pay creators for rule-breaking content</li>
@@ -256,8 +255,7 @@ export default function RefundPolicyPage() {
             {/* Section 9 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">9. PLATFORM BONUSES & INCENTIVE PROGRAMS</h2>
-              <p>Bonuses are discretionary and subject to change.</p>
-              <p>They may be:</p>
+              <p>Bonuses are discretionary and subject to change. They may be:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Modified</li>
                 <li>Paused</li>
@@ -269,14 +267,14 @@ export default function RefundPolicyPage() {
                 <li>Bonuses are not wages</li>
                 <li>They are not guaranteed</li>
                 <li>They may be revoked due to abuse</li>
-                <li>No retroactive claims are honored for expired incentive programs</li>
               </ul>
+              <p>No retroactive claims are honored for expired incentive programs.</p>
             </section>
 
             {/* Section 10 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">10. ADVERTISING ADJUSTMENTS & RETROACTIVE RECONCILIATION</h2>
-              <p>Ad networks (e.g., Ezoic, Google AdSense) may:</p>
+              <p>Ad networks or monetization partners (e.g., major ad-serving platforms) may:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Reverse invalid traffic</li>
                 <li>Adjust ad bids</li>
@@ -285,7 +283,7 @@ export default function RefundPolicyPage() {
               </ul>
               <p>Creators agree that:</p>
               <p>Post-payment corrections by ad networks may reverse or reduce earnings.</p>
-              <p>This includes:</p>
+              <p>This includes adjustments related to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Invalid clicks</li>
                 <li>Suspicious view patterns</li>
@@ -304,16 +302,14 @@ export default function RefundPolicyPage() {
                 <li>Existing earnings may be frozen</li>
                 <li>Future payouts may be denied</li>
               </ul>
-              <p>We may withhold balance for up to:</p>
-              <p>180 days, depending on risk severity.</p>
+              <p>We may withhold balance for up to 180 days, depending on risk severity and provider rules.</p>
               <p>This aligns with industry merchant standards and AML regulations.</p>
             </section>
 
             {/* Section 12 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">12. NO REFUNDS ON TESTING, UI, OR DEVELOPMENT SERVICE PHASES</h2>
-              <p>Flock is a live platform.</p>
-              <p>Testing, UI rollout, and onboarding constitute completed service delivery.</p>
+              <p>Flock is a live platform. Testing, UI rollout, and onboarding constitute completed service delivery.</p>
               <p>Claims such as:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>"I'm still testing"</li>
@@ -322,9 +318,6 @@ export default function RefundPolicyPage() {
                 <li>"The UI isn't emotional enough"</li>
                 <li>"I need another dev phase before approval"</li>
               </ul>
-              <p>→ Do not constitute grounds for payment delay or refund.</p>
-              <p>Once platform access and core deliverables have been provided, Phase 1 is considered complete.</p>
-              <p>(This line directly protects you from your current client situation.)</p>
             </section>
 
             {/* Section 13 */}
@@ -353,13 +346,13 @@ export default function RefundPolicyPage() {
               <p>They must provide:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Transaction IDs</li>
-                <li>Proof of ownership</li>
+                <li>Proof of ownership (where relevant)</li>
                 <li>Contextual evidence</li>
               </ul>
               <p>Appeals will be denied if:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Evidence is insufficient</li>
-                <li>User has prior violations</li>
+                <li>The user has prior violations</li>
                 <li>Patterns of manipulation exist</li>
               </ul>
               <p>All decisions are final.</p>
@@ -368,19 +361,22 @@ export default function RefundPolicyPage() {
             {/* Section 15 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">15. AMENDMENTS</h2>
-              <p>We may update this policy at any time.</p>
-              <p>Changes become effective upon posting.</p>
+              <p>We may update this Policy at any time.</p>
+              <p>Changes become effective upon posting on the Platform. Continued use of paid or monetized features constitutes acceptance of the updated Policy.</p>
             </section>
 
             {/* Section 16 */}
-            <section className="-space-y-1">
-              <h2 className="text-3xl font-bold mb-4">16. CONTACT</h2>
-              <p>Refunds, disputes, chargeback, payment inquiries:</p>
-              <p className="mb-2">admin@flocktogether.xyz</p>
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">16. CONTACT</h2>
+              <p>Refunds, disputes, chargeback, and payment inquiries:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Support: support@flocktogether.xyz</li>
+              </ul>
               <p className="font-bold">Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
-              <p>Sheridan, WY 82801, USA</p>
+              <p>Sheridan, WY 82801</p>
+              <p>USA</p>
             </section>
           </div>
         </div>

@@ -62,9 +62,9 @@ export default function KycAmlPolicyPage() {
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
-              KYC / AML / PAYMENT INTEGRITY POLICY — FLOCKTOGETHER.XYZ
+              KYC / AML / PAYMENT INTEGRITY POLICY - FLOCKTOGETHER.XYZ
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -81,15 +81,19 @@ export default function KycAmlPolicyPage() {
                   https://flocktogether.xyz
                 </a> (the "Platform").
               </p>
-              <p>This Policy is incorporated into:</p>
+              <p>This Policy is incorporated into and forms part of:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Terms of Service</li>
-                <li>Monetization Policy</li>
+                <li>Creator Agreement / Monetization Policy</li>
                 <li>Privacy Policy</li>
                 <li>Acceptable Use Policy</li>
                 <li>Refunds & Chargebacks Policy</li>
               </ul>
-              <p>By using our monetization features, payouts, or digital earnings tools, you agree to comply with this Policy.</p>
+              <p>By using our monetization features, payouts, or digital earnings tools, you agree to comply
+                with this Policy.</p>
+              <p>Following the completion of the Beta phase, all eligible creators are able to earn from their
+                first day on the Platform, subject to successful identity verification, KYC/AML checks,
+                and this Policy.</p>
             </section>
 
             {/* Section 1 */}
@@ -111,13 +115,14 @@ export default function KycAmlPolicyPage() {
                 <li>Comply with international anti-money laundering laws</li>
                 <li>Reduce regulatory exposure</li>
               </ul>
-              <p>We follow FATF, FinCEN, KYC, and AML best practices.</p>
+              <p>We follow FATF, FinCEN, KYC, and AML best practices where applicable.</p>
             </section>
 
             {/* Section 2 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">2. KYC REQUIREMENTS</h2>
-              <h3 className="font-semibold">2.1 Creators must verify their identity before withdrawing funds.</h3>
+              <h3 className="font-semibold">2.1 Identity Verification</h3>
+              <p>Creators must verify their identity before withdrawing funds.</p>
               <p>Verification may include:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Government-issued ID</li>
@@ -134,18 +139,21 @@ export default function KycAmlPolicyPage() {
                 <li>Tax documents</li>
                 <li>Beneficial ownership information</li>
               </ul>
-              <p>Failure to comply may result in withholding or forfeiture of earnings.</p>
+              <p>Failure to comply may result in withholding, delaying, or forfeiture of earnings, and/or
+                suspension of monetization.</p>
             </section>
 
             {/* Section 3 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">3. MINIMUM AGE</h2>
               <p>To monetize:</p>
-              <p>Creators must be 18+.</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Creators must be 18+ (or the age of majority in their jurisdiction).</li>
+              </ul>
               <p>Minors may upload content, but monetization requires:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Legally documented parent/guardian pathway</li>
-                <li>Verified adult-controlled payout account</li>
+                <li>A legally documented parent/guardian pathway</li>
+                <li>A verified adult-controlled payout account</li>
               </ul>
               <p>We do not pay directly to underage individuals.</p>
             </section>
@@ -183,12 +191,12 @@ export default function KycAmlPolicyPage() {
                 <li>Stripe</li>
                 <li>Other approved regional financial services</li>
               </ul>
-              <p>Creators agree to comply with their terms.</p>
+              <p>Creators agree to comply with each provider's terms.</p>
               <p>If a processor requests KYC:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Flock is not liable for delays</li>
-                <li>Verification is between user and provider</li>
-                <li>Refusal may lead to payout suspension</li>
+                <li>Verification is between Creator and provider</li>
+                <li>Refusal or failure may lead to payout suspension or account review</li>
               </ul>
             </section>
 
@@ -197,7 +205,7 @@ export default function KycAmlPolicyPage() {
               <h2 className="text-2xl font-bold">6. PROHIBITED COUNTRIES & SANCTIONS</h2>
               <p>We comply with:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>US OFAC Sanctions</li>
+                <li>US OFAC sanctions</li>
                 <li>EU/UK sanctions lists</li>
                 <li>FATF blacklists</li>
                 <li>Canadian and Australian AML controls</li>
@@ -205,79 +213,85 @@ export default function KycAmlPolicyPage() {
               <p>Users from restricted jurisdictions may be:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Denied monetization</li>
-                <li>Payout locked</li>
-                <li>Accounts suspended</li>
+                <li>Have payout locked</li>
+                <li>Have accounts suspended</li>
               </ul>
               <p>We may block:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Certain IP ranges</li>
                 <li>Suspicious networks</li>
-                <li>VPN-based masking</li>
+                <li>VPN-based masking where it indicates risk</li>
               </ul>
             </section>
 
             {/* Section 7 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">7. MULTIPLE ACCOUNTS</h2>
+              <p>Flock allows Creators to maintain more than one content account, provided all accounts:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Are linked to the same verified identity</li>
+                <li>Comply with this Policy and all Platform rules</li>
+              </ul>
               <p>Creators may not:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Operate multiple earning accounts</li>
-                <li>Split earnings between accounts</li>
-                <li>Create "farm" networks</li>
+                <li>Operate multiple earning accounts under different identities to hide ownership</li>
+                <li>Split or route earnings between accounts to obscure who is getting paid</li>
+                <li>Create "farm" networks for artificial engagement or monetization abuse</li>
               </ul>
-              <p>We reserve the right to merge, close or ban accounts used to evade detection.</p>
+              <p>We reserve the right to merge, restrict, close, or ban accounts used to evade detection,
+                enforcement, or KYC/AML controls.</p>
             </section>
 
             {/* Section 8 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">8. FRAUD & ABUSE INDICATORS</h2>
-              <p>We monitor:</p>
+              <p>We monitor, directly or via partners:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Rapid earnings spikes</li>
                 <li>Unusual traffic origins</li>
-                <li>VPN activity</li>
-                <li>Proxy server monetization</li>
+                <li>VPN or proxy-heavy activity</li>
                 <li>Click fraud</li>
                 <li>Purchased views or bots</li>
                 <li>Coordinated artificial engagement</li>
+                <li>Suspicious referral or affiliate patterns</li>
               </ul>
               <p>If flagged:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Monetization may be paused</li>
-                <li>Payouts frozen pending review</li>
-                <li>Revenue voided</li>
+                <li>Payouts may be frozen pending review</li>
+                <li>Revenue may be voided where fraud is confirmed</li>
               </ul>
             </section>
 
             {/* Section 9 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">9. MONETIZATION LAUNDERING</h2>
-              <p className="font-bold">Prohibited:</p>
+              <p>Prohibited:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Using Flock to move money between individuals</li>
                 <li>Using ads as a disguised payment mechanism</li>
                 <li>Self-purchased traffic</li>
-                <li>Content "washing" through private networks</li>
+                <li>"Content washing" through private or closed networks</li>
               </ul>
               <p>We may:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Suspend accounts</li>
-                <li>Notify financial partners</li>
-                <li>Notify law enforcement</li>
+                <li>Suspend or permanently ban accounts</li>
+                <li>Notify financial partners and payment processors</li>
+                <li>Notify law enforcement or regulators where required</li>
               </ul>
             </section>
 
             {/* Section 10 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">10. PAYMENT REVERSALS & CHARGEBACKS</h2>
-              <p>If a user or creator files chargebacks:</p>
+              <p>If a user or creator files repeated or suspicious chargebacks or payment disputes:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Account may be frozen</li>
-                <li>Revenue voided</li>
-                <li>Monetization disabled</li>
-                <li>Permanent ban enforced</li>
+                <li>Accounts may be frozen</li>
+                <li>Revenue may be voided</li>
+                <li>Monetization may be disabled</li>
+                <li>A permanent ban may be enforced in severe or persistent cases</li>
               </ul>
-              <p>We treat chargebacks as high-risk fraud behavior.</p>
+              <p>We treat chargebacks as a high-risk fraud signal, especially when patterns indicate abuse.</p>
             </section>
 
             {/* Section 11 */}
@@ -286,11 +300,11 @@ export default function KycAmlPolicyPage() {
               <p>Creators may not:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Operate accounts for banned individuals</li>
-                <li>Cash out earnings for others</li>
+                <li>Cash out earnings on behalf of third parties as a "pass-through"</li>
                 <li>Use nominee or proxy accounts</li>
                 <li>Sell or rent payout access</li>
               </ul>
-              <p>This behavior is grounds for termination.</p>
+              <p>This behavior is grounds for immediate termination and forfeiture of earnings.</p>
             </section>
 
             {/* Section 12 */}
@@ -299,9 +313,10 @@ export default function KycAmlPolicyPage() {
               <p>At this time:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Flock does not accept cryptocurrency payouts</li>
-                <li>Flock does not facilitate wallet earnings</li>
+                <li>Flock does not facilitate wallet-based earnings</li>
               </ul>
-              <p>This may be introduced in future phases under strict AML compliance.</p>
+              <p>Crypto-related features may be introduced in future phases subject to strict KYC/AML and
+                regulatory compliance.</p>
             </section>
 
             {/* Section 13 */}
@@ -312,7 +327,7 @@ export default function KycAmlPolicyPage() {
                 <li>AI engagement bots</li>
                 <li>Auto-comment spam</li>
                 <li>Automated "watch farms"</li>
-                <li>Mass AI-generated uploads to harvest ads</li>
+                <li>Mass AI-generated uploads whose primary purpose is to harvest ad revenue</li>
               </ul>
               <p>Flock may:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -327,18 +342,18 @@ export default function KycAmlPolicyPage() {
             {/* Section 14 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">14. IDENTITY MISMATCHES</h2>
-              <p>If name mismatch occurs:</p>
+              <p>If name or identity mismatches occur:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>We may request additional documents</li>
                 <li>We may refuse payout</li>
-                <li>Monetization may be permanently disabled</li>
+                <li>Monetization may be temporarily or permanently disabled</li>
               </ul>
               <p>Examples triggering review:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Celebrity name ≠ legal ID</li>
-                <li>Business account ≠ creator identity</li>
-                <li>Rapid change of beneficiary name</li>
-                <li>Offshore payments for local creators</li>
+                <li>Celebrity or fake names that do not match legal ID</li>
+                <li>Business names that do not match the registered creator or owner</li>
+                <li>Rapid or unexplained change of payout beneficiary</li>
+                <li>Offshore payments for creators whose activity appears local only</li>
               </ul>
             </section>
 
@@ -354,9 +369,9 @@ export default function KycAmlPolicyPage() {
                 <li>Tax records</li>
                 <li>Proof of residency</li>
                 <li>Phone verification</li>
-                <li>Source of funds explanation</li>
+                <li>"Source of funds" or "source of traffic" explanation</li>
               </ul>
-              <p>Non-cooperation may suspend monetization until resolved.</p>
+              <p>Non-cooperation may suspend monetization and payouts until the issue is resolved.</p>
             </section>
 
             {/* Section 16 */}
@@ -370,20 +385,22 @@ export default function KycAmlPolicyPage() {
                 <li>For AML risk assessments</li>
                 <li>If sanctions are suspected</li>
               </ul>
-              <p>Balances may be withheld up to 180 days.</p>
+              <p>Balances may be withheld for up to 180 days, or longer if required by law, the payment
+                provider, or law enforcement.</p>
             </section>
 
             {/* Section 17 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">17. TERMINATION CONSEQUENCES</h2>
-              <p>If policy is violated:</p>
+              <p>If this Policy is violated:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Earnings may be voided</li>
-                <li>Monetization disabled</li>
-                <li>Account permanently banned</li>
-                <li>Authorities notified</li>
+                <li>Monetization may be disabled</li>
+                <li>Account(s) may be permanently banned</li>
+                <li>Relevant authorities or partners may be notified</li>
               </ul>
-              <p>Creators whose earnings arise from fraudulent or illegal activity forfeit all balances.</p>
+              <p>Creators whose earnings arise from fraudulent, abusive, or illegal activity forfeit all balances
+                related to that activity.</p>
             </section>
 
             {/* Section 18 */}
@@ -394,9 +411,9 @@ export default function KycAmlPolicyPage() {
                 <li>Audit accounts</li>
                 <li>Review monetization events</li>
                 <li>Inspect traffic sources</li>
-                <li>Verify payout identity</li>
+                <li>Verify payout identity and ownership</li>
               </ul>
-              <p>Creators must cooperate or be removed.</p>
+              <p>Creators must cooperate in good faith or risk suspension or removal.</p>
             </section>
 
             {/* Section 19 */}
@@ -405,10 +422,10 @@ export default function KycAmlPolicyPage() {
               <p>Data collected under KYC/AML is:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Stored securely</li>
-                <li>Used only for verification and compliance</li>
-                <li>Shared with processors when required</li>
+                <li>Used only for verification, compliance, and fraud prevention</li>
+                <li>Shared with payment processors or partners when required for compliance</li>
               </ul>
-              <p>We do not sell user identity data.</p>
+              <p>We do not sell identity or KYC data.</p>
             </section>
 
             {/* Section 20 */}
@@ -423,11 +440,11 @@ export default function KycAmlPolicyPage() {
               </ul>
               <p>We may disclose:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Account IDs</li>
-                <li>IP logs</li>
-                <li>Traffic analysis</li>
+                <li>Account IDs and basic profile data</li>
+                <li>IP logs and device identifiers</li>
+                <li>Traffic and monetization analysis</li>
                 <li>Payout history</li>
-                <li>Fraud records</li>
+                <li>Confirmed fraud records</li>
               </ul>
             </section>
 
@@ -435,15 +452,17 @@ export default function KycAmlPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">21. POLICY UPDATES</h2>
               <p>We may update this Policy at any time.</p>
-              <p>Continued use of monetization = acceptance.</p>
+              <p>Continued use of monetization features and payout tools constitutes acceptance of the
+                updated Policy.</p>
             </section>
 
             {/* Section 22 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">22. CONTACT</h2>
-              <p>For identity and payout verification:</p>
-              <p>Email: admin@flocktogether.xyz</p>
-              <p>Legal: admin@flocktogether.xyz</p>
+              <p>For identity, verification, or payout-related questions:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Support: support@flocktogether.xyz</li>
+              </ul>
               <p>Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>

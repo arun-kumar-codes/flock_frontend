@@ -81,10 +81,10 @@ export default function ContactPage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📩</span>
                 <a 
-                  href="mailto:admin@flocktogether.xyz"
+                  href="mailto:support@flocktogether.xyz"
                   className="text-lg md:text-xl font-semibold text-blue-600 hover:text-blue-800 underline transition-colors"
                 >
-                  admin@flocktogether.xyz
+                  support@flocktogether.xyz
                 </a>
               </div>
             </div>
@@ -118,10 +118,10 @@ export default function ContactPage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📩</span>
                 <a 
-                  href="mailto:admin@flocktogether.xyz"
+                  href="mailto:support@flocktogether.xyz"
                   className="text-lg md:text-xl font-semibold text-red-600 hover:text-red-800 underline transition-colors"
                 >
-                  admin@flocktogether.xyz
+                  support@flocktogether.xyz
                 </a>
               </div>
             </div>
@@ -135,10 +135,10 @@ export default function ContactPage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📩</span>
                 <a 
-                  href="mailto:admin@flocktogether.xyz"
+                  href="mailto:support@flocktogether.xyz"
                   className="text-lg md:text-xl font-semibold text-green-600 hover:text-green-800 underline transition-colors"
                 >
-                  admin@flocktogether.xyz
+                  support@flocktogether.xyz
                 </a>
               </div>
             </div>

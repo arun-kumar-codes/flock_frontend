@@ -236,14 +236,13 @@ const itemVariants = {
           </div>
 
           <h2 className="text-[25px] font-bold text-[#684098] leading-[1.2] mb-4">
-            Welcome Back to Your <br /> Creative Journey
+            You Are About To Enter Your Nest
           </h2>
 
           <p
             className={"text-black font-normal text-[13.5px] leading-[1.5] tracking-normal mb-6"}
           >
-            Continue creating, discovering, & connecting with your community. <br />
-            Your creative universe awaits.
+            Your space to create, connect, and go viral
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-3">

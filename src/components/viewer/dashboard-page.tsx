@@ -775,14 +775,14 @@ const handleBlogClick = (blog: Blog) => {
       <h1
   className="text-[22px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px]
              font-extrabold text-white leading-[1.15] tracking-tight
-             max-w-[90%] lg:max-w-none text-center lg:text-center lg:mr-11 transition-all duration-500"
+             max-w-[90%] lg:max-w-none text-center lg:text-center -lg:mr-2 transition-all duration-500"
 >
-        The Creator Hub for the <br />
-        Connected Generation
+        Where Creators Flock, Go Viral <br />
+        and Get Paid From Day One.
       </h1>
 
-      <p className="mt-2 lg:ml-9 text-white/90 text-[15px] text-center lg:text-left max-w-[85%] lg:max-w-none text-center lg:text-center lg:mr-10">
-        Discover Tools, Community and Collaboration – all in one place
+      <p className="mt-2 lg:ml-9 text-white/90 text-[15px] text-center lg:text-left max-w-[85%] lg:max-w-none text-center lg:text-center lg:mr-40">
+        Create, Connect, Take Flight
       </p>
 
       {/* Search Bar */}

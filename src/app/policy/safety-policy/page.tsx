@@ -64,7 +64,7 @@ export default function SafetyPolicyPage() {
             <h1 className="text-3xl md:text-4xl font-extrabold">
               SAFETY & REPORTING POLICY — FLOCKTOGETHER.XYZ
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -161,7 +161,7 @@ export default function SafetyPolicyPage() {
                 <li>Targeted threats</li>
                 <li>Doxxing</li>
                 <li>"I will hurt you / your family"</li>
-                <li>Stalking/blackmail</li>
+                <li>Stalking or blackmail</li>
               </ul>
               <p>These violations may result in immediate and permanent account bans.</p>
             </section>
@@ -198,7 +198,7 @@ export default function SafetyPolicyPage() {
                 <li>Have uploads disabled</li>
                 <li>Receive account restrictions</li>
               </ul>
-              <p>Creators are not responsible for policing the entire platform, only their own uploads and community spaces.</p>
+              <p>Creators are not responsible for policing the entire platform — only their own uploads and community spaces.</p>
             </section>
 
             {/* Section 6 */}
@@ -215,11 +215,11 @@ export default function SafetyPolicyPage() {
 
               <h3 className="font-semibold">6.1 How to Report</h3>
               <p className="font-semibold">Option A — In-Platform Reporting</p>
-              <p>Every piece of content will include a Report option.</p>
+              <p>Every piece of content will include a Report option (might not available at launch)</p>
               <p className="font-semibold">Option B — Direct Email</p>
               <p>
-                <a href="mailto:safety@flocktogether.xyz" className="text-blue-600 underline">
-                  safety@flocktogether.xyz
+                <a href="mailto:support@flocktogether.xyz" className="text-blue-600 underline">
+                  support@flocktogether.xyz
                 </a>
               </p>
               <p>Include:</p>
@@ -259,7 +259,7 @@ export default function SafetyPolicyPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>We receive legally valid subpoenas</li>
                 <li>We believe users are in danger</li>
-                <li>Child Safety is in question</li>
+                <li>Child safety is in question</li>
                 <li>We detect financial crime or exploitation</li>
                 <li>A formal legal investigation is underway</li>
               </ul>
@@ -374,7 +374,7 @@ export default function SafetyPolicyPage() {
                 <li>CCPA/CPRA (California harm provisions)</li>
                 <li>GDPR principles</li>
                 <li>US Online Harms frameworks</li>
-                <li>Industry standard moderation duty of care</li>
+                <li>Industry-standard moderation duty of care</li>
               </ul>
             </section>
 
@@ -389,10 +389,10 @@ export default function SafetyPolicyPage() {
             <section className="-space-y-1">
               <h2 className="text-3xl font-bold mb-4">17. CONTACT</h2>
               <p className="mb-2">For safety, abuse, or urgent concerns:</p>
-              <p className="font-bold">Safety Team Email:</p>
+              <p className="font-bold">Support Email:</p>
               <p>
-                <a href="mailto:admin@flocktogether.xyz" className="text-blue-600 underline">
-                  admin@flocktogether.xyz
+                <a href="mailto:support@flocktogether.xyz" className="text-blue-600 underline">
+                  support@flocktogether.xyz
                 </a>
               </p>
               <p className="font-bold mt-4">Legal Address:</p>

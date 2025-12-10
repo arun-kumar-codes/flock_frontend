@@ -62,9 +62,9 @@ export default function DmcaPolicyPage() {
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
-              DMCA COPYRIGHT POLICY — FLOCKTOGETHER.XYZ
+              DMCA & COPYRIGHT POLICY - FLOCKTOGETHER.XYZ
             </h1>
-            <p className="text-sm">Last Updated: December 1, 2025</p>
+            <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
@@ -73,33 +73,25 @@ export default function DmcaPolicyPage() {
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                The Digital Millennium Copyright Act (DMCA) provides copyright owners with a mechanism for requesting the removal of infringing material.
+                This DMCA and Copyright Policy ("Policy") applies to all users of https://flocktogether.xyz
+                (the "Platform") operated by Flock Together Global LLC ("Flock," "we," "us," "our").
               </p>
-              <p>
-                It also protects online service providers like Flock Together Global LLC ("Flock," "we," "our," "us") when they act promptly in response to copyright complaints.
-              </p>
-              <p>Flock respects copyright law and expects users to do the same.</p>
-              <p>This DMCA Copyright Policy explains how to:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>File a copyright infringement notice</li>
-                <li>Request removal of infringing content</li>
-                <li>Submit a counter-notice if you believe your content was wrongly removed</li>
-                <li>Understand consequences for repeat infringers</li>
-              </ul>
-              <p>This Policy applies to all users of the Platform, whether they are registered creators, viewers, advertisers, or guests.</p>
+              <p>We comply with the Digital Millennium Copyright Act (DMCA), Title 17 U.S.C. §512, and
+                respect the intellectual property rights of creators, brands, publishers, and copyright holders.</p>
+              <p>By using the Platform, you agree to follow this Policy.</p>
             </section>
 
             {/* Section 1 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">1. DESIGNATED DMCA AGENT</h2>
-              <p>To submit copyright complaints, you must contact our designated agent:</p>
-              <p className="font-bold">DMCA Agent</p>
-              <p>Flock Together Global LLC</p>
-              <p>30 N Gould St #53789</p>
-              <p>Sheridan, WY 82801</p>
-              <p>United States</p>
-              <p>Email: admin@flocktogether.xyz</p>
-              <p>Subject Line: "DMCA Complaint – FLOCKTOGETHER.XYZ"</p>
+              <h2 className="text-3xl font-bold">1. GENERAL PRINCIPLES</h2>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Creators own the rights to the content they upload unless otherwise stated.</li>
+                <li>Creators are fully responsible for ensuring they have permission to upload digital
+                  content.</li>
+                <li>Flock does not verify copyright ownership before upload.</li>
+                <li>We remove infringing content upon valid DMCA notice.</li>
+                <li>We may disable accounts of repeat infringers.</li>
+              </ul>
             </section>
 
             {/* Section 2 */}
@@ -124,9 +116,9 @@ export default function DmcaPolicyPage() {
               <p>Copyright law allows some uses without permission, including but not limited to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Fair Use (commentary, criticism, parody, transformative review, news reporting)</li>
-                <li>Public Domain Works</li>
-                <li>Licensed Works (content you have permission to use)</li>
-                <li>Original Works You Created Yourself</li>
+                <li>Public Domain works</li>
+                <li>Licensed works (content you have permission to use)</li>
+                <li>Original works you created yourself</li>
               </ul>
               <p>We cannot pre-judge legal defenses.</p>
               <p>We respond to properly formatted DMCA notices only.</p>
@@ -134,183 +126,316 @@ export default function DmcaPolicyPage() {
 
             {/* Section 4 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">4. HOW TO SUBMIT A VALID DMCA TAKEDOWN NOTICE</h2>
-              <p>To comply with 17 U.S.C. §512(c)(3), your DMCA notice must include:</p>
+              <h2 className="text-3xl font-bold">4. CONTENT YOU MAY NOT UPLOAD</h2>
+              <p>Creators may not upload:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Your name, physical address, and contact information (email and phone recommended)</li>
-                <li>Identification of the copyrighted work claimed to be infringed** (URL or detailed description if unavailable online)</li>
-                <li>Identification of the material to be removed, including:
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>URL(s) of the specific infringing content on flocktogether.xyz</li>
-                    <li>A screenshot or link is not sufficient; exact URLs are required</li>
-                  </ul>
-                </li>
-                <li>A statement of good-faith belief that the use is unauthorized: "I have a good-faith belief that the material identified is not authorized by the copyright owner, its agent, or applicable law."</li>
-                <li>An accuracy statement under penalty of perjury: "The information in this notice is accurate, and I am the owner of the copyright or authorized to act on behalf of the copyright owner."</li>
-                <li>Your electronic or physical signature</li>
+                <li>Movies, TV shows, documentaries</li>
+                <li>Professional sports broadcasts</li>
+                <li>Music they don't own or license</li>
+                <li>Clips from other social media apps (TikTok, YouTube, Instagram, etc.)</li>
+                <li>Material from streaming services</li>
+                <li>Stock footage without rights</li>
+                <li>Content produced by others without their permission</li>
               </ul>
-              <p className="font-bold">⚠️ IMPORTANT</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>We cannot process takedowns missing required elements.</li>
-                <li>We cannot accept notices sent to general support inboxes.</li>
-                <li>We cannot remove content based on verbal claims or screenshots.</li>
-              </ul>
+              <p>AI-generated material trained on copyrighted assets that recreate identifiable works is also
+                prohibited.</p>
             </section>
 
             {/* Section 5 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">5. FLOCK'S RESPONSE TO VALID NOTICES</h2>
-              <p>If your DMCA notice is valid:</p>
+              <h2 className="text-3xl font-bold">5. COPYRIGHT OWNERSHIP & USER LIABILITY</h2>
+              <p>Creators retain copyright over their original uploads, but:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>We will remove or disable access to the allegedly infringing content</li>
-                <li>We may notify the user who uploaded it</li>
-                <li>We may provide the uploader with your complaint (minus personal phone or address, if possible)</li>
-                <li>We may lock monetization or suspend accounts during review</li>
+                <li>You grant Flock a limited, non-exclusive license to display & distribute your content.</li>
+                <li>You guarantee you have rights to everything uploaded.</li>
+                <li>You indemnify Flock against copyright claims arising from your uploads.</li>
+                <li>Creators bear full legal liability for infringement, not the Platform.</li>
               </ul>
-              <p>We are not required to provide advance warning before removal.</p>
+              <p>This is core to maintaining DMCA Safe Harbor.</p>
             </section>
 
             {/* Section 6 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">6. YOUR LEGAL RESPONSIBILITY</h2>
+              <h2 className="text-3xl font-bold">6. HOW TO SUBMIT A VALID DMCA TAKEDOWN NOTICE</h2>
+              <p>If you believe your copyrighted work has been uploaded to FLOCK without permission, you
+                may file a DMCA takedown request.</p>
+              <p>To comply with 17 U.S.C. §512(c)(3), your DMCA notice must include:</p>
+              <p className="font-semibold">1. Your contact information</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Your name</li>
+                <li>Physical address</li>
+                <li>Email (and phone is recommended)</li>
+              </ul>
+              <p className="font-semibold">2. Identification of the copyrighted work claimed to be infringed</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>A URL or description of the original work, or</li>
+                <li>A detailed description if it is not available online</li>
+              </ul>
+              <p className="font-semibold">3. Identification of the material to be removed, including:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>URL(s) of the specific infringing content on flocktogether.xyz</li>
+                <li>A screenshot or general link is not sufficient; exact URLs are required</li>
+              </ul>
+              <p className="font-semibold">4. Good-faith statement</p>
+              <p>"I have a good-faith belief that the material identified is not authorized by the
+                copyright owner, its agent, or applicable law."</p>
+              <p className="font-semibold">5. Accuracy & authority statement under penalty of perjury</p>
+              <p>"The information in this notice is accurate, and I am the owner of the copyright or
+                authorized to act on behalf of the copyright owner."</p>
+              <p className="font-semibold">6. Your electronic or physical signature</p>
+              <p>Send DMCA Notices to:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Email: support@flocktogether.xyz</li>
+                <li>Subject line: DMCA NOTICE - [Your Work Title]</li>
+              </ul>
+              <p>or by mail to:</p>
+              <p>Flock Together Global LLC</p>
+              <p>ATTN: Copyright Agent</p>
+              <p>30 N Gould St #53789</p>
+              <p>Sheridan, WY 82801</p>
+              <p>USA</p>
+            </section>
+
+            {/* Section 7 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">7. INVALID OR INCOMPLETE REQUESTS</h2>
+              <p>We may reject takedown notices that:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Lack one or more required elements</li>
+                <li>Are unclear or non-specific (e.g., no exact URLs)</li>
+                <li>Appear to be automatically generated (e.g., bulk or AI-driven notices) without the
+                  legally required statements or details</li>
+                <li>Attempt to remove lawful transformative or fair use content</li>
+                <li>Are retaliatory, abusive, or clearly filed in bad faith</li>
+              </ul>
+            </section>
+
+            {/* Section 8 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">8. FLOCK'S RESPONSE TO VALID NOTICES</h2>
+              <p>If your DMCA notice is valid:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>We will remove or disable access to the allegedly infringing content.</li>
+                <li>We may notify the user who uploaded it.</li>
+                <li>We may provide the uploader with a copy of your complaint (excluding sensitive
+                  personal details where possible).</li>
+                <li>We may lock monetization or suspend accounts during review.</li>
+              </ul>
+              <p>We are not required to provide advance warning before removal.</p>
+              <p>We do not:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Mediate disputes</li>
+                <li>Provide legal advice</li>
+                <li>Force parties into settlement</li>
+              </ul>
+              <p>We only handle the copyright compliance workflow.</p>
+            </section>
+
+            {/* Section 9 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">9. YOUR LEGAL RESPONSIBILITY</h2>
               <p>Submitting a false or malicious copyright notice may result in:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Civil liability</li>
                 <li>Legal damages</li>
                 <li>Platform suspension or permanent ban</li>
               </ul>
-              <p>Perjury notices may be prosecuted under U.S. federal law.</p>
+              <p>Perjury in DMCA notices may be prosecutable under U.S. federal law.</p>
             </section>
 
-            {/* Section 7 */}
+            {/* Section 10 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">7. COUNTER-NOTIFICATIONS (APPEALS)</h2>
+              <h2 className="text-3xl font-bold">10. DMCA COUNTER-NOTICE (APPEALS)</h2>
               <p>If your content was removed and you believe:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>You own the rights, or</li>
                 <li>The takedown was incorrect, or</li>
                 <li>The content is protected by law (fair use, license, etc.)</li>
               </ul>
-              <p>You may submit a counter-notice under 17 U.S.C. §512(g)(3).</p>
-              <p>Your counter-notice must include:</p>
+              <p>You may submit a Counter-Notice under 17 U.S.C. §512(g)(3).</p>
+              <p>Your Counter-Notice must include:</p>
+              <p className="font-semibold">1. Your full legal name</p>
+              <p className="font-semibold">2. Your address and telephone number</p>
+              <p className="font-semibold">3. Identification of the removed material and where it appeared before removal</p>
+              <p className="font-semibold">4. A sworn statement:</p>
+              <p>"I have a good-faith belief that the material was removed or disabled as a result of
+                mistake or misidentification."</p>
+              <p className="font-semibold">5. A jurisdiction consent statement:</p>
+              <p>"I consent to the jurisdiction of the U.S. Federal District Court for the judicial district
+                where I live, or if outside the United States, the jurisdiction of the U.S. Federal
+                District Court of Wyoming."</p>
+              <p className="font-semibold">6. Your electronic or physical signature</p>
+              <p>Send Counter-Notices to:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Your name, address, and telephone number</li>
-                <li>A description of removed material and where it appeared before removal</li>
-                <li>A sworn statement: "I have a good-faith belief that the material was removed or disabled as a result of mistake or misidentification."</li>
-                <li>Consent to jurisdiction: "I consent to the jurisdiction of the U.S. Federal District Court for the judicial district where I live, or if outside the United States, the jurisdiction of the U.S. Federal District Court of Wyoming."</li>
-                <li>Your signature</li>
+                <li>Email: support@flocktogether.xyz</li>
+                <li>Subject line: Counter Notice - [Content Title / URL]</li>
               </ul>
-              <p>Send to: admin@flocktogether.xyz</p>
-              <p>We may forward your counter-notice to the original complainant.</p>
-            </section>
-
-            {/* Section 8 */}
-            <section className="space-y-4">
-              <h2 className="text-3xl font-bold">8. RESTORATION OF CONTENT</h2>
-              <p>Once a valid counter-notice is received:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>We restore the content within 10–14 business days, unless the copyright owner files legal action in that time.</li>
-              </ul>
-              <p>We will not mediate disputes between users.</p>
-              <p>Only courts or arbitration can decide copyright ownership.</p>
-            </section>
-
-            {/* Section 9 */}
-            <section className="space-y-4">
-              <h2 className="text-3xl font-bold">9. REPEAT INFRINGER POLICY</h2>
-              <p>We operate a zero-tolerance repeat infringer policy.</p>
-              <p>We may:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Warn users</li>
-                <li>Suspend monetization</li>
-                <li>Disable uploads</li>
-                <li>Permanently terminate accounts</li>
-                <li>Destroy payout eligibility</li>
-              </ul>
-              <p>We may also block IPs, devices, emails, and payment methods associated with infringement.</p>
-            </section>
-
-            {/* Section 10 */}
-            <section className="space-y-4">
-              <h2 className="text-3xl font-bold">10. THIRD-PARTY RIGHTS & DISTRIBUTION</h2>
-              <p>Content shared on Flock may be:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Embedded</li>
-                <li>Indexed</li>
-                <li>Previewed via platform tools</li>
-                <li>Displayed through OpenGraph metadata</li>
-              </ul>
-              <p>
-                DMCA takedowns cover all derivative displays controlled by the Platform, but cannot remove:
-              </p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Screenshots</li>
-                <li>Reposts outside the Platform</li>
-                <li>User-created reshared material on third-party sites</li>
-              </ul>
+              <p>We may forward your Counter-Notice to the original complainant.</p>
             </section>
 
             {/* Section 11 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">11. NON-US COPYRIGHT CLAIMS</h2>
-              <p>Non-DMCA copyright claims may also be honored.</p>
-              <p>However:</p>
+              <h2 className="text-3xl font-bold">11. RESTORATION PROCESS (IMPORTANT)</h2>
+              <p>Upon receiving a valid Counter-Notice:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Claims must still include proof of ownership</li>
-                <li>We do not enforce unverifiable jurisdictional claims</li>
-                <li>We respond using materially equivalent standards to DMCA</li>
+                <li>We forward it to the original complainant.</li>
+                <li>If they do not file a lawsuit within 10–14 business days, the content may be
+                  reinstated.</li>
               </ul>
-              <p>If your country's copyright structure differs, you may still file a standard DMCA-compliant request.</p>
+              <p>This is standard under DMCA §512(g).</p>
+              <p>We do not guarantee reinstatement.</p>
             </section>
 
             {/* Section 12 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">12. ABUSE, HARASSMENT, OR BAD-FAITH REPORTING</h2>
-              <p>We treat copyright disputes seriously.</p>
-              <p>Misuse may result in:</p>
+              <h2 className="text-3xl font-bold">12. REPEAT INFRINGEMENT POLICY</h2>
+              <p>To maintain Safe Harbor:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Account termination</li>
-                <li>Monetization loss</li>
-                <li>Legal exposure</li>
-                <li>Permanent banning of individuals or affiliated businesses</li>
+                <li>Accounts with repeated copyright violations may be suspended or permanently
+                  banned.</li>
               </ul>
-              <p>This applies to:</p>
+              <p>We may escalate faster if:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Retaliatory claims</li>
-                <li>Competitor takedowns</li>
-                <li>"AI copyright spam"</li>
-                <li>Automated mass-submission bots</li>
+                <li>Content is intentionally pirated</li>
+                <li>Copyright evasion is systematic</li>
+                <li>Revenue fraud or laundering is suspected</li>
               </ul>
             </section>
 
             {/* Section 13 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">13. DISCLAIMER</h2>
-              <p>Nothing in this policy constitutes:</p>
+              <h2 className="text-3xl font-bold">13. FAIR USE & TRANSFORMATIVE CONTENT</h2>
+              <p>Examples of legitimate fair use may include:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Legal advice</li>
-                <li>A legal ruling</li>
-                <li>A warranty of ownership or consent</li>
+                <li>Commentary</li>
+                <li>News reporting</li>
+                <li>Parody</li>
+                <li>Critique</li>
+                <li>Documentary context</li>
+                <li>Research or educational analysis</li>
               </ul>
-              <p>We make best efforts to comply with U.S. law but do not adjudicate:</p>
+              <p>Not fair use (typically):</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Fair use disputes</li>
-                <li>Contractual disputes between creators</li>
-                <li>Licensing conflicts</li>
+                <li>Straight reuploads with no transformation</li>
+                <li>Compilation channels using large volumes of copyrighted clips</li>
+                <li>"Reaction" videos with minimal or no commentary</li>
+                <li>"Top 10 moments" or highlight reels from copyrighted media</li>
               </ul>
-              <p>Those must be resolved in court or binding arbitration.</p>
+              <p>Transformation must be meaningful and original. Only a court can make a final decision on
+                fair use.</p>
             </section>
 
             {/* Section 14 */}
-            <section className="-space-y-1">
-              <h2 className="text-3xl font-bold mb-4">14. CONTACT INFORMATION</h2>
-              <p className="mb-2">If you have questions about this policy:</p>
-              <p className="font-bold">DMCA Agent</p>
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">14. AI-GENERATED CONTENT</h2>
+              <p>AI content is allowed only if:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>It does not recreate real actors or public figures without consent</li>
+                <li>It is not trained on restricted datasets without license</li>
+                <li>It does not mimic copyrighted franchises or media</li>
+              </ul>
+              <p>We may request proof of authorship or training data rights.</p>
+            </section>
+
+            {/* Section 15 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">15. MUSIC & SOUND RIGHTS</h2>
+              <p>Creators are responsible for:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Music synchronization rights</li>
+                <li>Instrumental and master rights</li>
+                <li>Audio license terms</li>
+                <li>Sample permissions</li>
+              </ul>
+              <p>We do not provide blanket music licenses.</p>
+            </section>
+
+            {/* Section 16 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">16. LIVE STREAM OR UPLOAD PIRACY</h2>
+              <p>Prohibited:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Live rebroadcast of sports events</li>
+                <li>Pay-per-view streams</li>
+                <li>Movie theaters or concerts</li>
+                <li>Copyrighted lectures</li>
+                <li>Online classes or webinars you don't own</li>
+              </ul>
+              <p>Immediate bans may occur.</p>
+            </section>
+
+            {/* Section 17 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">17. THIRD-PARTY PLATFORMS</h2>
+              <p>Do not upload:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>TikTok reposts</li>
+                <li>YouTube reuploads</li>
+                <li>Instagram reels</li>
+                <li>Content purchased from "viral video packs"</li>
+                <li>Other creators' content copied from other platforms</li>
+              </ul>
+              <p>Creators must provide original work.</p>
+            </section>
+
+            {/* Section 18 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">18. NO WEAPONIZED DMCA</h2>
+              <p>We do not tolerate:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Filing takedowns to harass other creators</li>
+                <li>Using copyright claims against criticism, review, or satire</li>
+                <li>Mass reporting campaigns</li>
+              </ul>
+              <p>Abuse may result in:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Account penalties</li>
+                <li>Legal action</li>
+                <li>Perjury liability</li>
+              </ul>
+            </section>
+
+            {/* Section 19 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">19. SAFE HARBOR STATEMENT</h2>
+              <p>Flock qualifies under DMCA Safe Harbor because:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>We do not pre-screen all content</li>
+                <li>We respond in good faith to valid DMCA notices</li>
+                <li>We remove infringing content upon notice</li>
+                <li>We maintain repeat-infringer policies</li>
+                <li>We are not the legal publisher of user-uploaded content</li>
+              </ul>
+            </section>
+
+            {/* Section 20 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">20. DISCLAIMER</h2>
+              <p>We do not:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Provide copyright legal advice</li>
+                <li>Determine ownership disputes</li>
+                <li>Judge private contracts or licensing agreements</li>
+              </ul>
+              <p>Copyright disputes are between the parties, not the Platform.</p>
+            </section>
+
+            {/* Section 21 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">21. CHANGES TO THIS POLICY</h2>
+              <p>We may update this Policy at any time.</p>
+              <p>Continued use of the Platform constitutes acceptance of the updated Policy.</p>
+            </section>
+
+            {/* Section 22 */}
+            <section className="space-y-4">
+              <h2 className="text-3xl font-bold">22. CONTACT</h2>
+              <p>Copyright Agent Email: support@flocktogether.xyz</p>
+              <p>Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
               <p>Sheridan, WY 82801</p>
-              <p>United States</p>
-              <p>Email: admin@flocktogether.xyz</p>
+              <p>USA</p>
             </section>
           </div>
         </div>
