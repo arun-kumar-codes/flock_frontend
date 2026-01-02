@@ -3,6 +3,7 @@
 import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
+import aboutInfographic from "@/assets/About Us.png"; 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getUserProfile } from "@/api/user";
@@ -36,11 +37,7 @@ export default function AboutUsPage() {
         if (res?.status === 200) {
           setIsLoggedIn(true);
 
-          const rawRole =
-            res?.data?.user?.role ??
-            res?.data?.role ??
-            null;
-
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
           const normalized =
             typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
 
@@ -70,9 +67,36 @@ export default function AboutUsPage() {
     return null;
   }, [role]);
 
+  const differentItems = [
+    {
+      n: "1",
+      title: "Ownership Comes First",
+      desc: "Creators own their content. We simply provide the tools, distribution, and monetization engine.",
+      accent: "from-purple-600 to-indigo-600",
+    },
+    {
+      n: "2",
+      title: "Transparent Earnings",
+      desc: "Monetization is based on performance, integrity, and fairness — not viral luck or invisible preference systems.",
+      accent: "from-orange-500 to-pink-600",
+    },
+    {
+      n: "3",
+      title: "Community Without Exploitation",
+      desc: "Your audience is your community — they belong to you. We never sell, rent, or exchange user identities for engagement farming.",
+      accent: "from-teal-600 to-blue-600",
+    },
+    {
+      n: "4",
+      title: "Safety and Accountability",
+      desc: "We enforce standards that protect creators and their audience from harassment, abuse, and exploitation — without silencing or punishing healthy expression.",
+      accent: "from-fuchsia-600 to-purple-700",
+    },
+  ];
+
   return (
     <div className="relative min-h-screen">
-      {/* Background Image with Enhanced Gradient */}
+      {/* Background */}
       <div className="absolute inset-0 -z-10">
         <Image
           src={loginBg}
@@ -81,13 +105,13 @@ export default function AboutUsPage() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-700/60 via-purple-600/50 via-pink-500/40 to-white/60 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-700/65 via-fuchsia-600/35 to-white/70 backdrop-blur-[1px]" />
       </div>
 
       {/* Header */}
       <header className="relative z-30 w-full px-4 md:px-6 lg:px-10 py-4 md:py-6">
         <div className="w-full flex items-center justify-between">
-          {/* Logo - Left Most */}
+          {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="hover:opacity-90 transition-opacity">
               <Image
@@ -101,7 +125,7 @@ export default function AboutUsPage() {
             </Link>
           </div>
 
-          {/* Right Side Buttons */}
+          {/* Right Buttons */}
           <div className="flex items-center gap-3 md:gap-4">
             {!authChecked ? null : !isLoggedIn ? (
               <>
@@ -137,354 +161,465 @@ export default function AboutUsPage() {
         </div>
       </header>
 
-      {/* Main Content - Full Width Sections */}
-      <div className="relative z-10">
-        {/* Who We Are - Featured Section */}
-        <section className="bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-50 px-6 md:px-12 lg:px-16 py-12 md:py-16 border-t border-purple-200/50">
+      {/* MAIN */}
+      <main className="relative z-10">
+        {/* HERO / ABOVE THE FOLD */}
+        <section className="px-6 md:px-12 lg:px-16 pt-6 md:pt-10 pb-4 md:pb-6">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-purple-900 text-center mb-4 -mt-4">About Us</h2>
-            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6">
-              Who We Are
-            </h2>
-              <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
-                <p>
-                  FLOCK is a next-generation digital creator platform built for
-                  one purpose:{" "}
-                  <span className="font-bold text-purple-900">
-                    to empower creators to own their audience, publish their
-                    voice, and earn from their work in a fair and transparent
-                    ecosystem.
+            <div className="relative overflow-hidden rounded-3xl bg-white/70 backdrop-blur-md border border-white/50 shadow-xl">
+              {/* subtle watermark logo */}
+              <div className="absolute -right-10 -top-10 opacity-[0.06] pointer-events-none select-none">
+                <Image
+                  src={flockLogo}
+                  alt=""
+                  width={520}
+                  height={180}
+                  className="drop-shadow-none"
+                />
+              </div>
+
+              <div className="px-6 md:px-10 lg:px-12 py-10 md:py-12">
+                <p className="text-xs md:text-sm tracking-[0.22em] uppercase text-purple-700 font-semibold">
+                  About Us
+                </p>
+
+                <h1 className="mt-3 text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+                  FLOCK is more than a platform —{" "}
+                  <span className="bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent">
+                    it’s a movement.
                   </span>
+                </h1>
+
+                <p className="mt-5 text-base md:text-lg text-gray-700 leading-relaxed max-w-3xl">
+                  This is a new era for content creators worldwide and their
+                  communities. Creators are monetized from their very first
+                  content piece, with clear rules — no penalties, sudden
+                  demonetization, or takedowns.
                 </p>
-                <p>
-                  Unlike traditional social media platforms that reward the
-                  platform itself first and the creator second,{" "}
-                  <span className="font-bold text-purple-900">FLOCK flips the model.</span> We
-                  believe creators should be at the center — not the product.
-                </p>
-                <p>FLOCK brings together:</p>
-                <ul className="grid md:grid-cols-2 gap-3 my-4">
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                    Content publishing
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                    Community building
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                    Monetization systems
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                    Creator analytics
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                    Brand partnerships
-                  </li>
-                </ul>
-                <p>
-                  All in one space.{" "}
-                  <span>
-                    We call it a{" "}
-                    <strong className="text-purple-900">Creator Economy Operating System</strong> — designed
-                    to unlock freedom, ownership, and opportunity for every
-                    digital storyteller.
-                  </span>
+
+                <p className="mt-3 text-base md:text-lg text-gray-700 leading-relaxed max-w-3xl">
+                  Communities can truly belong — a space to gather, connect, and
+                  grow around what they care about, without manipulation, bias,
+                  or being treated like a product.
                 </p>
               </div>
-            </div>
-          </section>
 
-        {/* Two Column Layout */}
-        <div className="grid md:grid-cols-2 gap-px bg-gradient-to-r from-purple-200 to-pink-200">
-          {/* Mission */}
-          <section className="bg-gradient-to-br from-white to-purple-50/30 px-6 md:px-12 lg:px-16 py-10 md:py-12">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-700 to-orange-500 bg-clip-text text-transparent mb-6">
-                Our Mission
-              </h2>
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p>
-                  To provide creators around the world with a safe, scalable, and
-                  profitable digital home where their voice, originality, and
-                  community come first.
-                </p>
-                <p>
-                  We are not building another entertainment app. We are building a
-                  creator ecosystem where:
-                </p>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Expression is celebrated</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Ownership is protected</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Growth is measurable</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Revenue is real</span>
-                  </li>
-                </ul>
-              </div>
+              {/* bottom gradient strip */}
+              <div className="h-1.5 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400" />
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Belief */}
-          <section className="bg-gradient-to-br from-white to-teal-50/30 px-6 md:px-12 lg:px-16 py-10 md:py-12">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent mb-6">
-                Our Belief
-              </h2>
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p>We believe social networks should:</p>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-teal-500 mt-1">✓</span>
-                    <span>Respect intellectual property</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-teal-500 mt-1">✓</span>
-                    <span>Protect their communities</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-teal-500 mt-1">✓</span>
-                    <span>Enable equitable revenue sharing</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-teal-500 mt-1">✓</span>
-                    <span>Elevate authentic creators — not algorithms</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-teal-500 mt-1">✓</span>
-                    <span>Encourage diverse voices from around the world</span>
-                  </li>
-                </ul>
-                <p className="font-semibold text-purple-900 pt-2">We exist to help creators rise.</p>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* What Makes FLOCK Different */}
-        <section className="bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 px-6 md:px-12 lg:px-16 py-12 md:py-16 border-y border-purple-200/30">
+        {/* WHO WE ARE + WHY CHOOSE */}
+        <section className="px-6 md:px-12 lg:px-16 py-10 md:py-14">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-700 bg-clip-text text-transparent mb-8 text-center">
-              What Makes FLOCK Different
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 border border-purple-100">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg flex items-center justify-center mb-4 shadow-md">
-                  <span className="text-white text-2xl font-bold">1</span>
-                </div>
-                <h3 className="font-bold text-xl mb-3 bg-gradient-to-r from-purple-700 to-purple-900 bg-clip-text text-transparent">Ownership Comes First</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  Creators own their content. We simply provide the tools,
-                  distribution, and monetization engine.
+            <div className="flex flex-col gap-10">
+              <div>
+                <h2 className="text-5xl md:text-4xl font-extrabold text-white">
+                  Who We Are
+                </h2>
+                <p className="mt-4 text-black text-2xl font-bold leading-relaxed max-w-4xl">
+                  Unlike traditional social media platforms that get rewarded
+                  first and creators last, we’ve flipped that model. At FLOCK,
+                  we will always give you transparency, ownership, revenue, and
+                  the freedom to create without fear of shadowbans, silencing, or
+                  unfair demonetization.
+                </p>
+
+                <p className="mt-4 text-black text-lg font-bold leading-relaxed max-w-4xl">
+                  Everyone deserves their voice to be heard, to get paid for
+                  their work, and to feel a sense of belonging without
+                  censorship. FLOCK is a new kind of social ecosystem where
+                  momentum belongs to everyone — not just a chosen few.
                 </p>
               </div>
 
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 border border-orange-100">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-700 rounded-lg flex items-center justify-center mb-4 shadow-md">
-                  <span className="text-white text-2xl font-bold">2</span>
-                </div>
-                <h3 className="font-bold text-xl mb-3 bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent">Transparent Earnings</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  Monetization is based on performance, integrity, and
-                  fairness — not viral luck or invisible preference systems.
-                </p>
-              </div>
+              <div className="border-t border-gray-200/80 pt-8">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                  Why choose FLOCK?
+                </h3>
 
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 border border-teal-100">
-                <div className="w-12 h-12 bg-gradient-to-br from-teal-600 to-teal-800 rounded-lg flex items-center justify-center mb-4 shadow-md">
-                  <span className="text-white text-2xl font-bold">3</span>
-                </div>
-                <h3 className="font-bold text-xl mb-3 bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">Community Without Exploitation</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  Your audience belongs to you. We never sell, rent, or
-                  exchange user identities for engagement farming.
-                </p>
-              </div>
-
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 border border-purple-200">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-900 to-indigo-900 rounded-lg flex items-center justify-center mb-4 shadow-md">
-                  <span className="text-white text-2xl font-bold">4</span>
-                </div>
-                <h3 className="font-bold text-xl mb-3 bg-gradient-to-r from-purple-900 to-indigo-900 bg-clip-text text-transparent">Safety and Accountability</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  We enforce standards that protect creators from harassment,
-                  abuse, and exploitation — without silencing communities or
-                  punishing healthy expression.
-                </p>
+                <ul className="mt-5 grid md:grid-cols-2 gap-y-3 gap-x-10 text-gray-700 text-base md:text-lg">
+                  {[
+                    "Post videos, poetry, blogs — whatever you want!",
+                    "Recycle your content from other platforms",
+                    "Get monetized for every piece of content posted (post beta)",
+                    "It is your work & your intellectual property, always",
+                    "No restrictions on where creators are located — all welcome",
+                    "No demonetization — we work with creators to make it right if there’s a breach",
+                    "A safe space for communities to connect and grow together",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <span className="mt-1.5 inline-block h-2 w-2 rounded-full bg-purple-600" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
         </section>
 
-        {/* The Name FLOCK */}
-        <section className="bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20 px-6 md:px-12 lg:px-16 py-12 md:py-16">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent mb-6">
-              The Name "FLOCK"
-            </h2>
-              <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
-                <p>
-                  A flock travels farther together than alone. Some lead, some
-                  follow, but every bird matters.
-                </p>
-                <p>That's how we see creators:</p>
-                <ul className="grid md:grid-cols-2 gap-3 my-4">
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                    Solo voices
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-teal-600 rounded-full"></span>
-                    Collective force
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
-                    Shared momentum
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                    Individual trajectories
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-teal-600 rounded-full"></span>
-                    Global impact
-                  </li>
-                </ul>
-                <p className="font-semibold text-purple-900">FLOCK is built for the movement, not the moment.</p>
-              </div>
-            </div>
-          </section>
+       {/* THE NAME + INFOGRAPHIC */}
+<section className="relative px-6 md:px-12 lg:px-16 py-12 md:py-16 bg-gradient-to-b from-white/70 to-white/95">
+  {/* watermark effect */}
+  <div className="absolute inset-0 pointer-events-none select-none">
+    <div className="absolute left-1/2 top-10 -translate-x-1/2 opacity-[0.05]">
+      <Image src={flockLogo} alt="" width={760} height={260} />
+    </div>
+  </div>
 
-        {/* Three Column Grid */}
-        <div className="grid md:grid-cols-3 gap-px bg-gradient-to-r from-purple-200 via-pink-200 to-teal-200">
-          {/* Who FLOCK Serves */}
-          <section className="bg-gradient-to-br from-purple-50 via-pink-50/30 to-white px-6 md:px-10 lg:px-12 py-10 md:py-12">
-            <div className="max-w-md mx-auto">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6">
-                Who FLOCK Serves
-              </h2>
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p>FLOCK is built for a wide spectrum of creators, including:</p>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 mt-1">→</span>
-                    <span>Video creators</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 mt-1">→</span>
-                    <span>Bloggers and written storytellers</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 mt-1">→</span>
-                    <span>Community leaders</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 mt-1">→</span>
-                    <span>Personal brands</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 mt-1">→</span>
-                    <span>Coaches, educators, and experts</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 mt-1">→</span>
-                    <span>Artists and digital performers</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-600 mt-1">→</span>
-                    <span>Everyday people becoming powerful voices</span>
-                  </li>
-                </ul>
-                <p className="font-semibold pt-2">
-                  If you create, express, teach, lead, or inspire — you belong
-                  here.
-                </p>
-              </div>
-            </div>
-          </section>
+  <div className="relative max-w-6xl mx-auto">
+    <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+      The Name “FLOCK”
+    </h2>
 
-          {/* Built for the World */}
-          <section className="bg-gradient-to-br from-teal-50 via-blue-50/30 to-white px-6 md:px-10 lg:px-12 py-10 md:py-12">
-            <div className="max-w-md mx-auto">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent mb-6">
-                Built for the World
-              </h2>
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p>
-                  FLOCK is proudly global. We welcome creators from every culture,
-                  perspective, and walk of life — as long as they respect the
-                  rules that keep our flock safe.
-                </p>
-                <p>
-                  We do not gatekeep. We do not discriminate. We do not model
-                  success around one country or one demographic.
-                </p>
-                <p className="font-semibold">We scale where creativity lives.</p>
-              </div>
-            </div>
-          </section>
+    <p className="mt-4 text-gray-700 text-lg leading-relaxed max-w-4xl">
+      A flock travels farther together than alone. Some lead, some follow — but
+      every bird matters. That’s how we see creators and their community:
+    </p>
 
-          {/* Our Commitment */}
-          <section className="bg-gradient-to-br from-orange-50 via-amber-50/30 to-white px-6 md:px-10 lg:px-12 py-10 md:py-12">
-            <div className="max-w-md mx-auto">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-6">
-                Our Commitment
-              </h2>
-              <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p>We promise to continuously evolve with:</p>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Honest policies</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Transparent technology</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Responsible monetization</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">✓</span>
-                    <span>Human-centered ethics</span>
-                  </li>
-                </ul>
-                <p className="pt-2">
-                  FLOCK will always work to put creators first — in design, in
-                  economics, and in dignity.
-                </p>
-              </div>
-            </div>
-          </section>
+    <ul className="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-10 text-gray-700 text-base md:text-lg">
+      {[
+        "Solo voices",
+        "Collective force",
+        "Shared momentum",
+        "Individual trajectories",
+        "Global impact",
+      ].map((item) => (
+        <li key={item} className="flex items-start gap-3">
+          <span className="mt-1.5 inline-block h-2 w-2 rounded-full bg-orange-500" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+
+    {/* ✅ Two card layout: Image left, Writing right */}
+    <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+      {/* LEFT: Image Card */}
+      <div className="relative rounded-2xl bg-white/75 backdrop-blur-md border border-gray-200/70 shadow-xl overflow-hidden">
+        <div className="h-1.5 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400" />
+        <div className="p-3 md:p-4">
+          <div className="relative w-full overflow-hidden rounded-xl border border-gray-200/70 bg-white/50 shadow-md">
+            <Image
+              src={aboutInfographic}
+              alt="Flock Together values infographic"
+              className="w-full h-auto object-cover"
+              priority={false}
+            />
+          </div>
         </div>
+      </div>
 
-        {/* Legal Entity - Footer */}
-        <section className="bg-gradient-to-b from-purple-700/60 via-purple-600/50 via-pink-500/40 to-white/60 px-2 md:px-8 lg:px-12 py-10 md:py-12 text-white shadow-2xl">
+      {/* RIGHT: Text Card */}
+      <div className="relative rounded-2xl bg-white/75 backdrop-blur-md border border-gray-200/70 shadow-xl overflow-hidden">
+        <div className="h-1.5 bg-gradient-to-r from-teal-600 via-purple-600 to-pink-600" />
+
+        <div className="p-6 md:p-7">
+          <h3 className="text-xl md:text-2xl font-extrabold text-gray-900">
+            What FLOCK Stands For
+          </h3>
+
+          <div className="mt-5 space-y-4 text-gray-700 text-lg leading-relaxed">
+            <p>
+              The{" "}
+              <span className="font-extrabold text-purple-900">FREEDOM</span>{" "}
+              to express yourself authentically — whilst giving viewers the
+              freedom to explore diverse content without algorithms silencing
+              what matters most — is what sets us apart.
+            </p>
+            <p>
+              No one gets buried, blocked, or boxed in at Flock because our{" "}
+              <span className="font-extrabold text-purple-900">LOYALTY</span>{" "}
+              means our people are always first; not our platform.
+            </p>
+            <p>
+              Wherever you are located in the world, you have an{" "}
+              <span className="font-extrabold text-purple-900">
+                OPPORTUNITY
+              </span>{" "}
+              to earn from day one (post beta). This space lets everyone win.
+            </p>
+            <p>
+              You can finally allow your{" "}
+              <span className="font-extrabold text-purple-900">
+                CREATIVITY
+              </span>{" "}
+              to thrive using all formats of expression to be heard, seen and
+              acknowledged.
+            </p>
+            <p>
+              This is the place to grow and upskill in wisdom and{" "}
+              <span className="font-extrabold text-purple-900">KNOWLEDGE</span>{" "}
+              together, through stories, guides, case studies and lived
+              experiences.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+        {/* WHAT WE BRING TOGETHER */}
+        <section className="px-6 md:px-12 lg:px-16 py-12 md:py-16">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-extrabold mb-4 text-black">Legal Entity</h2>
-            <div className="space-y-1 text-black">
-              <p className="font-bold text-lg text-black">Flock Together Global LLC</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              A Creator Economy Operating System
+            </h2>
+            <p className="mt-4 text-gray-700 text-lg leading-relaxed max-w-4xl">
+              FLOCK is built for the movement, not the moment — empowering
+              creators to lead their community, publish their voice, and earn
+              from their work in a fair and transparent ecosystem.
+            </p>
+
+            <div className="mt-6 grid md:grid-cols-2 gap-y-3 gap-x-10 text-gray-700 text-base md:text-lg">
+              {[
+                "Content publishing",
+                "Community building",
+                "Monetization systems",
+                "Creator analytics",
+                "Brand partnerships",
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3">
+                  <span className="mt-1.5 inline-block h-2 w-2 rounded-full bg-teal-600" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-6 text-gray-700 text-lg leading-relaxed max-w-4xl">
+              Our space unlocks freedom, ownership, and opportunity for every
+              digital storyteller.
+            </p>
+          </div>
+        </section>
+
+        {/* ✅ UPDATED SECTION: 4 HOVER CARDS */}
+        <section className="px-6 md:px-12 lg:px-16 py-12 md:py-16 bg-gradient-to-b from-orange-50/60 via-pink-50/40 to-purple-50/40 border-y border-purple-200/40">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-700 bg-clip-text text-transparent">
+              What Makes FLOCK Different
+            </h2>
+
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              {differentItems.map((item) => (
+                <div
+                  key={item.n}
+                  className="group relative rounded-2xl p-[1px] bg-gradient-to-br from-white/70 via-white/40 to-white/70"
+                >
+                  {/* glow */}
+                  <div className="absolute -inset-0.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-purple-500/40 via-pink-500/35 to-orange-400/35" />
+
+                  <div
+                    className="relative h-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-lg
+                               transition-all duration-300 ease-out
+                               group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:scale-[1.02]"
+                  >
+                    {/* top accent line */}
+                    <div className={`h-1.5 w-full rounded-t-2xl bg-gradient-to-r ${item.accent}`} />
+
+                    <div className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className="flex-shrink-0 w-11 h-11 rounded-full bg-white border border-gray-200 shadow-sm
+                                     flex items-center justify-center font-extrabold text-gray-900"
+                        >
+                          {item.n}
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg md:text-xl font-extrabold text-gray-900 leading-snug">
+                            {item.title}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <p className="mt-4 text-gray-700 leading-relaxed">
+                        {item.desc}
+                      </p>
+
+                      {/* subtle arrow */}
+                      <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-10 text-gray-800 text-lg font-semibold">
+              With FLOCK, you’re not fighting an algorithm — you’re fueling a movement.
+            </p>
+          </div>
+        </section>
+
+        {/* MISSION + BELIEF (simple two columns, no cards) */}
+        <section className="px-6 md:px-12 lg:px-16 py-12 md:py-16">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 md:gap-14">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                Our Mission
+              </h2>
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                To provide creators around the world with a safe, scalable, and
+                profitable digital home where their voice, originality, and
+                community come first.
+              </p>
+
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                We are not building another entertainment app. We are building a
+                creator ecosystem where:
+              </p>
+
+              <ul className="mt-4 space-y-2 text-gray-700 text-lg">
+                {[
+                  "Expression is celebrated",
+                  "Ownership is protected",
+                  "Growth is measurable",
+                  "Revenue is real",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-3">
+                    <span className="mt-2 inline-block h-2 w-2 rounded-full bg-orange-500" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                Our Belief
+              </h2>
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                We believe social networks should:
+              </p>
+
+              <ul className="mt-4 space-y-2 text-gray-700 text-lg">
+                {[
+                  "Respect intellectual property",
+                  "Protect their communities",
+                  "Enable equitable revenue sharing",
+                  "Elevate authentic creators — not algorithms",
+                  "Encourage diverse voices from around the world",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-3">
+                    <span className="mt-2 inline-block h-2 w-2 rounded-full bg-teal-600" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="mt-6 text-purple-900 font-semibold text-lg">
+                FLOCK exists to help creators rise and communities thrive.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* WHO SERVES / BUILT FOR WORLD / COMMITMENT */}
+        <section className="px-6 md:px-12 lg:px-16 py-12 md:py-16 bg-white/70 border-t border-gray-200/70">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                Who FLOCK Serves
+              </h3>
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                FLOCK is built for a wide spectrum of creators, including:
+              </p>
+
+              <ul className="mt-4 space-y-2 text-gray-700 text-base md:text-lg">
+                {[
+                  "Video creators",
+                  "Bloggers and written storytellers",
+                  "Community leaders",
+                  "Personal brands",
+                  "Coaches, educators, and experts",
+                  "Artists and digital performers",
+                  "Everyday people becoming powerful voices",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-3">
+                    <span className="mt-2 inline-block h-2 w-2 rounded-full bg-purple-600" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="mt-5 font-semibold text-gray-900">
+                If you create, express, teach, lead, or inspire — you belong here.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                Built For The World
+              </h3>
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                FLOCK is proudly global. We welcome creators from every culture,
+                perspective, and walk of life — as long as they respect the rules
+                that keep our flock safe.
+              </p>
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                We do not gatekeep. We do not discriminate. We do not model
+                success around one country or one demographic.
+              </p>
+              <p className="mt-4 font-semibold text-gray-900 text-lg">
+                We grow where creativity lives.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                Our Commitment
+              </h3>
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                We promise to continuously evolve with:
+              </p>
+
+              <ul className="mt-4 space-y-2 text-gray-700 text-base md:text-lg">
+                {[
+                  "Honest policies",
+                  "Transparent technology",
+                  "Responsible monetization",
+                  "Human-centered ethics",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-3">
+                    <span className="mt-2 inline-block h-2 w-2 rounded-full bg-orange-500" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="mt-5 text-gray-900 font-semibold text-lg">
+                FLOCK will always work to put creators first — in design, economics, and dignity.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* LEGAL ENTITY */}
+        <section className="px-6 md:px-12 lg:px-16 py-12 md:py-14 bg-gradient-to-b from-purple-700/25 via-pink-500/10 to-white/80 border-t border-purple-200/40">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">
+              Legal Entity
+            </h2>
+
+            <div className="mt-5 text-gray-800 text-lg leading-relaxed">
+              <p className="font-bold">Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
               <p>Sheridan, WY 82801</p>
               <p>USA</p>
             </div>
+
+            <div className="mt-8 text-sm text-gray-600">
+              <p>
+                Note: Content on this page is based on your provided “About Us”
+                document and infographic.
+              </p>
+            </div>
           </div>
         </section>
-      </div>
+      </main>
     </div>
   );
 }
