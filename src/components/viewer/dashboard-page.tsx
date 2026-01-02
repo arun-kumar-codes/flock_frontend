@@ -148,6 +148,22 @@ const stripHtmlAndDecode = (html: string): string => {
   return text;
 };
 
+const EmptyState = ({ title }: { title: string }) => (
+  <div className="flex-shrink-0 w-full text-center py-8">
+    <div className="bg-white rounded-4xl shadow-sm p-8">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Image src={SearchIcon} alt="Search" className="w-8 h-8" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">{title}</h3>
+        <p className="text-gray-500 text-sm">
+          Try adjusting your search or filter criteria
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
 const inter = Inter({ subsets: ["latin"] });
 
 const truncateText = (text: string, maxLength = 120): string => {
@@ -977,34 +993,7 @@ const handleBlogClick = (blog: Blog) => {
                     </div>
                   </div>
                 ) : (
-                  // Fallback cards when no trending content is available
-                  Array.from({ length: 3 }).map((_, index) => (
-                    <div
-                      key={`fallback-${index}`}
-                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                    >
-                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ml-2">
-                        <div className="aspect-[4/3] relative overflow-hidden">
-                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                {index === 0 ? (
-                                  <PlayIcon className="w-8 h-8 text-gray-500" />
-                                ) : index === 1 ? (
-                                  <BookOpenIcon className="w-8 h-8 text-gray-500" />
-                                ) : (
-                                  <PlayIcon className="w-8 h-8 text-gray-500" />
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-500">
-                                No trending content available
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                 <EmptyState title="No trending content found" />
                 )}
               </div>
             </div>
@@ -1141,34 +1130,7 @@ const handleBlogClick = (blog: Blog) => {
                     </div>
                   </div>
                 ) : (
-                  // Fallback cards when no most viewed content is available
-                  Array.from({ length: 3 }).map((_, index) => (
-                    <div
-                      key={`fallback-most-viewed-${index}`}
-                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                    >
-                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                        <div className="aspect-[4/3] relative overflow-hidden">
-                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                {index === 0 ? (
-                                  <PlayIcon className="w-8 h-8 text-gray-500" />
-                                ) : index === 1 ? (
-                                  <BookOpenIcon className="w-8 h-8 text-gray-500" />
-                                ) : (
-                                  <PlayIcon className="w-8 h-8 text-gray-500" />
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-500">
-                                No most viewed content available
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                   <EmptyState title="No most viewed content found" />
                 )}
               </div>
             </div>
@@ -1306,34 +1268,7 @@ const handleBlogClick = (blog: Blog) => {
                     </div>
                   </div>
                 ) : (
-                  // Fallback cards when no most liked content is available
-                  Array.from({ length: 3 }).map((_, index) => (
-                    <div
-                      key={`fallback-most-liked-${index}`}
-                      className="group cursor-pointer flex-shrink-0 w-full md:w-100"
-                    >
-                      <div className="bg-white rounded-4xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-                        <div className="aspect-[4/3] relative overflow-hidden">
-                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                {index === 0 ? (
-                                  <PlayIcon className="w-8 h-8 text-gray-500" />
-                                ) : index === 1 ? (
-                                  <BookOpenIcon className="w-8 h-8 text-gray-500" />
-                                ) : (
-                                  <PlayIcon className="w-8 h-8 text-gray-500" />
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-500">
-                                No most liked content available
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                   <EmptyState title="No most liked content found" />
                 )}
               </div>
             </div>

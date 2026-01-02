@@ -4,8 +4,71 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function KycAmlPolicyPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          // role might be in res.data.user.role OR res.data.role depending on your API
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
+
+          // Normalize to avoid "creator"/"CREATOR"/" Creator "
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -37,20 +100,38 @@ export default function KycAmlPolicyPage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right Buttons */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -58,7 +139,6 @@ export default function KycAmlPolicyPage() {
       {/* Centered White Content Area */}
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 rounded-3xl shadow-xl px-6 py-8 md:px-10 md:py-10 theme-text-primary">
-          
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
@@ -69,17 +149,20 @@ export default function KycAmlPolicyPage() {
 
           {/* CONTENT */}
           <div className="space-y-10 text-base md:text-lg leading-relaxed">
-
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                This KYC / AML / Payment Integrity Policy ("Policy") governs how Flock Together Global LLC ("Flock," "we," "us," "our") verifies identity, prevents fraud, combats money laundering, and ensures payment legitimacy on 
+                This KYC / AML / Payment Integrity Policy ("Policy") governs how
+                Flock Together Global LLC ("Flock," "we," "us," "our") verifies
+                identity, prevents fraud, combats money laundering, and ensures
+                payment legitimacy on{" "}
                 <a
                   href="https://flocktogether.xyz"
                   className="text-blue-600 underline ml-1"
                 >
                   https://flocktogether.xyz
-                </a> (the "Platform").
+                </a>{" "}
+                (the "Platform").
               </p>
               <p>This Policy is incorporated into and forms part of:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -89,11 +172,15 @@ export default function KycAmlPolicyPage() {
                 <li>Acceptable Use Policy</li>
                 <li>Refunds & Chargebacks Policy</li>
               </ul>
-              <p>By using our monetization features, payouts, or digital earnings tools, you agree to comply
-                with this Policy.</p>
-              <p>Following the completion of the Beta phase, all eligible creators are able to earn from their
-                first day on the Platform, subject to successful identity verification, KYC/AML checks,
-                and this Policy.</p>
+              <p>
+                By using our monetization features, payouts, or digital earnings
+                tools, you agree to comply with this Policy.
+              </p>
+              <p>
+                Following the completion of the Beta phase, all eligible creators
+                are able to earn from their first day on the Platform, subject to
+                successful identity verification, KYC/AML checks, and this Policy.
+              </p>
             </section>
 
             {/* Section 1 */}
@@ -139,8 +226,10 @@ export default function KycAmlPolicyPage() {
                 <li>Tax documents</li>
                 <li>Beneficial ownership information</li>
               </ul>
-              <p>Failure to comply may result in withholding, delaying, or forfeiture of earnings, and/or
-                suspension of monetization.</p>
+              <p>
+                Failure to comply may result in withholding, delaying, or forfeiture
+                of earnings, and/or suspension of monetization.
+              </p>
             </section>
 
             {/* Section 3 */}
@@ -238,8 +327,10 @@ export default function KycAmlPolicyPage() {
                 <li>Split or route earnings between accounts to obscure who is getting paid</li>
                 <li>Create "farm" networks for artificial engagement or monetization abuse</li>
               </ul>
-              <p>We reserve the right to merge, restrict, close, or ban accounts used to evade detection,
-                enforcement, or KYC/AML controls.</p>
+              <p>
+                We reserve the right to merge, restrict, close, or ban accounts used to evade detection,
+                enforcement, or KYC/AML controls.
+              </p>
             </section>
 
             {/* Section 8 */}
@@ -291,7 +382,9 @@ export default function KycAmlPolicyPage() {
                 <li>Monetization may be disabled</li>
                 <li>A permanent ban may be enforced in severe or persistent cases</li>
               </ul>
-              <p>We treat chargebacks as a high-risk fraud signal, especially when patterns indicate abuse.</p>
+              <p>
+                We treat chargebacks as a high-risk fraud signal, especially when patterns indicate abuse.
+              </p>
             </section>
 
             {/* Section 11 */}
@@ -315,8 +408,10 @@ export default function KycAmlPolicyPage() {
                 <li>Flock does not accept cryptocurrency payouts</li>
                 <li>Flock does not facilitate wallet-based earnings</li>
               </ul>
-              <p>Crypto-related features may be introduced in future phases subject to strict KYC/AML and
-                regulatory compliance.</p>
+              <p>
+                Crypto-related features may be introduced in future phases subject to strict KYC/AML and
+                regulatory compliance.
+              </p>
             </section>
 
             {/* Section 13 */}
@@ -385,8 +480,10 @@ export default function KycAmlPolicyPage() {
                 <li>For AML risk assessments</li>
                 <li>If sanctions are suspected</li>
               </ul>
-              <p>Balances may be withheld for up to 180 days, or longer if required by law, the payment
-                provider, or law enforcement.</p>
+              <p>
+                Balances may be withheld for up to 180 days, or longer if required by law, the payment
+                provider, or law enforcement.
+              </p>
             </section>
 
             {/* Section 17 */}
@@ -399,8 +496,10 @@ export default function KycAmlPolicyPage() {
                 <li>Account(s) may be permanently banned</li>
                 <li>Relevant authorities or partners may be notified</li>
               </ul>
-              <p>Creators whose earnings arise from fraudulent, abusive, or illegal activity forfeit all balances
-                related to that activity.</p>
+              <p>
+                Creators whose earnings arise from fraudulent, abusive, or illegal activity forfeit all balances
+                related to that activity.
+              </p>
             </section>
 
             {/* Section 18 */}
@@ -452,8 +551,10 @@ export default function KycAmlPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">21. POLICY UPDATES</h2>
               <p>We may update this Policy at any time.</p>
-              <p>Continued use of monetization features and payout tools constitutes acceptance of the
-                updated Policy.</p>
+              <p>
+                Continued use of monetization features and payout tools constitutes acceptance of the updated
+                Policy.
+              </p>
             </section>
 
             {/* Section 22 */}

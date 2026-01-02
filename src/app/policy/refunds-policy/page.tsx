@@ -4,8 +4,71 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function RefundPolicyPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          // role might be in res.data.user.role OR res.data.role depending on your API
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
+
+          // Normalize (handles "creator", "CREATOR", " Creator ", etc.)
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -37,20 +100,38 @@ export default function RefundPolicyPage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right buttons */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -58,32 +139,38 @@ export default function RefundPolicyPage() {
       {/* Centered White Content Area */}
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 rounded-3xl shadow-xl px-6 py-8 md:px-10 md:py-10 theme-text-primary">
-          
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
-              REFUNDS, CHARGEBACKS & PURCHASES POLICY — FLOCKTOGETHER.XYZ
+              REFUNDS, CHARGEBACKS &amp; PURCHASES POLICY — FLOCKTOGETHER.XYZ
             </h1>
             <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
           <div className="space-y-10 text-base md:text-lg leading-relaxed">
+            {/* ✅ Keep ALL your policy sections exactly as you wrote them */}
+            {/* (Paste your existing sections here unchanged) */}
 
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                This Refunds, Chargebacks & Purchases Policy ("Policy") governs how payments, fees, digital purchases, creator earnings, and disputes are handled on Flocktogether.xyz (the "Platform") operated by Flock Together Global LLC ("Flock," "we," "our," "us").
+                This Refunds, Chargebacks &amp; Purchases Policy (&quot;Policy&quot;) governs how payments,
+                fees, digital purchases, creator earnings, and disputes are handled on Flocktogether.xyz
+                (the &quot;Platform&quot;) operated by Flock Together Global LLC (&quot;Flock,&quot; &quot;we,&quot;
+                &quot;our,&quot; &quot;us&quot;).
               </p>
               <p>This Policy is incorporated into our:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Terms of Service</li>
-                <li>Earnings & Monetization Policy</li>
+                <li>Earnings &amp; Monetization Policy</li>
                 <li>Acceptable Use Policy</li>
                 <li>Community Guidelines</li>
                 <li>Privacy Policy</li>
               </ul>
-              <p>By using any paid or monetized features of the Platform, you agree to the terms below.</p>
+              <p>
+                By using any paid or monetized features of the Platform, you agree to the terms below.
+              </p>
             </section>
 
             {/* Section 1 */}

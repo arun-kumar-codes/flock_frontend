@@ -143,6 +143,10 @@ const requireAuth = (nextPath: string, cb: () => void) => {
   }, [user, router]);
 
   useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm, selectedFollowing, filterCategory]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         contentMenuRef.current &&
@@ -659,6 +663,7 @@ const requireAuth = (nextPath: string, cb: () => void) => {
                   setSearchTerm("");
                   setFilterCategory("all");
                   setSelectedFollowing("all");
+                  setCurrentPage(0);
                 }}
                 className="px-6 py-3 theme-button-primary rounded-xl transition-colors"
               >

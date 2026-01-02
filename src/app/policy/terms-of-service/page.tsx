@@ -4,12 +4,81 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function TermsOfServicePage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          // role might be in res.data.user.role OR res.data.role depending on your API
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
+
+          // Normalize (handles "creator", "CREATOR", " Creator ", etc.)
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       <div className="absolute inset-0 -z-10">
-        <Image src={loginBg} alt="Background" fill className="object-cover" priority />
+        <Image
+          src={loginBg}
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]" />
       </div>
 
@@ -30,43 +99,77 @@ export default function TermsOfServicePage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right side: Log in/Join OR Home */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-xl p-8 md:p-12">
-          <h1 className="text-4xl font-bold text-black mb-2">FLOCKTOGETHER.XYZ – TERMS OF SERVICE</h1>
-          <p className="text-sm text-black mb-8">Last Updated: December 9, 2025</p>
+          <h1 className="text-4xl font-bold text-black mb-2">
+            FLOCKTOGETHER.XYZ – TERMS OF SERVICE
+          </h1>
+          <p className="text-sm text-black mb-8">
+            Last Updated: December 9, 2025
+          </p>
 
           <div className="prose prose-gray max-w-none space-y-8">
+            {/* ✅ Your existing Terms content stays exactly the same below */}
+
             <section>
               <p className="text-black leading-relaxed">
-                These Terms of Service ("Terms") govern your access to and use of the Flock platform, including our website at{" "}
-                <a href="https://flocktogether.xyz" className="text-blue-600 hover:underline">
+                These Terms of Service (&quot;Terms&quot;) govern your access to
+                and use of the Flock platform, including our website at{" "}
+                <a
+                  href="https://flocktogether.xyz"
+                  className="text-blue-600 hover:underline"
+                >
                   https://flocktogether.xyz
                 </a>{" "}
-                and any related tools, applications, or services (collectively, the "Platform").
+                and any related tools, applications, or services (collectively,
+                the &quot;Platform&quot;).
               </p>
               <p className="text-black leading-relaxed mt-4">
-                The Platform is operated by <strong>Flock Together Global LLC</strong>, a Wyoming limited liability company ("Flock," "we," "our," or "us").
+                The Platform is operated by{" "}
+                <strong>Flock Together Global LLC</strong>, a Wyoming limited
+                liability company (&quot;Flock,&quot; &quot;we,&quot;
+                &quot;our,&quot; or &quot;us&quot;).
               </p>
               <p className="text-black leading-relaxed mt-4">
-                By accessing or using the Platform, creating an account, or clicking "Agree" (or similar), you agree to be bound by these Terms. If you do not agree, you must not use the Platform.
+                By accessing or using the Platform, creating an account, or
+                clicking &quot;Agree&quot; (or similar), you agree to be bound by
+                these Terms. If you do not agree, you must not use the Platform.
               </p>
             </section>
 
@@ -552,5 +655,5 @@ export default function TermsOfServicePage() {
         </div>
       </div>
     </div>
-    );
+  );
 }

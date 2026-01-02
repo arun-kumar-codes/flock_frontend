@@ -4,8 +4,72 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function AcceptableUsePolicyPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          const rawRole =
+            res?.data?.user?.role ??
+            res?.data?.role ??
+            null;
+
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -37,20 +101,38 @@ export default function AcceptableUsePolicyPage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right Side Buttons */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -58,7 +140,6 @@ export default function AcceptableUsePolicyPage() {
       {/* Centered White Content Area */}
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 rounded-3xl shadow-xl px-6 py-8 md:px-10 md:py-10 theme-text-primary">
-          
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
@@ -69,7 +150,6 @@ export default function AcceptableUsePolicyPage() {
 
           {/* CONTENT */}
           <div className="space-y-10 text-base md:text-lg leading-relaxed">
-
             {/* Intro */}
             <section className="space-y-4">
               <p>

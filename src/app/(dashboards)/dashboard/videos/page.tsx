@@ -357,6 +357,8 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
       // CLEAR LOCALSTORAGE
       localStorage.removeItem('videoUploadPolling')
 
+      setCanCancel(false);
+
       // Update toast to success
       updateToast(toastId, {
         type: 'success',

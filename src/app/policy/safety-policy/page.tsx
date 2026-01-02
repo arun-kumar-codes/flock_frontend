@@ -4,8 +4,71 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function SafetyPolicyPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          // role might be in res.data.user.role OR res.data.role depending on your API
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
+
+          // Normalize (handles "creator", "CREATOR", " Creator ", etc.)
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -37,20 +100,38 @@ export default function SafetyPolicyPage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right side buttons */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -58,28 +139,33 @@ export default function SafetyPolicyPage() {
       {/* Centered White Content Area */}
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 rounded-3xl shadow-xl px-6 py-8 md:px-10 md:py-10 theme-text-primary">
-          
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
-              SAFETY & REPORTING POLICY — FLOCKTOGETHER.XYZ
+              SAFETY &amp; REPORTING POLICY — FLOCKTOGETHER.XYZ
             </h1>
             <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
           <div className="space-y-10 text-base md:text-lg leading-relaxed">
+            {/* ✅ Paste your existing policy sections here unchanged */}
 
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                The Safety & Reporting Policy ("Policy") describes how users can protect themselves, report problematic content, and how Flock Together Global LLC ("Flock," "we," "our," "us") responds to threats, abuse, or harmful behavior on{" "}
+                The Safety &amp; Reporting Policy (&quot;Policy&quot;) describes
+                how users can protect themselves, report problematic content, and
+                how Flock Together Global LLC (&quot;Flock,&quot; &quot;we,&quot;
+                &quot;our,&quot; &quot;us&quot;) responds to threats, abuse, or
+                harmful behavior on{" "}
                 <a
                   href="https://flocktogether.xyz"
                   className="text-blue-600 underline ml-1"
                 >
                   https://flocktogether.xyz
-                </a> (the "Platform").
+                </a>{" "}
+                (the &quot;Platform&quot;).
               </p>
 
               <p>This Policy supplements the:</p>
@@ -87,7 +173,7 @@ export default function SafetyPolicyPage() {
                 <li>Terms of Service</li>
                 <li>Community Guidelines</li>
                 <li>Acceptable Use Policy</li>
-                <li>Earnings & Monetization Policy</li>
+                <li>Earnings &amp; Monetization Policy</li>
                 <li>DMCA Policy</li>
                 <li>Privacy Policy</li>
               </ul>
@@ -407,4 +493,3 @@ export default function SafetyPolicyPage() {
     </div>
   );
 }
-

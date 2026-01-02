@@ -4,8 +4,71 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function DmcaPolicyPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          // role might be in res.data.user.role OR res.data.role depending on your API
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
+
+          // Normalize to avoid "creator"/"CREATOR"/" Creator "
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -37,20 +100,38 @@ export default function DmcaPolicyPage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right Buttons */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -58,7 +139,6 @@ export default function DmcaPolicyPage() {
       {/* Centered White Content Area */}
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 rounded-3xl shadow-xl px-6 py-8 md:px-10 md:py-10 theme-text-primary">
-          
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
@@ -69,15 +149,18 @@ export default function DmcaPolicyPage() {
 
           {/* CONTENT */}
           <div className="space-y-10 text-base md:text-lg leading-relaxed">
-
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                This DMCA and Copyright Policy ("Policy") applies to all users of https://flocktogether.xyz
-                (the "Platform") operated by Flock Together Global LLC ("Flock," "we," "us," "our").
+                This DMCA and Copyright Policy ("Policy") applies to all users
+                of https://flocktogether.xyz (the "Platform") operated by Flock
+                Together Global LLC ("Flock," "we," "us," "our").
               </p>
-              <p>We comply with the Digital Millennium Copyright Act (DMCA), Title 17 U.S.C. §512, and
-                respect the intellectual property rights of creators, brands, publishers, and copyright holders.</p>
+              <p>
+                We comply with the Digital Millennium Copyright Act (DMCA),
+                Title 17 U.S.C. §512, and respect the intellectual property rights
+                of creators, brands, publishers, and copyright holders.
+              </p>
               <p>By using the Platform, you agree to follow this Policy.</p>
             </section>
 
@@ -85,9 +168,14 @@ export default function DmcaPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">1. GENERAL PRINCIPLES</h2>
               <ul className="list-disc list-inside space-y-1">
-                <li>Creators own the rights to the content they upload unless otherwise stated.</li>
-                <li>Creators are fully responsible for ensuring they have permission to upload digital
-                  content.</li>
+                <li>
+                  Creators own the rights to the content they upload unless
+                  otherwise stated.
+                </li>
+                <li>
+                  Creators are fully responsible for ensuring they have permission
+                  to upload digital content.
+                </li>
                 <li>Flock does not verify copyright ownership before upload.</li>
                 <li>We remove infringing content upon valid DMCA notice.</li>
                 <li>We may disable accounts of repeat infringers.</li>
@@ -96,23 +184,36 @@ export default function DmcaPolicyPage() {
 
             {/* Section 2 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">2. WHAT IS COPYRIGHT INFRINGEMENT?</h2>
+              <h2 className="text-3xl font-bold">
+                2. WHAT IS COPYRIGHT INFRINGEMENT?
+              </h2>
               <p>
-                Copyright infringement occurs when someone uses a copyrighted work (e.g., video, blog, music track, artwork, written text) without lawful permission from the copyright holder or without a legal exception such as fair use or public domain.
+                Copyright infringement occurs when someone uses a copyrighted work
+                (e.g., video, blog, music track, artwork, written text) without
+                lawful permission from the copyright holder or without a legal
+                exception such as fair use or public domain.
               </p>
               <p>Examples of infringing uploads include:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Reposting another creator's video without permission</li>
                 <li>Uploading someone's music as your own</li>
                 <li>Sharing copyrighted TV clips or movies</li>
-                <li>Copying a blog/article from another website and publishing it as original content</li>
-                <li>Uploading AI-generated work that includes recognizable copyrighted content</li>
+                <li>
+                  Copying a blog/article from another website and publishing it as
+                  original content
+                </li>
+                <li>
+                  Uploading AI-generated work that includes recognizable
+                  copyrighted content
+                </li>
               </ul>
             </section>
 
             {/* Section 3 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">3. WHAT IS NOT COPYRIGHT INFRINGEMENT?</h2>
+              <h2 className="text-3xl font-bold">
+                3. WHAT IS NOT COPYRIGHT INFRINGEMENT?
+              </h2>
               <p>Copyright law allows some uses without permission, including but not limited to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Fair Use (commentary, criticism, parody, transformative review, news reporting)</li>
@@ -137,51 +238,80 @@ export default function DmcaPolicyPage() {
                 <li>Stock footage without rights</li>
                 <li>Content produced by others without their permission</li>
               </ul>
-              <p>AI-generated material trained on copyrighted assets that recreate identifiable works is also
-                prohibited.</p>
+              <p>
+                AI-generated material trained on copyrighted assets that recreate identifiable works is also
+                prohibited.
+              </p>
             </section>
 
             {/* Section 5 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">5. COPYRIGHT OWNERSHIP & USER LIABILITY</h2>
+              <h2 className="text-3xl font-bold">
+                5. COPYRIGHT OWNERSHIP & USER LIABILITY
+              </h2>
               <p>Creators retain copyright over their original uploads, but:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>You grant Flock a limited, non-exclusive license to display & distribute your content.</li>
+                <li>
+                  You grant Flock a limited, non-exclusive license to display &
+                  distribute your content.
+                </li>
                 <li>You guarantee you have rights to everything uploaded.</li>
-                <li>You indemnify Flock against copyright claims arising from your uploads.</li>
-                <li>Creators bear full legal liability for infringement, not the Platform.</li>
+                <li>
+                  You indemnify Flock against copyright claims arising from your
+                  uploads.
+                </li>
+                <li>
+                  Creators bear full legal liability for infringement, not the
+                  Platform.
+                </li>
               </ul>
               <p>This is core to maintaining DMCA Safe Harbor.</p>
             </section>
 
             {/* Section 6 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">6. HOW TO SUBMIT A VALID DMCA TAKEDOWN NOTICE</h2>
-              <p>If you believe your copyrighted work has been uploaded to FLOCK without permission, you
-                may file a DMCA takedown request.</p>
-              <p>To comply with 17 U.S.C. §512(c)(3), your DMCA notice must include:</p>
+              <h2 className="text-3xl font-bold">
+                6. HOW TO SUBMIT A VALID DMCA TAKEDOWN NOTICE
+              </h2>
+              <p>
+                If you believe your copyrighted work has been uploaded to FLOCK
+                without permission, you may file a DMCA takedown request.
+              </p>
+              <p>
+                To comply with 17 U.S.C. §512(c)(3), your DMCA notice must include:
+              </p>
               <p className="font-semibold">1. Your contact information</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>Your name</li>
                 <li>Physical address</li>
                 <li>Email (and phone is recommended)</li>
               </ul>
-              <p className="font-semibold">2. Identification of the copyrighted work claimed to be infringed</p>
+              <p className="font-semibold">
+                2. Identification of the copyrighted work claimed to be infringed
+              </p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>A URL or description of the original work, or</li>
                 <li>A detailed description if it is not available online</li>
               </ul>
-              <p className="font-semibold">3. Identification of the material to be removed, including:</p>
+              <p className="font-semibold">
+                3. Identification of the material to be removed, including:
+              </p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>URL(s) of the specific infringing content on flocktogether.xyz</li>
                 <li>A screenshot or general link is not sufficient; exact URLs are required</li>
               </ul>
               <p className="font-semibold">4. Good-faith statement</p>
-              <p>"I have a good-faith belief that the material identified is not authorized by the
-                copyright owner, its agent, or applicable law."</p>
-              <p className="font-semibold">5. Accuracy & authority statement under penalty of perjury</p>
-              <p>"The information in this notice is accurate, and I am the owner of the copyright or
-                authorized to act on behalf of the copyright owner."</p>
+              <p>
+                "I have a good-faith belief that the material identified is not authorized by the copyright
+                owner, its agent, or applicable law."
+              </p>
+              <p className="font-semibold">
+                5. Accuracy & authority statement under penalty of perjury
+              </p>
+              <p>
+                "The information in this notice is accurate, and I am the owner of the copyright or
+                authorized to act on behalf of the copyright owner."
+              </p>
               <p className="font-semibold">6. Your electronic or physical signature</p>
               <p>Send DMCA Notices to:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -203,8 +333,10 @@ export default function DmcaPolicyPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>Lack one or more required elements</li>
                 <li>Are unclear or non-specific (e.g., no exact URLs)</li>
-                <li>Appear to be automatically generated (e.g., bulk or AI-driven notices) without the
-                  legally required statements or details</li>
+                <li>
+                  Appear to be automatically generated (e.g., bulk or AI-driven notices) without the legally
+                  required statements or details
+                </li>
                 <li>Attempt to remove lawful transformative or fair use content</li>
                 <li>Are retaliatory, abusive, or clearly filed in bad faith</li>
               </ul>
@@ -217,8 +349,10 @@ export default function DmcaPolicyPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>We will remove or disable access to the allegedly infringing content.</li>
                 <li>We may notify the user who uploaded it.</li>
-                <li>We may provide the uploader with a copy of your complaint (excluding sensitive
-                  personal details where possible).</li>
+                <li>
+                  We may provide the uploader with a copy of your complaint (excluding sensitive personal
+                  details where possible).
+                </li>
                 <li>We may lock monetization or suspend accounts during review.</li>
               </ul>
               <p>We are not required to provide advance warning before removal.</p>
@@ -256,14 +390,20 @@ export default function DmcaPolicyPage() {
               <p>Your Counter-Notice must include:</p>
               <p className="font-semibold">1. Your full legal name</p>
               <p className="font-semibold">2. Your address and telephone number</p>
-              <p className="font-semibold">3. Identification of the removed material and where it appeared before removal</p>
+              <p className="font-semibold">
+                3. Identification of the removed material and where it appeared before removal
+              </p>
               <p className="font-semibold">4. A sworn statement:</p>
-              <p>"I have a good-faith belief that the material was removed or disabled as a result of
-                mistake or misidentification."</p>
+              <p>
+                "I have a good-faith belief that the material was removed or disabled as a result of mistake
+                or misidentification."
+              </p>
               <p className="font-semibold">5. A jurisdiction consent statement:</p>
-              <p>"I consent to the jurisdiction of the U.S. Federal District Court for the judicial district
-                where I live, or if outside the United States, the jurisdiction of the U.S. Federal
-                District Court of Wyoming."</p>
+              <p>
+                "I consent to the jurisdiction of the U.S. Federal District Court for the judicial district where I
+                live, or if outside the United States, the jurisdiction of the U.S. Federal District Court of
+                Wyoming."
+              </p>
               <p className="font-semibold">6. Your electronic or physical signature</p>
               <p>Send Counter-Notices to:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -279,8 +419,9 @@ export default function DmcaPolicyPage() {
               <p>Upon receiving a valid Counter-Notice:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>We forward it to the original complainant.</li>
-                <li>If they do not file a lawsuit within 10–14 business days, the content may be
-                  reinstated.</li>
+                <li>
+                  If they do not file a lawsuit within 10–14 business days, the content may be reinstated.
+                </li>
               </ul>
               <p>This is standard under DMCA §512(g).</p>
               <p>We do not guarantee reinstatement.</p>
@@ -291,8 +432,7 @@ export default function DmcaPolicyPage() {
               <h2 className="text-3xl font-bold">12. REPEAT INFRINGEMENT POLICY</h2>
               <p>To maintain Safe Harbor:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Accounts with repeated copyright violations may be suspended or permanently
-                  banned.</li>
+                <li>Accounts with repeated copyright violations may be suspended or permanently banned.</li>
               </ul>
               <p>We may escalate faster if:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -321,8 +461,10 @@ export default function DmcaPolicyPage() {
                 <li>"Reaction" videos with minimal or no commentary</li>
                 <li>"Top 10 moments" or highlight reels from copyrighted media</li>
               </ul>
-              <p>Transformation must be meaningful and original. Only a court can make a final decision on
-                fair use.</p>
+              <p>
+                Transformation must be meaningful and original. Only a court can make a final decision on
+                fair use.
+              </p>
             </section>
 
             {/* Section 14 */}
@@ -424,7 +566,9 @@ export default function DmcaPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">21. CHANGES TO THIS POLICY</h2>
               <p>We may update this Policy at any time.</p>
-              <p>Continued use of the Platform constitutes acceptance of the updated Policy.</p>
+              <p>
+                Continued use of the Platform constitutes acceptance of the updated Policy.
+              </p>
             </section>
 
             {/* Section 22 */}

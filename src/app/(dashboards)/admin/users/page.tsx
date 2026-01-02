@@ -2,7 +2,7 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
-import { getAllUser, deleteUser, inviteUser } from "@/api/user"
+import { getAllUser, deleteUser, inviteUser, getCreatorById } from "@/api/user"
 import {
   SearchIcon,
   SendIcon,
@@ -20,6 +20,24 @@ interface User {
   username: string
   email: string
   role: "Creator" | "Viewer"
+}
+
+type CreatorContentItem = {
+  id: number
+  title?: string
+  thumbnail?: string
+  created_at?: string
+}
+
+type CreatorProfile = {
+  id: number
+  username: string
+  profile_picture?: string | null
+  bio?: string | null
+  followers_count?: number
+  following_count?: number
+  blogs?: CreatorContentItem[]
+  videos?: CreatorContentItem[]
 }
 
 export default function UsersPage() {
@@ -43,6 +61,13 @@ export default function UsersPage() {
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [profileUser, setProfileUser] = useState<User | null>(null)
+  const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [profileError, setProfileError] = useState("")
+
+  const profileModalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -67,13 +92,24 @@ export default function UsersPage() {
         //console.log("EVENT",event.target)
         setShowActionMenu(null)
       }
+      // Check Profile Modal
+      if (
+        showProfileModal &&
+        profileModalRef.current &&
+        !profileModalRef.current.contains(event.target as Node)
+      ) {
+        setShowProfileModal(false)
+        setProfileUser(null)
+        setCreatorProfile(null)
+        setProfileError("")
+      }
     }
 
     document.addEventListener("mousedown", handleClickOutside)
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [showInviteModal, showDeleteModal, showActionMenu]) // Re-run when any of these states change
+  }, [showInviteModal, showDeleteModal, showActionMenu, showProfileModal]) // Re-run when any of these states change
 
   const fetchUsers = async () => {
     setError("")
@@ -92,6 +128,36 @@ export default function UsersPage() {
       setIsLoading(false)
     }
   }
+
+const handleViewProfileClick = async (user: User) => {
+  setShowActionMenu(null)
+  setProfileUser(user)
+  setCreatorProfile(null)
+  setProfileError("")
+  setShowProfileModal(true)
+
+  if (user.role !== "Creator") return
+
+  setProfileLoading(true)
+  try {
+    const res = await getCreatorById(user.id)
+
+    if (res?.status === 200 && res?.data?.creator) {
+      // ✅ Merge API shape: creator + top-level videos/blogs
+      setCreatorProfile({
+        ...res.data.creator,
+        videos: res.data.videos || [],
+        blogs: res.data.blogs || [],
+      })
+    } else {
+      setProfileError("Failed to load creator profile.")
+    }
+  } catch (err) {
+    setProfileError("Failed to load creator profile.")
+  } finally {
+    setProfileLoading(false)
+  }
+}
 
   const handleDeleteUser = async (userId: number) => {
     setIsDeleting(true)
@@ -334,7 +400,13 @@ export default function UsersPage() {
                     </button>
                     {showActionMenu === user.id.toString() && (
                       <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20"  ref={actionMenuRef}>
-                        <button className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleViewProfileClick(user)
+                          }}
+                          className="flex items-center space-x-2 w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+                        >
                           <EyeIcon className="w-4 h-4" />
                           <span>View Profile</span>
                         </button>
@@ -543,6 +615,166 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+
+      {/* View Profile Modal (Admin) */}
+{showProfileModal && profileUser && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
+    <div
+      ref={profileModalRef}
+      className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all duration-200 overflow-hidden"
+    >
+      {/* Header */}
+      <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-semibold text-slate-800">User Profile</h3>
+          <p className="text-sm text-slate-600">Admin view</p>
+        </div>
+        <button
+          onClick={() => {
+            setShowProfileModal(false)
+            setProfileUser(null)
+            setCreatorProfile(null)
+            setProfileError("")
+          }}
+          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <XIcon className="w-5 h-5 text-slate-500" />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="p-6">
+        {/* Basic user card */}
+        <div className="flex items-start gap-4">
+          <Image
+            src={profileImg || "/placeholder.svg"}
+            alt={profileUser.username || "User"}
+            width={64}
+            height={64}
+            className="rounded-full"
+          />
+
+          <div className="flex-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h4 className="text-lg font-semibold text-slate-800">
+                {profileUser.username || "No username"}
+              </h4>
+              <span
+                className={`px-2 py-1 text-xs font-medium rounded-full border ${getRoleColor(profileUser.role)}`}
+              >
+                {profileUser.role}
+              </span>
+              <span className="text-xs text-slate-500">ID: {profileUser.id}</span>
+            </div>
+
+            <p className="text-slate-600 text-sm break-all mt-1">{profileUser.email}</p>
+          </div>
+        </div>
+
+        {/* Creator extended info */}
+        {profileUser.role === "Creator" && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h5 className="font-semibold text-slate-800">Creator Details</h5>
+              {profileLoading && (
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600" />
+                  Loading...
+                </div>
+              )}
+            </div>
+
+            {profileError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800 text-sm">{profileError}</p>
+              </div>
+            )}
+
+            {!profileLoading && !profileError && (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-white border border-slate-200 rounded-lg p-3">
+                    <p className="text-xs text-slate-500">Followers</p>
+                    <p className="text-lg font-bold text-slate-800">
+                      {creatorProfile?.followers_count ?? 0}
+                    </p>
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded-lg p-3">
+                    <p className="text-xs text-slate-500">Following</p>
+                    <p className="text-lg font-bold text-slate-800">
+                      {creatorProfile?.following_count ?? 0}
+                    </p>
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded-lg p-3">
+                    <p className="text-xs text-slate-500">Content</p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      Blogs: {creatorProfile?.blogs?.length ?? 0} • Videos: {creatorProfile?.videos?.length ?? 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-xs text-slate-500 mb-1">Bio</p>
+                  <p className="text-sm text-slate-700">
+                    {creatorProfile?.bio?.trim() ? creatorProfile.bio : "No bio yet."}
+                  </p>
+                </div>
+
+                {/* Quick preview lists (no navigation, no like/comment) */}
+                <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white border border-slate-200 rounded-lg p-3">
+                    <p className="text-sm font-semibold text-slate-800 mb-2">Recent Blogs</p>
+                    {(creatorProfile?.blogs?.slice(0, 5) ?? []).length ? (
+                      <ul className="space-y-2">
+                        {creatorProfile!.blogs!.slice(0, 5).map((b) => (
+                          <li key={b.id} className="text-sm text-slate-700 truncate">
+                            • {b.title || `Blog #${b.id}`}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-500">No blogs found.</p>
+                    )}
+                  </div>
+
+                  <div className="bg-white border border-slate-200 rounded-lg p-3">
+                    <p className="text-sm font-semibold text-slate-800 mb-2">Recent Videos</p>
+                    {(creatorProfile?.videos?.slice(0, 5) ?? []).length ? (
+                      <ul className="space-y-2">
+                        {creatorProfile!.videos!.slice(0, 5).map((v) => (
+                          <li key={v.id} className="text-sm text-slate-700 truncate">
+                            • {v.title || `Video #${v.id}`}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-500">No videos found.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={() => {
+              setShowProfileModal(false)
+              setProfileUser(null)
+              setCreatorProfile(null)
+              setProfileError("")
+            }}
+            className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }

@@ -169,6 +169,11 @@ const requireAuth = (nextPath: string, cb: () => void) => {
   const [currentPage, setCurrentPage] = useState(0);
   const videosPerPage = 8;
 
+  // ✅ Reset pagination when search/filter changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm, selectedFollowing]);
+
   const fetchFollowingData = async () => {
     setFollowingError("");
     try {
@@ -258,7 +263,7 @@ const requireAuth = (nextPath: string, cb: () => void) => {
 
   useEffect(() => {
     fetchVideos();
-  }, [selectedFollowing]);
+  }, [selectedFollowing, followings]);
 
   useEffect(() => {
     fetchFollowingData();
@@ -419,7 +424,10 @@ const requireAuth = (nextPath: string, cb: () => void) => {
 
                 <select
                   value={selectedFollowing}
-                  onChange={(e) => setSelectedFollowing(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedFollowing(e.target.value);
+                    setCurrentPage(0);
+                  }}
                   disabled={isLoadingFollowing}
                   className="pl-10 pr-8 py-2 md:py-3 theme-bg-secondary cursor-pointer rounded-4xl theme-text-primary min-w-[180px] appearance-none focus:ring-1 focus:ring-gray-400 focus:border-transparent md:text-base text-sm"
                 >
@@ -627,6 +635,7 @@ const requireAuth = (nextPath: string, cb: () => void) => {
                   onClick={() => {
                     setSearchTerm("");
                     setSelectedFollowing("all");
+                    setCurrentPage(0);
                   }}
                   className="px-6 py-3 theme-button-primary rounded-xl transition-colors"
                 >

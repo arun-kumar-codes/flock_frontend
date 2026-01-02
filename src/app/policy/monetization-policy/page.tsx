@@ -4,8 +4,71 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function MonetizationPolicyPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          // role might be in res.data.user.role OR res.data.role depending on your API
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
+
+          // Normalize to avoid "creator"/"CREATOR"/" Creator "
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -37,20 +100,38 @@ export default function MonetizationPolicyPage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right Buttons */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -58,62 +139,76 @@ export default function MonetizationPolicyPage() {
       {/* Centered White Content Area */}
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 rounded-3xl shadow-xl px-6 py-8 md:px-10 md:py-10 theme-text-primary">
-          
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
-              EARNINGS & MONETIZATION POLICY - FLOCKTOGETHER.XYZ
+              EARNINGS &amp; MONETIZATION POLICY - FLOCKTOGETHER.XYZ
             </h1>
             <p className="text-sm">Last Updated: December 9, 2025</p>
           </header>
 
           {/* CONTENT */}
           <div className="space-y-10 text-base md:text-lg leading-relaxed">
-
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                This Earnings & Monetization Policy ("Policy") explains how creators earn money through
-                the Flock Together Global LLC platform ("Flock", "we", "our", or "us"). By using Flock's
+                This Earnings &amp; Monetization Policy (&quot;Policy&quot;) explains how
+                creators earn money through the Flock Together Global LLC platform
+                (&quot;Flock&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). By using Flock&apos;s
                 monetization features, you agree that this Policy forms a binding part of the Creator
                 Agreement.
               </p>
-              <p>This Policy applies to all creators and governs eligibility, revenue calculation, allocation,
-                payout processes, responsibilities, and requirements related to monetization.</p>
+              <p>
+                This Policy applies to all creators and governs eligibility, revenue calculation, allocation,
+                payout processes, responsibilities, and requirements related to monetization.
+              </p>
             </section>
 
             {/* Section 1 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">1. DEFINITIONS</h2>
-              <p className="font-semibold">1.1 "Creator"</p>
+              <p className="font-semibold">1.1 &quot;Creator&quot;</p>
               <p>means any individual or entity posting or distributing content on Flock.</p>
-              <p className="font-semibold">1.2 "Creator Account"</p>
-              <p>means an account registered for uploading content or receiving
-                earnings. Creators may operate multiple accounts so long as they comply with verification
-                and enforcement rules.</p>
-              <p className="font-semibold">1.3 "Content"</p>
-              <p>means written posts, videos, images, audio, or other media uploaded by
-                creators, including recycled content the creator has rights to monetize.</p>
-              <p className="font-semibold">1.4 "Monetizable Content"</p>
-              <p>means content eligible to generate revenue under Flock's
-                monetization systems.</p>
-              <p className="font-semibold">1.5 "Earnings"</p>
-              <p>means revenue generated through monetization features such as advertising,
-                tips, bonuses, or incentives.</p>
-              <p className="font-semibold">1.6 "Gross Revenue"</p>
+
+              <p className="font-semibold">1.2 &quot;Creator Account&quot;</p>
+              <p>
+                means an account registered for uploading content or receiving earnings. Creators may operate
+                multiple accounts so long as they comply with verification and enforcement rules.
+              </p>
+
+              <p className="font-semibold">1.3 &quot;Content&quot;</p>
+              <p>
+                means written posts, videos, images, audio, or other media uploaded by creators, including
+                recycled content the creator has rights to monetize.
+              </p>
+
+              <p className="font-semibold">1.4 &quot;Monetizable Content&quot;</p>
+              <p>
+                means content eligible to generate revenue under Flock&apos;s monetization systems.
+              </p>
+
+              <p className="font-semibold">1.5 &quot;Earnings&quot;</p>
+              <p>
+                means revenue generated through monetization features such as advertising, tips, bonuses, or
+                incentives.
+              </p>
+
+              <p className="font-semibold">1.6 &quot;Gross Revenue&quot;</p>
               <p>means total revenue before deductions.</p>
-              <p className="font-semibold">1.7 "Net Revenue"</p>
-              <p>means Gross Revenue minus applicable fees, adjustments, taxes, refunds,
-                or chargebacks.</p>
-              <p className="font-semibold">1.8 "Payment Provider"</p>
-              <p>means Stripe, PayPal, Payoneer, or any approved third-party
-                payout processor.</p>
-              <p className="font-semibold">1.9 "Engagement Metrics"</p>
-              <p>include views, likes, clicks, watch time, comments, or other
-                interactions.</p>
-              <p className="font-semibold">1.10 "Ineligible Earnings"</p>
-              <p>include revenue derived from invalid traffic, fraud, or
-                policy-violating content.</p>
+
+              <p className="font-semibold">1.7 &quot;Net Revenue&quot;</p>
+              <p>
+                means Gross Revenue minus applicable fees, adjustments, taxes, refunds, or chargebacks.
+              </p>
+
+              <p className="font-semibold">1.8 &quot;Payment Provider&quot;</p>
+              <p>means Stripe, PayPal, Payoneer, or any approved third-party payout processor.</p>
+
+              <p className="font-semibold">1.9 &quot;Engagement Metrics&quot;</p>
+              <p>include views, likes, clicks, watch time, comments, or other interactions.</p>
+
+              <p className="font-semibold">1.10 &quot;Ineligible Earnings&quot;</p>
+              <p>include revenue derived from invalid traffic, fraud, or policy-violating content.</p>
             </section>
 
             {/* Section 2 */}
@@ -122,8 +217,10 @@ export default function MonetizationPolicyPage() {
               <p className="font-semibold">2.1</p>
               <p>Creators must follow all Flock policies and applicable laws.</p>
               <p className="font-semibold">2.2</p>
-              <p>Creators may have multiple accounts, but may not use them to evade penalties,
-                verification, or restrictions.</p>
+              <p>
+                Creators may have multiple accounts, but may not use them to evade penalties, verification, or
+                restrictions.
+              </p>
               <p className="font-semibold">2.3</p>
               <p>Identity verification may be required before payouts or continued monetization.</p>
             </section>
@@ -156,8 +253,9 @@ export default function MonetizationPolicyPage() {
               <p className="font-semibold">5.2</p>
               <p>Recycled content is allowed, provided the creator owns rights to use and monetize it.</p>
               <p className="font-semibold">5.3</p>
-              <p>Content violating copyright, DMCA rules, or Community Guidelines is ineligible for
-                earnings.</p>
+              <p>
+                Content violating copyright, DMCA rules, or Community Guidelines is ineligible for earnings.
+              </p>
               <p className="font-semibold">5.4</p>
               <p>Earnings from deleted or removed content may be reversed.</p>
             </section>
@@ -166,8 +264,10 @@ export default function MonetizationPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">6. START OF EARNINGS</h2>
               <p className="font-semibold">6.1</p>
-              <p>Creators earn from Day 1 post Beta. There are no follower, view count, or watch-time
-                requirements.</p>
+              <p>
+                Creators earn from Day 1 post Beta. There are no follower, view count, or watch-time
+                requirements.
+              </p>
               <p className="font-semibold">6.2</p>
               <p>Monetizable Content begins generating earnings once posted and approved.</p>
               <p className="font-semibold">6.3</p>
@@ -176,10 +276,13 @@ export default function MonetizationPolicyPage() {
 
             {/* Section 7 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">7. EARNINGS ALLOCATION & TIMING</h2>
+              <h2 className="text-3xl font-bold">7. EARNINGS ALLOCATION &amp; TIMING</h2>
               <p className="font-semibold">7.1 Earnings Accrual</p>
-              <p>Earnings accrue only on Monetizable Content and only after the creator meets all eligibility
-                requirements.</p>
+              <p>
+                Earnings accrue only on Monetizable Content and only after the creator meets all eligibility
+                requirements.
+              </p>
+
               <p className="font-semibold">7.2 Verification Period</p>
               <p>Earnings are subject to internal security, risk, and fraud screening.</p>
               <p>Flock may delay or hold earnings for 14–90 days if:</p>
@@ -191,6 +294,7 @@ export default function MonetizationPolicyPage() {
                 <li>Disputes or chargebacks exist</li>
                 <li>Compliance checks are pending</li>
               </ul>
+
               <p className="font-semibold">7.3 Conditional Release of Earnings</p>
               <p>Earnings may be:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -200,6 +304,7 @@ export default function MonetizationPolicyPage() {
                 <li>Reversed</li>
                 <li>Forfeited for serious violations</li>
               </ul>
+
               <p className="font-semibold">7.4 No Guarantee of Timing</p>
               <p>Payout timelines depend on risk assessments, verification, and third-party providers.</p>
             </section>
@@ -210,8 +315,10 @@ export default function MonetizationPolicyPage() {
               <p className="font-semibold">8.1</p>
               <p>Flock does not guarantee minimum earnings or performance.</p>
               <p className="font-semibold">8.2</p>
-              <p>Revenue depends on external factors such as ad demand, market fluctuations, and viewer
-                behavior.</p>
+              <p>
+                Revenue depends on external factors such as ad demand, market fluctuations, and viewer
+                behavior.
+              </p>
               <p className="font-semibold">8.3</p>
               <p>Flock is not responsible for financial losses due to content performance.</p>
             </section>
@@ -237,8 +344,10 @@ export default function MonetizationPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">10. EARNINGS PAYOUT SCHEDULE</h2>
               <p className="font-semibold">10.1 Standard Payout Cycle (Net 30)</p>
-              <p>Eligible earnings from a given month are processed within 30 days after the month ends,
-                unless extended due to verification, risk review, or provider delays.</p>
+              <p>
+                Eligible earnings from a given month are processed within 30 days after the month ends,
+                unless extended due to verification, risk review, or provider delays.
+              </p>
               <p className="font-semibold">10.2 Minimum Payout Thresholds</p>
               <p>Thresholds vary by payment provider and currency.</p>
               <p className="font-semibold">10.3 Reasons for Payout Delays</p>
@@ -263,15 +372,17 @@ export default function MonetizationPolicyPage() {
               <p className="font-semibold">11.1</p>
               <p>Creators may be required to verify identity at any time.</p>
               <p className="font-semibold">11.2</p>
-              <p>Required documents may include government ID, address proof, tax information, or
-                payment verification.</p>
+              <p>
+                Required documents may include government ID, address proof, tax information, or payment
+                verification.
+              </p>
               <p className="font-semibold">11.3</p>
               <p>Failure to verify may result in suspended monetization and frozen earnings.</p>
             </section>
 
             {/* Section 12 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">12. ACCOUNT TERMINATION & FORFEITURE</h2>
+              <h2 className="text-3xl font-bold">12. ACCOUNT TERMINATION &amp; FORFEITURE</h2>
               <p className="font-semibold">12.1</p>
               <p>Earnings may be withheld or forfeited if the creator:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -300,7 +411,7 @@ export default function MonetizationPolicyPage() {
 
             {/* Section 14 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">14. PLATFORM BONUSES & INCENTIVE PROGRAMS</h2>
+              <h2 className="text-3xl font-bold">14. PLATFORM BONUSES &amp; INCENTIVE PROGRAMS</h2>
               <p className="font-semibold">14.1</p>
               <p>Flock may offer bonuses, rewards, or incentive programs.</p>
               <p className="font-semibold">14.2</p>
@@ -351,7 +462,7 @@ export default function MonetizationPolicyPage() {
 
             {/* Section 18 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">18. BRAND SPONSORSHIPS & EXTERNAL DEALS</h2>
+              <h2 className="text-3xl font-bold">18. BRAND SPONSORSHIPS &amp; EXTERNAL DEALS</h2>
               <p className="font-semibold">18.1</p>
               <p>Creators may engage in external sponsorships and partnerships.</p>
               <p className="font-semibold">18.2</p>

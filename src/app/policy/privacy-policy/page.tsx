@@ -4,8 +4,71 @@ import Image from "next/image";
 import loginBg from "@/assets/LSbg.jpg";
 import flockLogo from "@/assets/Flock-LOGO.png";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getUserProfile } from "@/api/user";
+
+type Role = "VIEWER" | "CREATOR" | null;
 
 export default function PrivacyPolicyPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setAuthChecked(false);
+
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token")
+          : null;
+
+      if (!accessToken) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await getUserProfile();
+
+        if (res?.status === 200) {
+          setIsLoggedIn(true);
+
+          // role might be in res.data.user.role OR res.data.role depending on your API
+          const rawRole = res?.data?.user?.role ?? res?.data?.role ?? null;
+
+          // Normalize to avoid "creator"/"CREATOR"/" Creator "
+          const normalized =
+            typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
+
+          if (normalized === "CREATOR" || normalized === "VIEWER") {
+            setRole(normalized);
+          } else {
+            setRole(null);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setRole(null);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+        setRole(null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const homeHref = useMemo(() => {
+    if (role === "CREATOR") return "/dashboard";
+    if (role === "VIEWER") return "/viewer";
+    return null;
+  }, [role]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -37,20 +100,38 @@ export default function PrivacyPolicyPage() {
             </Link>
           </div>
 
-          {/* Login/Signup Buttons - Right Most */}
+          {/* Right Buttons */}
           <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/login"
-              className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
-            >
-              Join the Flock
-            </Link>
+            {!authChecked ? null : !isLoggedIn ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex items-center rounded-xl px-4 md:px-6 py-2 bg-white/95 backdrop-blur-sm text-black text-sm md:text-base underline font-semibold hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-[#2D9CB8] text-sm md:text-base text-white font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-[#2388A3] transition-all shadow-lg hover:scale-105"
+                >
+                  Join the Flock
+                </Link>
+              </>
+            ) : homeHref ? (
+              <Link
+                href={homeHref}
+                className="bg-white/95 text-black font-semibold px-4 md:px-6 py-2 rounded-xl hover:bg-white hover:text-purple-900 transition-all shadow-lg"
+              >
+                Home
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="bg-white/70 text-black font-semibold px-4 md:px-6 py-2 rounded-xl shadow-lg opacity-70 cursor-not-allowed"
+              >
+                Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -58,7 +139,6 @@ export default function PrivacyPolicyPage() {
       {/* Centered White Content Area */}
       <div className="relative z-10 max-w-4xl mx-auto py-4 md:py-6 px-6">
         <div className="bg-white/95 rounded-3xl shadow-xl px-6 py-8 md:px-10 md:py-10 theme-text-primary">
-
           {/* Header */}
           <header className="space-y-3 mb-6">
             <h1 className="text-3xl md:text-4xl font-extrabold">
@@ -69,28 +149,24 @@ export default function PrivacyPolicyPage() {
 
           {/* CONTENT */}
           <div className="space-y-10 text-base md:text-lg leading-relaxed">
-
             {/* Intro */}
             <section className="space-y-4">
               <p>
                 This Privacy Policy describes how Flock Together Global LLC
-                ("Flock," "we," "our," "us") collects, uses, shares, and protects
-                your information when you access or use our website at
+                (&quot;Flock,&quot; &quot;we,&quot; &quot;our,&quot; &quot;us&quot;) collects, uses, shares,
+                and protects your information when you access or use our website at{" "}
                 <a
                   href="https://flocktogether.xyz"
                   className="text-blue-600 underline ml-1"
                 >
                   https://flocktogether.xyz
-                </a>, our services, features, applications, and any related communication channels
-                (collectively, the "Platform").
+                </a>
+                , our services, features, applications, and any related
+                communication channels (collectively, the &quot;Platform&quot;).
               </p>
 
-              <p>
-                By using the Platform, you consent to this Privacy Policy.
-              </p>
-              <p>
-                If you do not agree, do not use the Platform.
-              </p>
+              <p>By using the Platform, you consent to this Privacy Policy.</p>
+              <p>If you do not agree, do not use the Platform.</p>
             </section>
 
             {/* Section 1 */}
@@ -105,8 +181,9 @@ export default function PrivacyPolicyPage() {
                 and monetization system.
               </p>
               <p>
-                We act as the data controller for information processed in connection with your use of the
-                Platform. For certain functions (e.g., payouts), external payment partners may act as joint or
+                We act as the data controller for information processed in
+                connection with your use of the Platform. For certain functions
+                (e.g., payouts), external payment partners may act as joint or
                 independent controllers.
               </p>
             </section>
@@ -139,12 +216,14 @@ export default function PrivacyPolicyPage() {
                 <li>Uploaded file metadata and performance</li>
               </ul>
               <p>
-                We use cookies, pixel tags, SDKs, log files, local storage, and similar technologies as
-                described in Section 8.
+                We use cookies, pixel tags, SDKs, log files, local storage, and
+                similar technologies as described in Section 8.
               </p>
-              <p>Enhanced for transparency:</p>
-              <p>We may also collect fraud indicators (e.g., unusual session activity, rapid switching of IPs)
-                for the purpose of protecting the Platform and creators.</p>
+              <p>
+                Enhanced for transparency: We may also collect fraud indicators
+                (e.g., unusual session activity, rapid switching of IPs) for the
+                purpose of protecting the Platform and creators.
+              </p>
 
               <h3 className="font-semibold">C. Information From Third-Party Platforms</h3>
               <p>When you connect accounts:</p>
@@ -156,7 +235,8 @@ export default function PrivacyPolicyPage() {
                 <li>Stripe / Payoneer / PayPal payout data</li>
               </ul>
               <p>
-                We receive only the profile details required to authenticate you and operate the Platform.
+                We receive only the profile details required to authenticate you
+                and operate the Platform.
               </p>
             </section>
 
@@ -176,7 +256,7 @@ export default function PrivacyPolicyPage() {
                 <li>Analyze performance and improve features</li>
               </ul>
 
-              <h3 className="font-semibold">Safety & Compliance</h3>
+              <h3 className="font-semibold">Safety &amp; Compliance</h3>
               <ul className="list-disc list-inside space-y-1">
                 <li>Enforce our Terms of Service and Community Guidelines</li>
                 <li>Detect and prevent fraud and policy abuse</li>
@@ -191,7 +271,7 @@ export default function PrivacyPolicyPage() {
                 <li>Contact you regarding technical, transactional, or legal matters</li>
               </ul>
 
-              <h3 className="font-semibold">Analytics & Insights</h3>
+              <h3 className="font-semibold">Analytics &amp; Insights</h3>
               <ul className="list-disc list-inside space-y-1">
                 <li>Measure audience engagement</li>
                 <li>Track content performance</li>
@@ -206,13 +286,12 @@ export default function PrivacyPolicyPage() {
                 <li>Personalize targeting (where legally permitted)</li>
                 <li>Prevent invalid traffic and ad fraud</li>
               </ul>
-              <p>Enhanced for completeness:</p>
               <p>We do not use sensitive personal data for advertising purposes.</p>
             </section>
 
             {/* Section 4 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">4. MONETIZATION & PAYMENTS</h2>
+              <h2 className="text-3xl font-bold">4. MONETIZATION &amp; PAYMENTS</h2>
 
               <p>If you participate in earning features, we process:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -235,9 +314,10 @@ export default function PrivacyPolicyPage() {
                 We never store your full payment credentials; we only store payout identifiers and required
                 metadata.
               </p>
-              <p>Enhanced addition:</p>
-              <p>Creators begin earning from Day 1 after Beta, provided monetization eligibility requirements
-                are met.</p>
+              <p>
+                Creators begin earning from Day 1 after Beta, provided monetization eligibility requirements
+                are met.
+              </p>
             </section>
 
             {/* Section 5 */}
@@ -278,7 +358,8 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="font-semibold">Business Transfers</h3>
               <p>
-                If we undergo merger, acquisition, restructuring, we may transfer user information as part of the transaction.
+                If we undergo merger, acquisition, restructuring, we may transfer user information as part
+                of the transaction.
               </p>
             </section>
 
