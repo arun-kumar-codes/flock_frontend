@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getUserProfile } from "@/api/user";
 
-type Role = "VIEWER" | "CREATOR" | null;
+type Role = "VIEWER" | "CREATOR" | "ADMIN" | null;
 
 export default function AcceptableUsePolicyPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -44,7 +44,7 @@ export default function AcceptableUsePolicyPage() {
           const normalized =
             typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
 
-          if (normalized === "CREATOR" || normalized === "VIEWER") {
+          if (normalized === "CREATOR" || normalized === "VIEWER" || normalized === "ADMIN") {
             setRole(normalized);
           } else {
             setRole(null);
@@ -65,11 +65,11 @@ export default function AcceptableUsePolicyPage() {
   }, []);
 
   const homeHref = useMemo(() => {
+    if (role === "ADMIN") return "/admin";
     if (role === "CREATOR") return "/dashboard";
     if (role === "VIEWER") return "/viewer";
     return null;
   }, [role]);
-
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}

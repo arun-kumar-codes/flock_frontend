@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getUserProfile } from "@/api/user";
 
-type Role = "VIEWER" | "CREATOR" | null;
+type Role = "VIEWER" | "CREATOR" | "ADMIN" | null;
 
 export default function AboutUsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -41,7 +41,7 @@ export default function AboutUsPage() {
           const normalized =
             typeof rawRole === "string" ? rawRole.trim().toUpperCase() : null;
 
-          if (normalized === "CREATOR" || normalized === "VIEWER") {
+          if (normalized === "CREATOR" || normalized === "VIEWER" || normalized === "ADMIN" || normalized === "ADMIN") {
             setRole(normalized);
           } else {
             setRole(null);
@@ -62,6 +62,7 @@ export default function AboutUsPage() {
   }, []);
 
   const homeHref = useMemo(() => {
+    if (role === "ADMIN") return "/admin";
     if (role === "CREATOR") return "/dashboard";
     if (role === "VIEWER") return "/viewer";
     return null;
@@ -179,11 +180,11 @@ export default function AboutUsPage() {
               </div>
 
               <div className="px-6 md:px-10 lg:px-12 py-10 md:py-12">
-                <p className="text-xs md:text-sm tracking-[0.22em] uppercase text-purple-700 font-semibold">
+                <p className="text-5xl md:text-4xl tracking-[0.22em] text-center mb-6 uppercase text-purple-700 font-extrabold">
                   About Us
                 </p>
 
-                <h1 className="mt-3 text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+                <h1 className="mt-3 text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight">
                   FLOCK is more than a platform —{" "}
                   <span className="bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent">
                     it’s a movement.
