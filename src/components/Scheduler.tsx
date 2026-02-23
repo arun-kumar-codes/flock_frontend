@@ -371,7 +371,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     today.setHours(0, 0, 0, 0)
     return today
   }, [])
-  const maxDate = useMemo(() => addMinutes(now, 7 * 24 * 60), [now])
+  const maxDate = useMemo(() => addMinutes(now, 365 * 24 * 60), [now])
 
   const [selectedDay, setSelectedDay] = useState<string>(() => toDateInputValue(minDateTime))
   const [note, setNote] = useState<string>("")
@@ -425,6 +425,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
         get: () => setTimeOfDay(addMinutes(now, 3 * 24 * 60), 9, 0),
       },
       { key: "in7d", label: () => "In 7 days", get: () => addMinutes(now, 7 * 24 * 60) },
+      { key: "in30d", label: () => "In 30 days", get: () => addMinutes(now, 30 * 24 * 60) },
     ],
     [now, currentFormat],
   )
@@ -523,7 +524,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
           <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
           <label className="text-lg sm:text-xl font-bold text-slate-800">{label}</label>
         </div>
-        <p className="text-sm text-slate-600">Pick a time at least 5 minutes from now, up to 7 days ahead.</p>
+        <p className="text-sm text-slate-600">Pick a time at least 5 minutes from now.</p>
       </div>
 
       {/* Quick picks */}

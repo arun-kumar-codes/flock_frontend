@@ -34,6 +34,7 @@ interface Creator {
   id: number;
   role: string;
   username: string;
+  display_name?: string;
   profile_picture?: string;
   followers_count: number;
   following_count: number;
@@ -619,6 +620,7 @@ export default function DashboardPage() {
       return (
         safe(item.title).includes(safeSearch) ||
         safe(item.creator?.username).includes(safeSearch) ||
+        safe(item.creator?.display_name).includes(safeSearch) ||
         safe(plainDescription).includes(safeSearch) ||
         (Array.isArray(item.keywords) &&
           item.keywords.some((kw: any) => safe(kw).includes(safeSearch)))
@@ -627,6 +629,7 @@ export default function DashboardPage() {
       return (
         safe(item.title).includes(safeSearch) ||
         safe(item.author?.username).includes(safeSearch) ||
+        safe(item.author?.display_name).includes(safeSearch) ||
         safe(item.excerpt).includes(safeSearch) ||
         (Array.isArray(item.keywords) &&
           item.keywords.some((kw: any) => safe(kw).includes(safeSearch)))
@@ -752,9 +755,10 @@ const handleBlogClick = (blog: Blog) => {
     return <Loader />;
   }
 
-  const filteredCreators = creators.filter((creator) =>
-  (creator.username || "").toLowerCase().includes((searchTerm || "").toLowerCase())
-);
+  const filteredCreators = creators.filter((creator) => {
+    const name = (creator.username || creator.display_name || "").toLowerCase();
+    return name.includes((searchTerm || "").toLowerCase());
+  });
 
   return (
     <div className={`min-h-screen theme-bg-primary transition-colors duration-300 ${inter.className}`}>
@@ -1328,7 +1332,7 @@ const handleBlogClick = (blog: Blog) => {
                   {creator.profile_picture ? (
                     <Image
                       src={creator.profile_picture}
-                      alt={creator.username}
+                      alt={creator.display_name ?? creator.username ?? "Creator"}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -1339,7 +1343,7 @@ const handleBlogClick = (blog: Blog) => {
                           <UserIcon className="w-10 h-10 text-gray-500" />
                         </div>
                         <p className="text-sm text-gray-500 font-medium">
-                          {creator.username || "Creator"}
+                          {creator.display_name ?? creator.username ?? "Creator"}
                         </p>
                       </div>
                     </div>
@@ -1349,7 +1353,7 @@ const handleBlogClick = (blog: Blog) => {
                               <div className="absolute inset-0 bg-black/0 transition-all duration-300 flex items-end mb-2 px-2">
                                 <div className="w-full bg-white/20 px-4 py-3 text-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
                                   <h3 className="text-white font-semibold text-base truncate">
-                                    {creator.username || "Creator"}
+                                    {creator.display_name ?? creator.username ?? "Creator"}
                                   </h3>
                                 </div>
                               </div>

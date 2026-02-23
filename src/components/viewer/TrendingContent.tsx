@@ -339,7 +339,8 @@ export default function TrendingContentTab() {
       const plainDescription = stripHtmlAndDecode(item.description)
       return (
         item.title.toLowerCase().includes(searchText) ||
-        item.creator.username.toLowerCase().includes(searchText) ||
+        (item.creator?.username ?? "").toLowerCase().includes(searchText) ||
+        (item.creator as any).display_name?.toLowerCase().includes(searchText) ||
         plainDescription.toLowerCase().includes(searchText)||
         (Array.isArray(item.keywords) &&
       item.keywords.some((kw:any) => kw.toLowerCase().includes(searchText)))
@@ -347,7 +348,8 @@ export default function TrendingContentTab() {
     } else {
       return (
         item.title.toLowerCase().includes(searchText) ||
-        item.author.username.toLowerCase().includes(searchText) ||
+        (item.author?.username ?? "").toLowerCase().includes(searchText) ||
+        (item.author as any).display_name?.toLowerCase().includes(searchText) ||
         (item.excerpt && item.excerpt.toLowerCase().includes(searchText))||
         (Array.isArray(item.keywords) &&
       item.keywords.some((kw:any) => kw.toLowerCase().includes(searchText)))

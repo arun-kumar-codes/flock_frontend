@@ -1375,8 +1375,7 @@ useEffect(() => {
     if (
       isScheduled &&
       (!scheduledAt ||
-        scheduledAt < new Date(Date.now() + 5 * 60 * 1000) ||
-        scheduledAt > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
+        scheduledAt < new Date(Date.now() + 5 * 60 * 1000))
     ) {
       setCreateError(
         "Please select a valid future date and time for scheduling."
@@ -2944,7 +2943,7 @@ useEffect(() => {
                               or drag and drop
                             </p>
                             <p className="text-xs text-slate-500">
-                              PNG, JPG, JPEG, GIF • Min 1000×1000px
+                              PNG, JPG, JPEG, GIF • 1280×720px (16:9)
                             </p>
                           </div>
                         </div>

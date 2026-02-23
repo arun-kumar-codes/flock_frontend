@@ -25,12 +25,13 @@ import HomeIcon from "@/assets/Home-icon.svg";
 import BlogIcon from "@/assets/blog-icon.png";
 import VideoIcon from "@/assets/video-icon.png";
 import { Inter } from "next/font/google";
+import { INK_LABEL } from "@/constants/contentLabels";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const navigationItems = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
-  { name: "Blogs", href: "/dashboard/blogs", icon: BlogIcon },
+  { name: INK_LABEL, href: "/dashboard/blogs", icon: BlogIcon },
   { name: "Videos", href: "/dashboard/videos", icon: VideoIcon },
   { name: "My Flock", href: "/dashboard/followers", icon: UsersRound },
   { name: "Analytics", href: "/dashboard/analytics", icon: FileChartColumnIncreasing },
@@ -230,7 +231,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   }`}
                 >
                   <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
-                    {item.name === "Home" || item.name === "Blogs" || item.name === "Videos" ? (
+                    {item.name === "Home" || item.name === INK_LABEL || item.name === "Videos" ? (
                       <Image
                         src={Icon}
                         alt={item.name}
@@ -334,7 +335,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   }`}
                 >
                   <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
-                    {item.name === "Home" || item.name === "Blogs" || item.name === "Videos" ? (
+                    {item.name === "Home" || item.name === INK_LABEL || item.name === "Videos" ? (
                       <Image
                         src={Icon}
                         alt={item.name}
@@ -475,7 +476,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <div className="py-2">
                         <button
                           onClick={() => {
-                            router.push("/dashboard/profiles");
+                            router.push("/dashboard/profile");
                             setShowUserDetails(false);
                           }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"

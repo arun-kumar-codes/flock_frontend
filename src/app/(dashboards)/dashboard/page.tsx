@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import { getCreatorData } from "@/api/user"
+import { INK_LABEL } from "@/constants/contentLabels"
 import {
   FileTextIcon,
   VideoIcon,
@@ -123,14 +124,14 @@ export default function CreatorDashboard() {
 
   const contentTypes = [
     {
-      title: "Blog Management",
-      description: "Create, edit, and manage your blog posts. Share your thoughts and expertise with your audience.",
+      title: `${INK_LABEL} Management`,
+      description: `Create, edit, and manage your ${INK_LABEL.toLowerCase()} posts. Share your thoughts and expertise with your audience.`,
       icon: FileTextIcon,
       href: "/dashboard/blogs",
       color: "from-indigo-600 to-purple-600",
       bgColor: "bg-indigo-50",
       iconColor: "text-indigo-600",
-      stats: `${stats?.blogs.total || 0} blogs`,
+      stats: `${stats?.blogs.total || 0} ${INK_LABEL.toLowerCase()}s`,
       publishedStats: `${stats?.blogs.published || 0} published`,
       draftStats: `${stats?.blogs.draft || 0} drafts`,
       features: ["Rich text editor", "Image uploads", "SEO optimization", "Draft management"],
@@ -152,8 +153,8 @@ export default function CreatorDashboard() {
 
   const quickActions = [
     {
-      title: "Create New Blog",
-      description: "Start writing your next blog post",
+      title: `Create New ${INK_LABEL}`,
+      description: `Start writing your next ${INK_LABEL.toLowerCase()} post`,
       icon: FileTextIcon,
       action: () => router.push("/dashboard/blogs"),
       color: "bg-indigo-600 hover:bg-indigo-700",
@@ -203,7 +204,7 @@ export default function CreatorDashboard() {
                   className="inline-flex items-center px-6 py-3 cursor-pointer bg-indigo-600 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-sm md:text-base"
                 >
                   <FileTextIcon className="w-3 h-3 md:w-5 md:h-5 mr-2" />
-                  Create Blog
+                  Create {INK_LABEL}
                 </button>
                 <button
                   onClick={() => router.push("/dashboard/videos")}
@@ -249,7 +250,7 @@ export default function CreatorDashboard() {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Total Blogs</p>
+                <p className="text-sm font-medium text-slate-600">Total {INK_LABEL}s</p>
                 <p className="text-2xl font-bold text-slate-800">{stats?.blogs.total || 0}</p>
                 <p className="text-xs text-slate-500 mt-1">
                   {stats?.blogs.published || 0} published • {stats?.blogs.draft || 0} drafts
@@ -284,7 +285,7 @@ export default function CreatorDashboard() {
                   {(stats?.overall.total_views || 0).toLocaleString()}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Blogs: {stats?.blogs.total_views || 0} • Videos: {stats?.videos.total_views || 0}
+                  {INK_LABEL}s: {stats?.blogs.total_views || 0} • Videos: {stats?.videos.total_views || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -299,7 +300,7 @@ export default function CreatorDashboard() {
                 <p className="text-sm font-medium text-slate-600">Total Likes</p>
                 <p className="text-2xl font-bold text-slate-800">{stats?.overall.total_likes || 0}</p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Blogs: {stats?.blogs.total_likes || 0} • Videos: {stats?.videos.total_likes || 0}
+                  {INK_LABEL}s: {stats?.blogs.total_likes || 0} • Videos: {stats?.videos.total_likes || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -359,11 +360,11 @@ export default function CreatorDashboard() {
             <div className="bg-white rounded-4xl p-6 shadow-sm border border-slate-200 mb-8">
               <h3 className="text-lg font-semibold text-slate-800 mb-4">Content Status Overview</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Blog Status */}
+                {/* Ink Status */}
                 <div>
                   <h4 className="font-medium text-slate-700 mb-3 flex items-center">
                     <FileTextIcon className="w-4 h-4 mr-2 text-indigo-600" />
-                    Blog Status
+                    {INK_LABEL} Status
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">

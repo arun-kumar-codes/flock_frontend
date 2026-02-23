@@ -611,13 +611,6 @@ export default function AboutUsPage() {
               <p>Sheridan, WY 82801</p>
               <p>USA</p>
             </div>
-
-            <div className="mt-8 text-sm text-gray-600">
-              <p>
-                Note: Content on this page is based on your provided “About Us”
-                document and infographic.
-              </p>
-            </div>
           </div>
         </section>
       </main>

@@ -2,7 +2,8 @@ import { initializeApp } from "firebase/app";
 
 import { getAuth } from "firebase/auth";
 const firebaseConfig = {
-  apiKey: "AIzaSyAmK6QfjPgLppLORW0LKvkX0Zgj7zblNVw",
+  //old one apiKey: "AIzaSyAmK6QfjPgLppLORW0LKvkX0Zgj7zblNVw",
+  apiKey: "AIzaSyBD4qY02fQpjQBdWZDzYO85tmxk6qicqP4",
   authDomain: "flock-1e6cb.firebaseapp.com",
   projectId: "flock-1e6cb",
   storageBucket: "flock-1e6cb.firebasestorage.app",

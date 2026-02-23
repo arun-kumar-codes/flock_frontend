@@ -41,6 +41,7 @@ interface Blog {
       username: string;
       email: string;
       profile_picture?: string;
+      display_name?: string;
     };
     created_at: string;
     created_by: number;
@@ -352,13 +353,20 @@ export default function DashboardBlogDetailPage({
 </div>
 
 
-              {/* Author Info */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+              {/* Author Info — clickable to open creator page */}
+              <button
+                type="button"
+                onClick={() => {
+                  const id = blog.blog?.author?.id;
+                  if (id != null) router.push(`/viewer/creator/${id}`);
+                }}
+                className="flex items-center gap-3 mb-6 text-left hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+              >
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shrink-0">
                   {blog.blog?.author?.profile_picture ? (
                     <Image
                       src={blog.blog.author.profile_picture}
-                      alt={blog.blog?.author?.username || "Author"}
+                      alt={blog.blog?.author?.username || blog.blog?.author?.display_name || "Author"}
                       width={40}
                       height={40}
                       className="w-full h-full object-cover"
@@ -368,14 +376,14 @@ export default function DashboardBlogDetailPage({
                   )}
                 </div>
                 <div>
-                  <p className="font-medium theme-text-primary">
-                    {blog.blog?.author?.username || "Unknown Author"}
+                  <p className="font-medium theme-text-primary underline decoration-transparent hover:decoration-current">
+                    {blog.blog?.author?.display_name ?? blog.blog?.author?.username ?? "Unknown Author"}
                   </p>
                   <p className="text-sm theme-text-secondary">
                     {blog.blog?.author?.email || "No email available"}
                   </p>
                 </div>
-              </div>
+              </button>
 
               {/* Blog Content */}
               <div className="text-sm sm:text-lg md:text-lg mb-6 prose prose-slate max-w-none theme-text-primary">

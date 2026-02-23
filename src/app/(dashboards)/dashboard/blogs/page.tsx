@@ -1322,8 +1322,7 @@ export default function BlogsPage() {
     if (
       isScheduled &&
       (!scheduledAt ||
-        scheduledAt <= new Date(Date.now() + 5 * 60 * 1000) ||
-        scheduledAt > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
+        scheduledAt <= new Date(Date.now() + 5 * 60 * 1000))
     ) {
       console.log("Invalid scheduled date:", scheduledAt);
       setCreateError(

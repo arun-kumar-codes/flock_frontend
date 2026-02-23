@@ -545,26 +545,26 @@ export async function getMostLiked() {
   }
 }
 
-export async function addFollowing(creatorId: string) {
+export async function addFollowing(creatorId: number | string) {
   try {
-    const response = await axiosInstance.post(`/auth/follow/${creatorId}`);
+    const id = String(creatorId);
+    const response = await axiosInstance.post(`/auth/follow/${id}`);
     return response;
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("Error following creator:", error);
-    return error.response;
+    return error?.response;
   }
-
 }
 
-export async function removeFollowing(creatorId: string) {
+export async function removeFollowing(creatorId: number | string) {
   try {
-    const response = await axiosInstance.post(`/auth/unfollow/${creatorId}`);
+    const id = String(creatorId);
+    const response = await axiosInstance.post(`/auth/unfollow/${id}`);
     return response;
-  } catch (error:any) {
-    console.error("Error following creator:", error);
-    return error.response;
+  } catch (error: any) {
+    console.error("Error unfollowing creator:", error);
+    return error?.response;
   }
-
 }
 
 

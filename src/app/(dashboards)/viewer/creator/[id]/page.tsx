@@ -100,16 +100,7 @@ export default function CreatorProfilePage() {
             videos: publishedVideos,
             blogs: publishedBlogs,
           });
-          if (res?.status === 200) {
-  const { creator, videos, blogs } = res.data;
-
-  setCreator({
-    ...creator,
-    videos: publishedVideos,
-    blogs: publishedBlogs,
-  });
-  setIsFollowing(creator.is_following_author || false);
-}
+          setIsFollowing(creator.is_following_author ?? creator.is_following ?? false);
         } else {
           setCreator(null);
         }

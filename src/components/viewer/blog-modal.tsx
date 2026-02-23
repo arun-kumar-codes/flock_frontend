@@ -230,20 +230,18 @@ export function BlogModal({
   });
 
   const handleFollowClick = async () => {
-    if (!handleRoute()) {
-      return;
-    }
+    if (!handleRoute()) return;
+    const authorId = blog.author?.id;
+    if (authorId == null) return;
     setIsLoading(true);
-
     try {
-      if (isFollowing) {
-        await removeFollowing(blog.author.id);
-        setFollowing(false);
-      } else {
-        await addFollowing(blog.author.id);
-        setFollowing(true);
+      const res = isFollowing
+        ? await removeFollowing(authorId)
+        : await addFollowing(authorId);
+      if (res?.status === 200) {
+        setFollowing(!isFollowing);
+        onRefreshBlogs();
       }
-      onRefreshBlogs();
     } catch (error) {
       console.error("Error toggling follow:", error);
     } finally {
@@ -300,7 +298,18 @@ export function BlogModal({
               </h2>
 
               <div className="flex items-center space-x-4 text-sm theme-text-secondary">
-                <span>by {blog.author.username} test</span>
+                <span>
+                by{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (blog.author?.id) router.push(`/viewer/creator/${blog.author.id}`);
+                  }}
+                  className="font-medium underline hover:no-underline focus:outline-none"
+                >
+                  {blog.author?.username ?? blog.author?.display_name ?? "Creator"}
+                </button>
+              </span>
                 <span className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />
                   <span>{formatDate(blog.created_at)}</span>

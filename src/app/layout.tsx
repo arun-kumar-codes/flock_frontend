@@ -67,8 +67,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ReduxProvider>{children}</ReduxProvider>
         <Toaster position="top-right" reverseOrder={false} />
-
-         {/* Footer */}
+        {/* Beta badge — visible on all pages */}
+        <span
+          className="fixed top-3 right-3 z-[9999] px-2 py-0.5 text-xs font-semibold uppercase tracking-wide bg-amber-400 text-amber-950 rounded shadow-md pointer-events-none"
+          aria-hidden
+        >
+          Beta
+        </span>
+        {/* Footer */}
         <Footer />
       </body>
     </html>

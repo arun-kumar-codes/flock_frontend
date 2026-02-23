@@ -318,13 +318,15 @@ export default function MostViewedContentTab() {
       const plainDescription = stripHtmlAndDecode(item.description)
       return (
         item.title.toLowerCase().includes(searchText) ||
-        item.creator.username.toLowerCase().includes(searchText) ||
+        (item.creator?.username ?? "").toLowerCase().includes(searchText) ||
+        (item.creator as any).display_name?.toLowerCase().includes(searchText) ||
         plainDescription.toLowerCase().includes(searchText)
       )
     } else {
       return (
         item.title.toLowerCase().includes(searchText) ||
-        item.author.username.toLowerCase().includes(searchText) ||
+        (item.author?.username ?? "").toLowerCase().includes(searchText) ||
+        (item.author as any).display_name?.toLowerCase().includes(searchText) ||
         (item.excerpt && item.excerpt.toLowerCase().includes(searchText))
       )
     }

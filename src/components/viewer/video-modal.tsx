@@ -292,19 +292,18 @@ export function VideoModal({
     }
   };
   const handleClick = async () => {
-    if (handleRoute()) {
-      return;
-    }
+    if (handleRoute()) return;
+    const creatorId = video.creator?.id ?? video.author?.id;
+    if (creatorId == null) return;
     setIsLoading(true);
     try {
-      if (isFollowing) {
-        await removeFollowing(video.author.id);
-        setFollowing(false);
-      } else {
-        await addFollowing(video.author.id);
-        setFollowing(true);
+      const res = isFollowing
+        ? await removeFollowing(creatorId)
+        : await addFollowing(creatorId);
+      if (res?.status === 200) {
+        setFollowing(!isFollowing);
+        onRefreshVideos();
       }
-      onRefreshVideos();
     } catch (error) {
       console.error("Error toggling follow:", error);
     } finally {
@@ -343,7 +342,17 @@ export function VideoModal({
 
               <div className="flex items-center space-x-4 text-sm theme-text-secondary">
                 <span>
-                  by {video.creator?.username || video.author?.username} test
+                  by{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const id = video.creator?.id ?? video.author?.id;
+                      if (id != null) router.push(`/viewer/creator/${id}`);
+                    }}
+                    className="font-medium underline hover:no-underline focus:outline-none"
+                  >
+                    {video.creator?.username || video.author?.username || "Creator"}
+                  </button>
                 </span>
                 <span className="flex items-center space-x-1">
                   <CalendarIcon className="w-4 h-4" />

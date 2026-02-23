@@ -15,25 +15,14 @@ import Login from '@/assets/Login.svg'
 import BlogIcon from "@/assets/blog-icon.png"
 import VideoIcon from "@/assets/video-icon.png"
 import { Inter } from "next/font/google";
+import { INK_LABEL } from "@/constants/contentLabels";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const menuItems = [
-  {
-    title: "Home",
-    url: "/viewer",
-    icon: HomeIconSvg,
-  },
-  {
-    title: "Blog",
-    url: "/viewer/blogs",
-    icon: BlogIcon,
-  },
-  {
-    title: "Video",
-    url: "/viewer/videos",
-    icon: VideoIcon,
-  },
+  { title: "Home", url: "/viewer", icon: HomeIconSvg },
+  { title: INK_LABEL, url: "/viewer/blogs", icon: BlogIcon },
+  { title: "Video", url: "/viewer/videos", icon: VideoIcon },
 ]
 
 const userMenuItems: any = [
