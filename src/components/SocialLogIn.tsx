@@ -52,7 +52,7 @@ const SocialLogin = () => {
         console.log("User Data:", userData);
 
         if (userData.is_new_user) {
-          router.push("dashboard/profile");
+          router.push("/dashboard/profiles");
         } else {
           router.push("/dashboard");
         }

@@ -476,7 +476,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <div className="py-2">
                         <button
                           onClick={() => {
-                            router.push("/dashboard/profile");
+                            router.push("/dashboard/profiles");
                             setShowUserDetails(false);
                           }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"

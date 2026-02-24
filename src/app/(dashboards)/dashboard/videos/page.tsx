@@ -910,7 +910,7 @@ useEffect(() => {
   useEffect(() => {
     if (user) {
       if (!user.is_profile_completed) {
-        router.push("/dashboard/profile");
+        router.push("/dashboard/profiles");
       } else {
         setUserData((prev) => ({
           ...prev,
