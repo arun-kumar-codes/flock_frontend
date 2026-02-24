@@ -146,16 +146,19 @@ export default function CommunityGuidelinesPage() {
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                Welcome to FLOCK — a space for creators, audiences, and communities to engage, grow, and earn responsibly.
+                Welcome to FLOCK — a space for creators, audiences, and communities to engage, grow, and
+                earn responsibly.
               </p>
               <p>
-                These Community Guidelines ("Guidelines") explain what is and is not allowed on Flocktogether.xyz (the "Platform"). They apply to all users, viewers, creators, advertisers, moderators, and brand partners.
+                These Community Guidelines ("Guidelines") explain what is and is not allowed on
+                Flocktogether.xyz (the "Platform"). They apply to all users, including viewers, creators,
+                advertisers, moderators, and brand partners.
               </p>
-              <p>These Guidelines work together with:</p>
+              <p>These Guidelines work together with our:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Terms of Service</li>
                 <li>Privacy Policy</li>
-                <li>DMCA Policy</li>
+                <li>DMCA & Copyright Policy</li>
                 <li>Acceptable Use Policy</li>
                 <li>Monetization Policy</li>
                 <li>Safety & Reporting Policy</li>
@@ -166,15 +169,15 @@ export default function CommunityGuidelinesPage() {
             {/* Section 1 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">1. CORE VALUES</h2>
-              <p>We built FLOCK on these principles:</p>
+              <p>FLOCK is built on the following principles:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li><strong>Safety:</strong> Every user should feel protected.</li>
                 <li><strong>Authenticity:</strong> Content must not mislead, exploit, or manipulate.</li>
-                <li><strong>Respect:</strong> We do not tolerate harassment, hate, or exploitation.</li>
-                <li><strong>Creativity:</strong> We protect originality and intellectual property.</li>
+                <li><strong>Respect:</strong> Harassment, hate, and exploitation are not tolerated.</li>
+                <li><strong>Creativity:</strong> Originality and intellectual property are protected.</li>
                 <li><strong>Responsibility:</strong> Monetization is a privilege, not an entitlement.</li>
               </ul>
-              <p>Creators who consistently violate these Guidelines may lose:</p>
+              <p>Creators who consistently violate these Guidelines may lose access to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Earnings</li>
                 <li>Platform features</li>
@@ -186,8 +189,8 @@ export default function CommunityGuidelinesPage() {
 
             {/* Section 2 */}
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold">2. ZERO TOLERANCE AREAS</h2>
-              <p>These violations lead to immediate removal or permanent ban:</p>
+              <h2 className="text-2xl font-bold">2. ZERO-TOLERANCE VIOLATIONS</h2>
+              <p>The following violations may result in immediate removal or permanent ban:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Child sexual exploitation or abuse</li>
                 <li>Human trafficking or sexual coercion</li>
@@ -197,52 +200,53 @@ export default function CommunityGuidelinesPage() {
                 <li>Fraudulent impersonation or account takeover</li>
                 <li>Malicious hacking or data theft attempts</li>
               </ul>
-              <p>Law enforcement may be contacted where required.</p>
+              <p>Law enforcement may be contacted where required by law.</p>
             </section>
 
             {/* Section 3 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">3. SAFETY OF MINORS (CRITICAL)</h2>
-              <p>Minimum age to use FLOCK: <strong>13+</strong></p>
-              <p>(consistent with global digital child safety laws)</p>
-              <p>Monetization: <strong>18+</strong> or legally documented guardian oversight.</p>
-              <p>We remove:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Content sexualizing anyone under 18</li>
-                <li>Nude or suggestive depictions involving minors</li>
+                <li>Minimum age to use FLOCK: 13+ (consistent with global child safety laws)</li>
+                <li>Monetization eligibility: 18+ or legally documented guardian oversight</li>
+              </ul>
+              <p>We remove content involving:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Sexualization of anyone under 18</li>
+                <li>Nude or suggestive depictions of minors</li>
                 <li>Underage drinking or drug promotion</li>
                 <li>Dangerous challenges encouraging harm</li>
-                <li>Attempts to solicit minors</li>
+                <li>Attempts to solicit or groom minors</li>
               </ul>
-              <p>We will report suspected child abuse to authorities.</p>
+              <p>Suspected child abuse will be reported to authorities.</p>
             </section>
 
             {/* Section 4 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">4. SEXUAL CONTENT & ADULT MATERIAL</h2>
-              <p className="font-bold">FLOCK is not an adult content platform.</p>
+              <p>FLOCK is not an adult content platform.</p>
               <p>Allowed:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Educational content about relationships or sexuality</li>
                 <li>Health or medical information</li>
-                <li>Art, fashion, body positivity within community standards</li>
-                <li>Editorial discussion of adult themes</li>
+                <li>Art, fashion, and body positivity within community standards</li>
+                <li>Editorial or journalistic discussion of adult themes</li>
               </ul>
               <p>Not Allowed:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Pornography</li>
                 <li>Explicit sexual acts</li>
                 <li>Genital display</li>
-                <li>Fetish, fetish bait, or sexualized body focus</li>
-                <li>Sexually exploitative posing or minors</li>
+                <li>Fetish content or sexualized body focus</li>
+                <li>Sexual exploitation or sexualized depictions of minors</li>
               </ul>
-              <p>Repeated violations → monetization loss + permanent ban</p>
+              <p>Repeated violations may result in monetization loss and permanent ban.</p>
             </section>
 
             {/* Section 5 */}
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold">5. HATE, ABUSE, DISCRIMINATION</h2>
-              <p>We prohibit content targeting people based on:</p>
+              <h2 className="text-2xl font-bold">5. HATE, ABUSE & DISCRIMINATION</h2>
+              <p>We prohibit content targeting individuals or groups based on:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Race or ethnicity</li>
                 <li>Religion</li>
@@ -250,37 +254,37 @@ export default function CommunityGuidelinesPage() {
                 <li>Sexual orientation</li>
                 <li>Disability or health condition</li>
                 <li>Nationality or immigration status</li>
-                <li>Socioeconomic class</li>
-                <li>Body type or age</li>
-                <li>Veteran status</li>
+                <li>Socioeconomic status</li>
+                <li>Body type, age, or veteran status</li>
               </ul>
               <p>Not allowed:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Calls for harm or exclusion</li>
-                <li>Harassment campaigns</li>
-                <li>Slurs, dehumanization, hateful stereotypes</li>
-                <li>Encouraging real-world violence</li>
+                <li>Harassment or intimidation campaigns</li>
+                <li>Slurs, dehumanization, or hateful stereotypes</li>
+                <li>Encouragement of real-world violence</li>
               </ul>
-              <p>You may criticize ideas or institutions — not identifiable groups or individuals.</p>
+              <p>Criticism of ideas or institutions is allowed; attacks on identifiable individuals or protected groups
+                are not.</p>
             </section>
 
              {/* Section 6 */}
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold">6. SELF-HARM, SUICIDE, DANGEROUS ACTS</h2>
-              <p>We prohibit:</p>
+              <h2 className="text-2xl font-bold">6. SELF-HARM, SUICIDE & DANGEROUS ACTS</h2>
+              <p>Prohibited:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Encouraging self-harm or suicide</li>
-                <li>Attempts at self-harm</li>
-                <li>Instructions on how to commit suicide</li>
+                <li>Encouragement of self-harm or suicide</li>
+                <li>Depictions of suicide attempts</li>
+                <li>Instructions or methods for self-harm</li>
                 <li>Romanticizing or aestheticizing self-harm</li>
               </ul>
-              <p>Allowed:</p>
+              <p>Allowed with care:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Recovery stories</li>
-                <li>Mental health resources</li>
-                <li>Educational awareness</li>
+                <li>Mental health education</li>
+                <li>Support resources</li>
               </ul>
-              <p>Creators must use trigger warnings.</p>
+              <p>Creators must use appropriate trigger warnings where applicable.</p>
             </section>
 
             {/* Section 7 */}
@@ -288,22 +292,22 @@ export default function CommunityGuidelinesPage() {
               <h2 className="text-2xl font-bold">7. VIOLENCE, DANGEROUS BEHAVIOR & CRIMINAL ACTIVITY</h2>
               <p>Not allowed:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Threats of violence</li>
+                <li>Threats or glorification of violence</li>
                 <li>Celebration of violent acts</li>
-                <li>Real-world graphic injury footage</li>
-                <li>Manufacturing weapons</li>
-                <li>Promoting illegal drugs</li>
+                <li>Graphic real-world injury footage</li>
+                <li>Manufacturing or use of weapons</li>
+                <li>Promotion of illegal drugs</li>
                 <li>Organized criminal schemes</li>
                 <li>Dangerous challenges</li>
               </ul>
-              <p>Allowed (case-by-case):</p>
+              <p>Allowed on a case-by-case basis:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>News coverage</li>
-                <li>Documentary reporting</li>
-                <li>War or conflict commentary</li>
+                <li>News reporting</li>
+                <li>Documentary content</li>
+                <li>War or conflict analysis</li>
                 <li>Educational self-defense</li>
               </ul>
-              <p>Creators must maintain context and responsibility.</p>
+              <p>Context and responsibility are required.</p>
             </section>
 
             {/* Section 8 */}
@@ -311,19 +315,14 @@ export default function CommunityGuidelinesPage() {
               <h2 className="text-2xl font-bold">8. MISINFORMATION & MANIPULATION</h2>
               <p>FLOCK prohibits harmful or deceptive misinformation, including:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>False medical advice</li>
-                <li>COVID-19 or public health misinformation</li>
-                <li>Financial scams</li>
+                <li>False medical or health advice</li>
+                <li>Public health misinformation (e.g., COVID-19)</li>
+                <li>Financial scams or false investment claims</li>
                 <li>Pyramid schemes</li>
                 <li>Election interference</li>
                 <li>Deepfake impersonation</li>
               </ul>
-              <p>We may:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Remove content</li>
-                <li>Disable monetization</li>
-                <li>Apply warning labels</li>
-              </ul>
+              <p>We may remove content, disable monetization, or apply warning labels.</p>
             </section>
 
             {/* Section 9 */}
@@ -332,39 +331,33 @@ export default function CommunityGuidelinesPage() {
               <p>Not allowed:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Artificial inflation of views, follows, comments, or watch time</li>
-                <li>Paid "engagement services"</li>
-                <li>Mass posting of repetitive content</li>
+                <li>Paid engagement services</li>
+                <li>Mass repetitive posting</li>
                 <li>Automated bot accounts</li>
                 <li>Keyword stuffing</li>
                 <li>"Copycat repost farms"</li>
               </ul>
-              <p>We may:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Strip monetization revenue</li>
-                <li>Reset stats</li>
-                <li>Suspend accounts</li>
-              </ul>
+              <p>Enforcement may include revenue removal, stat resets, or account suspension.</p>
             </section>
 
             {/* Section 10 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">10. COPYRIGHT & FAIR USE</h2>
-              <p className="font-bold">Creators MUST upload original or licensed content.</p>
+              <p>Creators must upload only original or properly licensed content.</p>
               <p>Not allowed:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Reuploads from YouTube / TikTok / IG / Patreon</li>
-                <li>Movie clips, TV shows, sports highlights</li>
-                <li>Stolen memes or blog posts</li>
-                <li>AI-generated content using protected IP</li>
+                <li>Reuploads from YouTube, TikTok, Instagram, Patreon, or similar platforms</li>
+                <li>Movie clips, TV shows, or sports highlights</li>
+                <li>Stolen memes, articles, or blog posts</li>
+                <li>AI-generated content using protected intellectual property</li>
               </ul>
-              <p>If content contains copyrighted elements:</p>
+              <p>Permitted uses must be clearly transformative, such as:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Use commentary</li>
+                <li>Commentary</li>
                 <li>Analysis</li>
-                <li>Education</li>
-                <li>Documentary context</li>
+                <li>Educational or documentary context</li>
               </ul>
-              <p>Otherwise, it may be removed under the DMCA Policy.</p>
+              <p>Otherwise, content may be removed under the DMCA Policy.</p>
             </section>
 
             {/* Section 11 */}
@@ -373,12 +366,12 @@ export default function CommunityGuidelinesPage() {
               <p>Not allowed:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Doxxing</li>
-                <li>Posting private phone numbers, addresses, IDs</li>
+                <li>Posting private phone numbers, addresses, or IDs</li>
                 <li>Revenge porn or intimate imagery without consent</li>
                 <li>Hidden camera or voyeur recordings</li>
-                <li>"Exposing" non-public individuals</li>
+                <li>"Exposing" private individuals</li>
               </ul>
-              <p>"Public figure" criticism must remain in bounds.</p>
+              <p>Criticism of public figures must remain lawful and non-abusive.</p>
             </section>
 
             {/* Section 12 */}
@@ -386,54 +379,53 @@ export default function CommunityGuidelinesPage() {
               <h2 className="text-2xl font-bold">12. SCAMS, FRAUD & COMMERCIAL DECEPTION</h2>
               <p>Not allowed:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Ponzi schemes</li>
-                <li>Crypto pump-and-dump</li>
+                <li>Ponzi or pyramid schemes</li>
+                <li>Crypto pump-and-dump activity</li>
                 <li>MLM recruitment</li>
-                <li>Fake giveaways ("send me $20 and I'll….")</li>
-                <li>Fake investment coaching</li>
+                <li>Fake giveaways</li>
+                <li>Fraudulent investment coaching</li>
                 <li>Identity theft</li>
-                <li>"Get rich online" campaigns</li>
+                <li>"Get rich online" deception campaigns</li>
               </ul>
-              <p>Monetization or payout earned using fraud → revocation of all earnings.</p>
+              <p>Any monetization earned through fraud will be fully revoked.</p>
             </section>
 
             {/* Section 13 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">13. AI CONTENT POLICY</h2>
-              <p className="font-semibold">13.1 Allowed Use</p>
-              <p>AI content is permitted if:</p>
+              <h3 className="text-lg font-semibold">13.1 Allowed Use</h3>
+              <p>AI content is permitted if it is:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Disclosed when required</li>
+                <li>Properly disclosed where required</li>
                 <li>Transformative</li>
                 <li>Non-infringing</li>
                 <li>Not impersonating real individuals</li>
               </ul>
-              <p className="font-semibold">13.2 Prohibited Use</p>
+              <h3 className="text-lg font-semibold">13.2 Prohibited Use</h3>
               <ul className="list-disc list-inside space-y-1">
                 <li>Deepfakes of real people without consent</li>
                 <li>Use of copyrighted characters or likenesses</li>
               </ul>
-              <p className="font-semibold">13.3 Review & Monetization</p>
-              <p>AI content may be manually reviewed prior to monetization.</p>
+              <h3 className="text-lg font-semibold">13.3 Review & Monetization</h3>
+              <p>AI content may be subject to manual review before monetization approval.</p>
             </section>
 
             {/* Section 14 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">14. CREATOR RESPONSIBILITY</h2>
-              <p className="font-semibold">14.1 Content Ownership</p>
-              <p>Creators are responsible for all content they publish.</p>
-              <p className="font-semibold">14.2 Moderation of Communities</p>
-              <p>Creators must moderate comment sections.</p>
-              <p className="font-semibold">14.3 Reporting Harm</p>
-              <p>Creators must report harmful behaviour or users.</p>
-              <p className="font-semibold">14.4 Negligence Consequences</p>
-              <p>Repeated negligence may lead to demonetization.</p>
+              <p>Creators are responsible for:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>All content they publish</li>
+                <li>Moderating their community spaces</li>
+                <li>Reporting harmful behavior or users</li>
+              </ul>
+              <p>Repeated negligence may result in demonetization or enforcement action.</p>
             </section>
 
             {/* Section 15 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">15. ENFORCEMENT ACTIONS</h2>
-              <p className="font-semibold">15.1 Possible Actions</p>
+              <p>Possible actions include:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Warnings</li>
                 <li>Content removal</li>
@@ -441,86 +433,68 @@ export default function CommunityGuidelinesPage() {
                 <li>Demonetization</li>
                 <li>Upload limits</li>
                 <li>Account suspension</li>
-                <li>IP/device bans</li>
+                <li>IP or device bans</li>
                 <li>Permanent termination</li>
                 <li>Law enforcement referrals</li>
               </ul>
-              <p className="font-semibold">15.2 Severity Factors</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Harm potential</li>
-                <li>Repetition</li>
-                <li>Intent</li>
-                <li>Scale</li>
-              </ul>
-              <p className="font-semibold">15.3 Cross-Account Enforcement</p>
-              <p>Actions may extend to all linked accounts.</p>
+              <p>Severity is determined by harm, repetition, intent, and scale. Enforcement may apply across
+                linked accounts.</p>
             </section>
 
             {/* Section 16 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">16. REPORTING VIOLATIONS</h2>
-              <p className="font-semibold">16.1 How to Report</p>
-              <p>Use in-platform reporting or email safety@flocktogether.xyz.</p>
-              <p className="font-semibold">16.2 Required Information</p>
+              <p>Reports may be submitted via in-platform tools or by email to safety@flocktogether.xyz.</p>
+              <p>Please include:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>URL</li>
-                <li>Username(s)</li>
+                <li>URLs</li>
+                <li>Usernames</li>
                 <li>Screenshots</li>
-                <li>Description</li>
+                <li>A brief description</li>
               </ul>
-              <p className="font-semibold">16.3 False Reporting</p>
-              <p>Users who abuse reporting systems may be penalized.</p>
+              <p>False or abusive reporting may result in penalties.</p>
             </section>
 
             {/* Section 17 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">17. APPEALS</h2>
-              <p className="font-semibold">17.1 Appeal Rights</p>
-              <p>Users may appeal once.</p>
-              <p className="font-semibold">17.2 Appeal Requirements</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Honesty</li>
-                <li>Detail</li>
-                <li>Context</li>
+                <li>Users may appeal enforcement actions once.</li>
+                <li>Appeals must be honest, detailed, and contextual.</li>
               </ul>
-              <p className="font-semibold">17.3 When Appeals Are Denied</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Repeat violations</li>
-                <li>Illegal content</li>
-                <li>Zero-tolerance violations</li>
-              </ul>
-              <p className="font-semibold">17.4 Evasion</p>
-              <p>Evading enforcement voids appeal rights.</p>
+              <p>Appeals may be denied for repeat violations, illegal content, or zero-tolerance breaches.</p>
+              <p>Circumventing enforcement voids appeal rights.</p>
             </section>
 
             {/* Section 18 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">18. GLOBAL COMPLIANCE</h2>
-              <p className="font-semibold">18.1 Laws Followed</p>
+              <p>FLOCK complies with applicable laws, including:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>COPPA</li>
                 <li>GDPR</li>
-                <li>CCPA/CPRA</li>
-                <li>International online safety laws</li>
+                <li>CCPA / CPRA</li>
+                <li>International online safety regulations</li>
               </ul>
-              <p className="font-semibold">18.2 Creator Obligations</p>
-              <p>Creators must understand and comply with local laws and tax rules.</p>
+              <p>Creators are responsible for understanding and complying with local laws and tax obligations.</p>
             </section>
 
             {/* Section 19 */}
             <section className="space-y-4">
               <h2 className="text-2xl font-bold">19. CHANGES TO THESE GUIDELINES</h2>
-              <p>Updates take effect when posted.</p>
-              <p>Material updates may be communicated via notice or email.</p>
+              <p>Updates take effect upon posting.</p>
+              <p>Material changes may be communicated via notice or email.</p>
             </section>
 
             {/* Section 20 */}
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold">20. CONTACT US</h2>
+              <h2 className="text-2xl font-bold">20. CONTACT</h2>
               <p>Email: support@flocktogether.xyz</p>
+              <p>Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
-              <p>Sheridan, WY 82801, USA</p>
+              <p>Sheridan, WY 82801</p>
+              <p>USA</p>
             </section>
 
           </div>

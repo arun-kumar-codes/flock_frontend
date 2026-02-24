@@ -216,13 +216,12 @@ export default function PrivacyPolicyPage() {
                 <li>Uploaded file metadata and performance</li>
               </ul>
               <p>
-                We use cookies, pixel tags, SDKs, log files, local storage, and
-                similar technologies as described in Section 8.
+                We use cookies, pixel tags, SDKs, log files, local storage, and similar technologies as described
+                in Section 8.
               </p>
               <p>
-                Enhanced for transparency: We may also collect fraud indicators
-                (e.g., unusual session activity, rapid switching of IPs) for the
-                purpose of protecting the Platform and creators.
+                For fraud prevention and platform integrity, we may also collect risk indicators, such as
+                abnormal session behavior or repeated IP changes.
               </p>
 
               <h3 className="font-semibold">C. Information From Third-Party Platforms</h3>
@@ -391,37 +390,36 @@ export default function PrivacyPolicyPage() {
               </ul>
               <p>Flock is not responsible for:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Content you choose to upload</li>
-                <li>How other users interact with or share your content</li>
-                <li>Off-platform distribution of your posts</li>
+                <li>Content you choose to publish</li>
+                <li>How others interact with or redistribute your content</li>
+                <li>Off-platform sharing by third parties</li>
               </ul>
-              <p>Enhanced for clarity:</p>
-              <p>By uploading content, you grant Flock a license to host, display, monetize (if applicable),
-                and distribute the content as required to operate the Platform.</p>
+              <p>
+                By uploading content, you grant Flock a non-exclusive license to host, display, distribute, and
+                monetize (where applicable) the content solely for operating the Platform.
+              </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">8. COOKIES & TRACKING TECHNOLOGIES</h2>
               <p>We use:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Cookies (first-party and third-party)</li>
+                <li>First-party and third-party cookies</li>
                 <li>Local storage</li>
-                <li>Analytics tracking</li>
-                <li>Device IDs</li>
-                <li>Advertising tags</li>
-                <li>Pixel beacons</li>
+                <li>Analytics tools</li>
+                <li>Device identifiers</li>
+                <li>Advertising tags and pixels</li>
               </ul>
-              <p>Why we use them:</p>
+              <p>Purposes include:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Authentication ("Remember Me")</li>
-                <li>Analytics</li>
+                <li>Authentication and session management</li>
+                <li>Analytics and performance measurement</li>
                 <li>Revenue optimization</li>
-                <li>Preventing ad fraud</li>
-                <li>Improving user experience</li>
-                <li>Language and UI preferences</li>
+                <li>Fraud and abuse prevention</li>
+                <li>UI, language, and preference settings</li>
               </ul>
-              <p>Third-party cookies may be set by advertising and measurement partners.</p>
-              <p>A separate Cookie Policy will be published and linked from the footer.</p>
+              <p>Third-party cookies may be set by advertising or analytics partners.</p>
+              <p>A separate Cookie Policy is available via the Platform footer.</p>
             </section>
 
             <section className="space-y-4">

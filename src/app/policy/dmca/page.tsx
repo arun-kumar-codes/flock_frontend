@@ -152,33 +152,30 @@ export default function DmcaPolicyPage() {
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                This DMCA and Copyright Policy ("Policy") applies to all users
-                of https://flocktogether.xyz (the "Platform") operated by Flock
-                Together Global LLC ("Flock," "we," "us," "our").
+                This DMCA &amp; Copyright Policy (&quot;Policy&quot;) applies to all users of
+                https://flocktogether.xyz (the &quot;Platform&quot;), operated by Flock Together
+                Global LLC (&quot;Flock,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
               </p>
               <p>
-                We comply with the Digital Millennium Copyright Act (DMCA),
-                Title 17 U.S.C. §512, and respect the intellectual property rights
-                of creators, brands, publishers, and copyright holders.
+                Flock complies with the Digital Millennium Copyright Act (DMCA), 17 U.S.C.
+                §512, and respects the intellectual property rights of creators, brands,
+                publishers, and copyright holders.
               </p>
-              <p>By using the Platform, you agree to follow this Policy.</p>
+              <p>By using the Platform, you agree to comply with this Policy.</p>
             </section>
 
             {/* Section 1 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">1. GENERAL PRINCIPLES</h2>
               <ul className="list-disc list-inside space-y-1">
+                <li>Creators retain ownership of the content they upload unless otherwise stated.</li>
                 <li>
-                  Creators own the rights to the content they upload unless
-                  otherwise stated.
+                  Creators are solely responsible for ensuring they have the legal right to upload and
+                  monetize content.
                 </li>
-                <li>
-                  Creators are fully responsible for ensuring they have permission
-                  to upload digital content.
-                </li>
-                <li>Flock does not verify copyright ownership before upload.</li>
-                <li>We remove infringing content upon valid DMCA notice.</li>
-                <li>We may disable accounts of repeat infringers.</li>
+                <li>Flock does not verify copyright ownership prior to upload.</li>
+                <li>We remove infringing content upon receipt of a valid DMCA notice.</li>
+                <li>We may suspend or terminate accounts of repeat infringers.</li>
               </ul>
             </section>
 

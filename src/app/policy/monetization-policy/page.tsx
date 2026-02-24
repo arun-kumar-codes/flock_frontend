@@ -152,112 +152,112 @@ export default function MonetizationPolicyPage() {
             {/* Intro */}
             <section className="space-y-4">
               <p>
-                This Earnings &amp; Monetization Policy (&quot;Policy&quot;) explains how
-                creators earn money through the Flock Together Global LLC platform
-                (&quot;Flock&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). By using Flock&apos;s
+                This Earnings &amp; Monetization Policy (&quot;Policy&quot;) explains how creators earn money through the
+                Flock Together Global LLC platform (&quot;Flock,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). By using Flock&apos;s
                 monetization features, you agree that this Policy forms a binding part of the Creator
                 Agreement.
               </p>
               <p>
-                This Policy applies to all creators and governs eligibility, revenue calculation, allocation,
-                payout processes, responsibilities, and requirements related to monetization.
+                This Policy applies to all creators and governs eligibility, revenue calculation, allocation, payout
+                processes, responsibilities, and requirements related to monetization.
               </p>
             </section>
 
             {/* Section 1 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">1. DEFINITIONS</h2>
-              <p className="font-semibold">1.1 &quot;Creator&quot;</p>
-              <p>means any individual or entity posting or distributing content on Flock.</p>
+              <p className="font-semibold">1.1 Creator</p>
+              <p>Any individual or entity that posts or distributes content on Flock.</p>
 
-              <p className="font-semibold">1.2 &quot;Creator Account&quot;</p>
+              <p className="font-semibold">1.2 Creator Account</p>
               <p>
-                means an account registered for uploading content or receiving earnings. Creators may operate
-                multiple accounts so long as they comply with verification and enforcement rules.
+                An account registered for uploading content or receiving earnings. Creators may operate
+                multiple accounts provided they comply with all verification, enforcement, and platform rules.
               </p>
 
-              <p className="font-semibold">1.3 &quot;Content&quot;</p>
+              <p className="font-semibold">1.3 Content</p>
               <p>
-                means written posts, videos, images, audio, or other media uploaded by creators, including
-                recycled content the creator has rights to monetize.
+                Written posts, videos, images, audio, or other media uploaded by creators, including recycled
+                content for which the creator holds valid monetization rights.
               </p>
 
-              <p className="font-semibold">1.4 &quot;Monetizable Content&quot;</p>
+              <p className="font-semibold">1.4 Monetizable Content</p>
               <p>
-                means content eligible to generate revenue under Flock&apos;s monetization systems.
+                Content that is eligible to generate revenue under Flock&apos;s monetization systems.
               </p>
 
-              <p className="font-semibold">1.5 &quot;Earnings&quot;</p>
+              <p className="font-semibold">1.5 Earnings</p>
               <p>
-                means revenue generated through monetization features such as advertising, tips, bonuses, or
+                Revenue generated through monetization features, including advertising, tips, bonuses, or
                 incentives.
               </p>
 
-              <p className="font-semibold">1.6 &quot;Gross Revenue&quot;</p>
-              <p>means total revenue before deductions.</p>
+              <p className="font-semibold">1.6 Gross Revenue</p>
+              <p>Total revenue generated before deductions.</p>
 
-              <p className="font-semibold">1.7 &quot;Net Revenue&quot;</p>
+              <p className="font-semibold">1.7 Net Revenue</p>
               <p>
-                means Gross Revenue minus applicable fees, adjustments, taxes, refunds, or chargebacks.
+                Gross Revenue minus applicable fees, adjustments, taxes, refunds, or chargebacks.
               </p>
 
-              <p className="font-semibold">1.8 &quot;Payment Provider&quot;</p>
-              <p>means Stripe, PayPal, Payoneer, or any approved third-party payout processor.</p>
+              <p className="font-semibold">1.8 Payment Provider</p>
+              <p>Stripe, PayPal, Payoneer, or any other approved third-party payout processor.</p>
 
-              <p className="font-semibold">1.9 &quot;Engagement Metrics&quot;</p>
-              <p>include views, likes, clicks, watch time, comments, or other interactions.</p>
+              <p className="font-semibold">1.9 Engagement Metrics</p>
+              <p>Metrics including views, likes, clicks, watch time, comments, or other user interactions.</p>
 
-              <p className="font-semibold">1.10 &quot;Ineligible Earnings&quot;</p>
-              <p>include revenue derived from invalid traffic, fraud, or policy-violating content.</p>
+              <p className="font-semibold">1.10 Ineligible Earnings</p>
+              <p>Revenue derived from invalid traffic, fraud, policy violations, or non-compliant content.</p>
             </section>
 
             {/* Section 2 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">2. ELIGIBILITY FOR MONETIZATION</h2>
               <p className="font-semibold">2.1</p>
-              <p>Creators must follow all Flock policies and applicable laws.</p>
+              <p>Creators must comply with all Flock policies and applicable laws.</p>
               <p className="font-semibold">2.2</p>
               <p>
-                Creators may have multiple accounts, but may not use them to evade penalties, verification, or
-                restrictions.
+                Creators may operate multiple accounts but may not use them to evade penalties, verification
+                requirements, or restrictions.
               </p>
               <p className="font-semibold">2.3</p>
-              <p>Identity verification may be required before payouts or continued monetization.</p>
+              <p>Identity verification may be required before payouts or continued monetization access.</p>
             </section>
 
             {/* Section 3 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">3. PAYMENT PROVIDERS</h2>
               <p className="font-semibold">3.1</p>
-              <p>Payouts are issued through approved providers such as Stripe, PayPal, or Payoneer.</p>
+              <p>Payouts are issued through approved payment providers such as Stripe, PayPal, or Payoneer.</p>
               <p className="font-semibold">3.2</p>
-              <p>Creators must ensure payout details are accurate.</p>
+              <p>Creators are responsible for ensuring payout information is accurate and current.</p>
             </section>
 
             {/* Section 4 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">4. TAXES AND REPORTING</h2>
               <p className="font-semibold">4.1</p>
-              <p>Creators are responsible for reporting earnings to relevant tax authorities.</p>
+              <p>Creators are solely responsible for reporting earnings to relevant tax authorities.</p>
               <p className="font-semibold">4.2</p>
-              <p>Flock may request tax forms (e.g., W-9, W-8BEN).</p>
+              <p>Flock may request tax documentation, including but not limited to W-9 or W-8BEN forms.</p>
               <p className="font-semibold">4.3</p>
-              <p>Earnings may be withheld until tax documentation is complete.</p>
+              <p>Earnings may be withheld until required tax documentation is completed and approved.</p>
             </section>
 
             {/* Section 5 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">5. CONTENT ELIGIBLE FOR EARNINGS</h2>
               <p className="font-semibold">5.1</p>
-              <p>All content must comply with Flock policies and laws.</p>
+              <p>All content must comply with Flock policies and applicable laws.</p>
               <p className="font-semibold">5.2</p>
-              <p>Recycled content is allowed, provided the creator owns rights to use and monetize it.</p>
+              <p>Recycled content is permitted only where the creator owns or has lawful rights to monetize it.</p>
               <p className="font-semibold">5.3</p>
               <p>
-                Content violating copyright, DMCA rules, or Community Guidelines is ineligible for earnings.
+                Content that violates copyright law, DMCA requirements, or Community Guidelines is not
+                eligible for earnings.
               </p>
               <p className="font-semibold">5.4</p>
-              <p>Earnings from deleted or removed content may be reversed.</p>
+              <p>Earnings associated with deleted or removed content may be reversed.</p>
             </section>
 
             {/* Section 6 */}
@@ -265,13 +265,16 @@ export default function MonetizationPolicyPage() {
               <h2 className="text-3xl font-bold">6. START OF EARNINGS</h2>
               <p className="font-semibold">6.1</p>
               <p>
-                Creators earn from Day 1 post Beta. There are no follower, view count, or watch-time
-                requirements.
+                Creators earn from Day One following the Beta phase. There are no follower, view count, or
+                watch-time thresholds.
               </p>
               <p className="font-semibold">6.2</p>
-              <p>Monetizable Content begins generating earnings once posted and approved.</p>
+              <p>Monetizable Content may begin generating earnings once posted and approved.</p>
               <p className="font-semibold">6.3</p>
-              <p>Actual earnings vary based on engagement, ad demand, and platform performance.</p>
+              <p>
+                Actual earnings vary based on engagement levels, advertiser demand, and overall platform
+                performance.
+              </p>
             </section>
 
             {/* Section 7 */}
@@ -279,16 +282,16 @@ export default function MonetizationPolicyPage() {
               <h2 className="text-3xl font-bold">7. EARNINGS ALLOCATION &amp; TIMING</h2>
               <p className="font-semibold">7.1 Earnings Accrual</p>
               <p>
-                Earnings accrue only on Monetizable Content and only after the creator meets all eligibility
-                requirements.
+                Earnings accrue only from Monetizable Content and only after all eligibility requirements are
+                met.
               </p>
 
               <p className="font-semibold">7.2 Verification Period</p>
-              <p>Earnings are subject to internal security, risk, and fraud screening.</p>
+              <p>All earnings are subject to internal security, risk, and fraud reviews.</p>
               <p>Flock may delay or hold earnings for 14–90 days if:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>The account is new or high-risk</li>
-                <li>Traffic or engagement is abnormal</li>
+                <li>The account is new or classified as high-risk</li>
+                <li>Traffic or engagement appears abnormal</li>
                 <li>Content is flagged or under review</li>
                 <li>Identity verification is incomplete</li>
                 <li>Disputes or chargebacks exist</li>
@@ -302,11 +305,12 @@ export default function MonetizationPolicyPage() {
                 <li>Adjusted</li>
                 <li>Frozen</li>
                 <li>Reversed</li>
-                <li>Forfeited for serious violations</li>
+                <li>Forfeited in cases of serious policy violations</li>
               </ul>
 
-              <p className="font-semibold">7.4 No Guarantee of Timing</p>
-              <p>Payout timelines depend on risk assessments, verification, and third-party providers.</p>
+              <p className="font-semibold">7.4 No Guaranteed Timing</p>
+              <p>Payout timing depends on verification status, risk assessment, and third-party payment
+                providers.</p>
             </section>
 
             {/* Section 8 */}
@@ -316,23 +320,23 @@ export default function MonetizationPolicyPage() {
               <p>Flock does not guarantee minimum earnings or performance.</p>
               <p className="font-semibold">8.2</p>
               <p>
-                Revenue depends on external factors such as ad demand, market fluctuations, and viewer
-                behavior.
+                Revenue depends on factors outside Flock&apos;s control, including advertiser demand, market
+                conditions, and audience behavior.
               </p>
               <p className="font-semibold">8.3</p>
-              <p>Flock is not responsible for financial losses due to content performance.</p>
+              <p>Flock is not responsible for financial losses related to content performance.</p>
             </section>
 
             {/* Section 9 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">9. INELIGIBLE OR REVERSED EARNINGS</h2>
               <p className="font-semibold">9.1</p>
-              <p>Earnings may be reversed if they originate from:</p>
+              <p>Earnings may be reversed if generated from:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Invalid or purchased traffic</li>
-                <li>Automated interactions</li>
-                <li>Copyright violations</li>
-                <li>Fraudulent behavior</li>
+                <li>Automated or artificial engagement</li>
+                <li>Copyright or IP violations</li>
+                <li>Fraudulent or deceptive behavior</li>
                 <li>Policy-violating content</li>
                 <li>Suspended or terminated accounts</li>
               </ul>
@@ -345,55 +349,55 @@ export default function MonetizationPolicyPage() {
               <h2 className="text-3xl font-bold">10. EARNINGS PAYOUT SCHEDULE</h2>
               <p className="font-semibold">10.1 Standard Payout Cycle (Net 30)</p>
               <p>
-                Eligible earnings from a given month are processed within 30 days after the month ends,
-                unless extended due to verification, risk review, or provider delays.
+                Eligible earnings are generally processed within 30 days after the end of each month, subject
+                to verification, risk review, or payment provider delays.
               </p>
               <p className="font-semibold">10.2 Minimum Payout Thresholds</p>
-              <p>Thresholds vary by payment provider and currency.</p>
+              <p>Minimum payout thresholds vary by payment provider and currency.</p>
               <p className="font-semibold">10.3 Reasons for Payout Delays</p>
               <p>Payouts may be delayed due to:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Pending verification</li>
-                <li>Fraud or risk assessment</li>
-                <li>Abnormal traffic</li>
-                <li>Provider-based processing delays</li>
-                <li>Compliance reviews</li>
+                <li>Fraud or risk reviews</li>
+                <li>Abnormal traffic patterns</li>
+                <li>Payment provider processing delays</li>
+                <li>Compliance checks</li>
                 <li>System maintenance</li>
               </ul>
-              <p className="font-semibold">10.4 Dependency on Payment Providers</p>
-              <p>Processing times may vary by provider.</p>
+              <p className="font-semibold">10.4 Payment Provider Dependency</p>
+              <p>Processing times vary by provider and region.</p>
               <p className="font-semibold">10.5 No Guaranteed Delivery Date</p>
-              <p>Flock aims for Net 30 but does not guarantee exact payout dates.</p>
+              <p>While Flock aims for Net 30 payouts, specific payout dates are not guaranteed.</p>
             </section>
 
             {/* Section 11 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">11. VERIFICATION REQUIREMENTS (KYC/AML)</h2>
+              <h2 className="text-3xl font-bold">11. VERIFICATION REQUIREMENTS (KYC / AML)</h2>
               <p className="font-semibold">11.1</p>
-              <p>Creators may be required to verify identity at any time.</p>
+              <p>Creators may be required to verify their identity at any time.</p>
               <p className="font-semibold">11.2</p>
               <p>
-                Required documents may include government ID, address proof, tax information, or payment
-                verification.
+                Verification may require government-issued ID, proof of address, tax documentation, or
+                payment method confirmation.
               </p>
               <p className="font-semibold">11.3</p>
-              <p>Failure to verify may result in suspended monetization and frozen earnings.</p>
+              <p>Failure to complete verification may result in suspended monetization and frozen earnings.</p>
             </section>
 
             {/* Section 12 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">12. ACCOUNT TERMINATION &amp; FORFEITURE</h2>
               <p className="font-semibold">12.1</p>
-              <p>Earnings may be withheld or forfeited if the creator:</p>
+              <p>Earnings may be withheld or forfeited if a creator:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Violates policies</li>
+                <li>Violates platform policies</li>
                 <li>Engages in fraud or manipulation</li>
                 <li>Uses multiple accounts to bypass rules</li>
                 <li>Refuses verification</li>
-                <li>Poses a security or compliance risk</li>
+                <li>Poses a security, legal, or compliance risk</li>
               </ul>
               <p className="font-semibold">12.2</p>
-              <p>Terminated accounts may lose access to unpaid earnings.</p>
+              <p>Terminated accounts may permanently lose access to unpaid earnings.</p>
             </section>
 
             {/* Section 13 */}
@@ -402,42 +406,42 @@ export default function MonetizationPolicyPage() {
               <p className="font-semibold">13.1</p>
               <p>Creators may dispute earnings by contacting support@flocktogether.xyz.</p>
               <p className="font-semibold">13.2</p>
-              <p>Relevant evidence must be submitted.</p>
+              <p>Disputes must include relevant supporting evidence.</p>
               <p className="font-semibold">13.3</p>
-              <p>Flock may confirm, adjust, or deny claims after review.</p>
+              <p>Flock may confirm, adjust, or deny claims following review.</p>
               <p className="font-semibold">13.4</p>
-              <p>Flock is not required to pay disputed earnings lacking sufficient evidence.</p>
+              <p>Flock is not obligated to pay disputed earnings without sufficient evidence.</p>
             </section>
 
             {/* Section 14 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">14. PLATFORM BONUSES &amp; INCENTIVE PROGRAMS</h2>
               <p className="font-semibold">14.1</p>
-              <p>Flock may offer bonuses, rewards, or incentive programs.</p>
+              <p>Flock may offer bonuses, rewards, or incentive programs at its discretion.</p>
               <p className="font-semibold">14.2</p>
-              <p>Programs may be changed, paused, or ended at any time.</p>
+              <p>Such programs may be modified, paused, or terminated at any time.</p>
               <p className="font-semibold">14.3</p>
-              <p>Fraudulent participation will void bonuses and may result in termination.</p>
+              <p>Fraudulent participation voids bonuses and may result in account termination.</p>
             </section>
 
             {/* Section 15 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">15. CREATOR RESPONSIBILITY</h2>
               <p className="font-semibold">15.1</p>
-              <p>Creators are responsible for lawful, compliant content.</p>
+              <p>Creators are responsible for ensuring their content is lawful and compliant.</p>
               <p className="font-semibold">15.2</p>
-              <p>Sponsored or paid content must follow disclosure laws.</p>
+              <p>Sponsored or paid content must comply with applicable disclosure laws.</p>
               <p className="font-semibold">15.3</p>
-              <p>Creators are liable for claims or endorsements made in their content.</p>
+              <p>Creators are responsible for claims, representations, and endorsements made in their content.</p>
               <p className="font-semibold">15.4</p>
-              <p>Creators must cooperate with audits or investigations.</p>
+              <p>Creators must cooperate with audits, investigations, or compliance reviews.</p>
             </section>
 
             {/* Section 16 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">16. OUR RIGHT TO AUDIT</h2>
               <p className="font-semibold">16.1</p>
-              <p>Flock may audit creator activity to review:</p>
+              <p>Flock may audit creator activity, including:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Traffic sources</li>
                 <li>Earnings validity</li>
@@ -446,40 +450,41 @@ export default function MonetizationPolicyPage() {
                 <li>Verification documentation</li>
               </ul>
               <p className="font-semibold">16.2</p>
-              <p>Non-cooperation may result in suspension or forfeited earnings.</p>
+              <p>Failure to cooperate may result in suspension or forfeiture of earnings.</p>
             </section>
 
             {/* Section 17 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">17. APPEALS</h2>
               <p className="font-semibold">17.1</p>
-              <p>Creators may appeal monetization decisions via support@flocktogether.xyz.</p>
+              <p>Creators may appeal monetization decisions by contacting support@flocktogether.xyz.</p>
               <p className="font-semibold">17.2</p>
-              <p>Appeals must include evidence.</p>
+              <p>Appeals must include relevant evidence.</p>
               <p className="font-semibold">17.3</p>
-              <p>Some decisions may be final, especially for repeated violations or fraud.</p>
+              <p>Certain decisions may be final, particularly in cases involving fraud or repeated violations.</p>
             </section>
 
             {/* Section 18 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">18. BRAND SPONSORSHIPS &amp; EXTERNAL DEALS</h2>
               <p className="font-semibold">18.1</p>
-              <p>Creators may engage in external sponsorships and partnerships.</p>
+              <p>Creators may enter into external sponsorships or partnerships.</p>
               <p className="font-semibold">18.2</p>
-              <p>Sponsored content must include legally required disclosures.</p>
+              <p>Sponsored content must include all legally required disclosures.</p>
               <p className="font-semibold">18.3</p>
-              <p>Flock may remove sponsored content that is misleading or violates policies.</p>
+              <p>Flock may remove sponsored content that is misleading or violates platform policies.</p>
               <p className="font-semibold">18.4</p>
-              <p>Creators are responsible for obligations under external agreements.</p>
+              <p>Creators are solely responsible for obligations arising from external agreements.</p>
             </section>
 
             {/* Section 19 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">19. NO EMPLOYMENT RELATIONSHIP</h2>
               <p className="font-semibold">19.1</p>
-              <p>Monetization does not create an employment, contractor, or partnership relationship.</p>
+              <p>Participation in monetization does not create an employment, contractor, or partnership
+                relationship.</p>
               <p className="font-semibold">19.2</p>
-              <p>Creators manage their own taxes and financial obligations.</p>
+              <p>Creators are responsible for their own taxes, insurance, and financial obligations.</p>
             </section>
 
             {/* Section 20 */}
@@ -488,9 +493,9 @@ export default function MonetizationPolicyPage() {
               <p className="font-semibold">20.1</p>
               <p>Flock may update this Policy at any time.</p>
               <p className="font-semibold">20.2</p>
-              <p>Notice may be given through email, dashboard notifications, or updated pages.</p>
+              <p>Notice may be provided via email, dashboard notifications, or updated policy pages.</p>
               <p className="font-semibold">20.3</p>
-              <p>Continued use of monetization features means acceptance of updated terms.</p>
+              <p>Continued use of monetization features constitutes acceptance of the updated Policy.</p>
             </section>
 
             {/* Section 21 */}

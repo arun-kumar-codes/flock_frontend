@@ -154,8 +154,8 @@ export default function AcceptableUsePolicyPage() {
             <section className="space-y-4">
               <p>
                 This Acceptable Use Policy ("AUP") governs how users may access and use the Flock
-                platform and associated services at https://flocktogether.xyz (the "Platform") operated by
-                Flock Together Global LLC ("Flock," "we," "our," "us").
+                platform and associated services at https://flocktogether.xyz (the "Platform"), operated by
+                Flock Together Global LLC ("Flock," "we," "us," "our").
               </p>
               <p>This AUP applies to:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -167,90 +167,93 @@ export default function AcceptableUsePolicyPage() {
                 <li>Third-party partners</li>
               </ul>
               <p>By using the Platform, you agree to comply with this AUP.</p>
-              <p>Violating this policy may result in monetization loss, content removal, account suspension, or
-                permanent ban.</p>
+              <p>
+                Violations of this policy may result in monetization loss, content removal, account suspension,
+                or permanent ban.
+              </p>
             </section>
 
             {/* Section 1 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">1. GENERAL PRINCIPLE</h2>
-              <p>You may not use Flock in a way that:</p>
+              <p>You may not use Flock in any manner that:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Harms the Platform, its users, or its business interests</li>
-                <li>Violates any applicable law</li>
-                <li>Allows unauthorized access to accounts, systems, or data</li>
-                <li>Exploits minors or vulnerable persons</li>
-                <li>Spreads dangerous or illicit activity</li>
+                <li>Violates any applicable law or regulation</li>
+                <li>Enables unauthorized access to accounts, systems, or data</li>
+                <li>Exploits minors or vulnerable individuals</li>
+                <li>Promotes or facilitates dangerous, illegal, or illicit activity</li>
                 <li>Enables fraud, spam, or monetization abuse</li>
               </ul>
               <p>Flock reserves the unilateral right to determine what constitutes abuse.</p>
+              <p className="font-medium">Additional rules:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Users may operate multiple creator accounts, but may not use them to evade
+                <li>Users may operate multiple creator accounts, provided they are not used to evade
                   enforcement, manipulate earnings, or artificially boost engagement.</li>
-                <li>Recycled content is allowed only when the creator owns full rights to upload and
+                <li>Recycled content is permitted only where the Creator owns full rights to upload and
                   monetize it.</li>
-                <li>Flock may require identity verification or documentation if risk, fraud indicators, or
-                  duplicate accounts are detected.</li>
+                <li>Flock may require identity verification or documentation if fraud risk, duplicate accounts,
+                  or other abuse indicators are detected.</li>
               </ul>
             </section>
 
             {/* Section 2 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">2. PROHIBITED CONTENT</h2>
-              <p>The following is not allowed under any circumstances:</p>
+              <p>The following content is prohibited under all circumstances:</p>
 
               <h3 className="font-semibold">2.1 Child Exploitation</h3>
               <ul className="list-disc list-inside space-y-1">
                 <li>Sexual or suggestive content involving minors</li>
-                <li>Grooming or solicitation</li>
+                <li>Grooming, solicitation, or sexual communication with minors</li>
                 <li>Underage nudity or fetishization</li>
-                <li>Child endangerment, emotional harm, or abuse</li>
+                <li>Child endangerment, abuse, or emotional harm</li>
               </ul>
-              <p>We will report violations to law enforcement.</p>
+              <p>Violations will be reported to law enforcement.</p>
 
               <h3 className="font-semibold">2.2 Pornographic or Sexually Explicit Content</h3>
               <ul className="list-disc list-inside space-y-1">
                 <li>Explicit sexual acts</li>
                 <li>Fetish content</li>
                 <li>Genital exposure</li>
-                <li>Pornographic materials</li>
+                <li>Pornographic material</li>
               </ul>
               <p>Flock is not an adult services platform.</p>
-              <p>Adult-themed educational, artistic, or contextual content may still be restricted if it risks
-                exposing minors or violates regional regulations.</p>
+              <p>Educational, artistic, or contextual adult-themed content may still be restricted if it risks
+                exposure to minors or violates regional regulations.</p>
 
               <h3 className="font-semibold">2.3 Illegal Activities</h3>
               <ul className="list-disc list-inside space-y-1">
                 <li>Drug sales or distribution</li>
                 <li>Human trafficking</li>
-                <li>Weapons manufacturing</li>
+                <li>Weapons manufacturing or distribution</li>
                 <li>Unauthorized financial services</li>
                 <li>Criminal facilitation</li>
               </ul>
 
               <h3 className="font-semibold">2.4 Hate or Extremism</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Advocating for violence against individuals or groups</li>
-                <li>Terrorist propaganda</li>
-                <li>Organized hate groups</li>
+                <li>Advocacy of violence against individuals or groups</li>
+                <li>Terrorist propaganda or recruitment</li>
+                <li>Organized hate groups or extremist ideologies</li>
               </ul>
 
-              <h3 className="font-semibold">2.5 Self-harm & Suicide Promotion</h3>
+              <h3 className="font-semibold">2.5 Self-Harm & Suicide Promotion</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Encouraging self-injury</li>
+                <li>Encouraging or glorifying self-injury</li>
                 <li>Dangerous health challenges</li>
-                <li>Instructions on self-harm</li>
+                <li>Instructions or methods for self-harm</li>
               </ul>
 
-              <h3 className="font-semibold">2.6 Copyright Violation</h3>
+              <h3 className="font-semibold">2.6 Copyright Violations</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Uploading copyrighted material without permission</li>
-                <li>Reposting content from other platforms</li>
-                <li>Circumventing copyright filters</li>
+                <li>Uploading copyrighted material without authorization</li>
+                <li>Reposting content from other platforms without rights</li>
+                <li>Circumventing copyright protection or detection systems</li>
               </ul>
-              <p>See DMCA Policy for procedures and penalties.</p>
-              <p>Reposts from TikTok, YouTube, Instagram, or any platform must be rights-cleared or fully
-                owned by the user.</p>
+              <p>Refer to the DMCA & Copyright Policy for procedures and penalties.</p>
+              <p>Reposts from TikTok, YouTube, Instagram, or other platforms must be fully owned or rights-
+                cleared by the user.</p>
             </section>
 
             {/* Section 3 */}
@@ -262,42 +265,41 @@ export default function AcceptableUsePolicyPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>Attempt to hack, overload, or breach systems</li>
                 <li>Reverse-engineer or exploit vulnerabilities</li>
-                <li>Interfere with platform performance</li>
+                <li>Interfere with Platform performance or stability</li>
               </ul>
 
               <h3 className="font-semibold">3.2 Manipulate Engagement</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Bot traffic</li>
-                <li>Fake followers</li>
-                <li>View farms</li>
+                <li>Bot traffic or automated views</li>
+                <li>Fake followers or engagement</li>
+                <li>View farms or click farms</li>
                 <li>Comment automation</li>
-                <li>Click fraud</li>
-                <li>Paid "engagement boosting" schemes</li>
+                <li>Click fraud or paid engagement schemes</li>
               </ul>
               <p>Monetization derived from artificial traffic is voided.</p>
-              <p>Multiple accounts used together to create an artificial network ("ring behavior") are
+              <p>Using multiple accounts together to create artificial engagement networks ("ring behavior") is
                 prohibited.</p>
 
               <h3 className="font-semibold">3.3 Impersonation or Deception</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Pretend to be other people</li>
-                <li>Misrepresent identity or credentials</li>
-                <li>Create misleading business endorsements</li>
+                <li>Impersonate another individual or entity</li>
+                <li>Misrepresent identity, credentials, or affiliations</li>
+                <li>Create misleading endorsements or partnerships</li>
               </ul>
 
               <h3 className="font-semibold">3.4 Spam</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Repetitive posting</li>
+                <li>Repetitive or low-quality posting</li>
                 <li>Mass unsolicited promotions</li>
-                <li>Affiliate farming without disclosure</li>
+                <li>Affiliate farming without proper disclosure</li>
               </ul>
 
-              <h3 className="font-semibold">3.5 Exploiting Monetization</h3>
+              <h3 className="font-semibold">3.5 Monetization Exploitation</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Fabricating revenue signals</li>
-                <li>Wrongful reporting to manipulate payouts</li>
-                <li>Abusing referral or bonus programs</li>
-                <li>Earnings laundering via third-party accounts</li>
+                <li>Fabricating revenue or engagement signals</li>
+                <li>Filing false reports to manipulate payouts</li>
+                <li>Abusing referral, bonus, or incentive programs</li>
+                <li>Laundering earnings through third-party accounts</li>
               </ul>
             </section>
 
@@ -307,13 +309,13 @@ export default function AcceptableUsePolicyPage() {
               <p>AI-generated or AI-assisted content must not:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Replicate copyrighted works</li>
-                <li>Use likenesses of real individuals without consent</li>
-                <li>False portray public figures in a defamatory manner</li>
-                <li>Generate sexual, violent, extremist, or misleading material</li>
+                <li>Use the likeness of real individuals without consent</li>
+                <li>Falsely portray public figures in a defamatory or misleading manner</li>
+                <li>Generate sexual, violent, extremist, or deceptive material</li>
               </ul>
-              <p>We may request source files or proof of authorship.</p>
-              <p>Creators must clearly disclose when content is AI-generated where required by law or
-                platform guidelines.</p>
+              <p>Flock may request source files, prompts, or proof of authorship.</p>
+              <p>Creators must clearly disclose AI-generated content where required by law or Platform
+                guidelines.</p>
             </section>
 
             {/* Section 5 */}
@@ -321,56 +323,54 @@ export default function AcceptableUsePolicyPage() {
               <h2 className="text-3xl font-bold">5. HARASSMENT & TARGETED ABUSE</h2>
               <p>You may not:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Stalk</li>
-                <li>Intimidate</li>
-                <li>Threaten violence</li>
-                <li>Encourage harassment campaigns</li>
-                <li>Doxx (share private addresses, phone numbers, etc.)</li>
+                <li>Stalk, intimidate, or threaten individuals</li>
+                <li>Encourage or coordinate harassment campaigns</li>
+                <li>Doxx or share private personal information</li>
               </ul>
-              <p>This includes creator vs creator conflict.</p>
-              <p>Coordinated community attacks ("brigading") are prohibited, regardless of intent or context.</p>
+              <p>This includes creator-to-creator conflicts.</p>
+              <p>Coordinated attacks or "brigading" are prohibited, regardless of intent.</p>
             </section>
 
             {/* Section 6 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">6. MISINFORMATION & FRAUD</h2>
-              <p>Prohibited:</p>
+              <p>Prohibited activities include:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Fake giveaways</li>
-                <li>Pyramid schemes</li>
-                <li>Health misinformation</li>
-                <li>Investment scams ("pump and dump")</li>
-                <li>"Get rich quick" coaching</li>
+                <li>Fake giveaways or contests</li>
+                <li>Pyramid or Ponzi schemes</li>
+                <li>Harmful health misinformation</li>
+                <li>Investment scams (e.g., "pump and dump")</li>
+                <li>Deceptive "get rich quick" coaching</li>
               </ul>
               <p>Creators must:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Provide truthful claims</li>
-                <li>Use proper disclaimers</li>
-                <li>Avoid exploiting vulnerable users</li>
+                <li>Make truthful, substantiated claims</li>
+                <li>Use appropriate disclaimers</li>
+                <li>Avoid exploiting vulnerable audiences</li>
               </ul>
-              <p>Financial, medical, or legal advice must comply with applicable laws and not misrepresent
+              <p>Financial, medical, or legal advice must comply with applicable laws and may not misrepresent
                 credentials.</p>
             </section>
 
             {/* Section 7 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">7. COMMERCIAL ACTIVITIES</h2>
-              <p>Acceptable:</p>
+              <p>Allowed:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Normal brand deals</li>
+                <li>Legitimate brand deals</li>
                 <li>Sponsorships</li>
                 <li>Creator-owned services</li>
-                <li>Merch sales</li>
+                <li>Merchandise sales</li>
               </ul>
               <p>Prohibited:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Illegal goods/services</li>
+                <li>Illegal goods or services</li>
                 <li>Counterfeit products</li>
                 <li>Exploitative MLM schemes</li>
                 <li>Unregistered financial offerings</li>
-                <li>Selling personal user data</li>
+                <li>Sale of personal user data</li>
               </ul>
-              <p>Sponsored content must include legally required disclosures (e.g., "#ad," "paid partnership").</p>
+              <p>Sponsored content must include legally required disclosures (e.g., #ad, paid partnership).</p>
             </section>
 
             {/* Section 8 */}
@@ -378,27 +378,27 @@ export default function AcceptableUsePolicyPage() {
               <h2 className="text-3xl font-bold">8. PLATFORM RESOURCE ABUSE</h2>
               <p>You may not:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Use automated scripts to upload or harvest data</li>
-                <li>Circumvent upload limitations</li>
-                <li>Create multi-account networks to exploit payouts</li>
-                <li>Resell or lease accounts</li>
-                <li>Share login credentials to bypass restrictions</li>
+                <li>Use automated scripts to upload or scrape data</li>
+                <li>Circumvent upload, usage, or rate limits</li>
+                <li>Create account networks to exploit payouts</li>
+                <li>Resell, lease, or transfer accounts</li>
+                <li>Share login credentials to bypass enforcement</li>
               </ul>
-              <p>Operating multiple accounts is allowed, but may not be used to artificially multiply earnings
-                or bypass enforcement.</p>
+              <p>Multiple accounts are permitted only where they are not used to multiply earnings or evade
+                restrictions.</p>
             </section>
 
             {/* Section 9 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">9. ACCOUNT OWNERSHIP</h2>
-              <p>Accounts belong to Flock as a service provider.</p>
+              <p>Accounts are provided as a service by Flock.</p>
               <p>You may not:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Sell, trade, or rent accounts</li>
-                <li>Operate accounts for banned users</li>
-                <li>Use "proxy creators" to continue illegal activity</li>
+                <li>Operate accounts on behalf of banned users</li>
+                <li>Use "proxy creators" to continue prohibited activity</li>
               </ul>
-              <p>Creators must notify Flock if unauthorized access is suspected.</p>
+              <p>Creators must notify Flock immediately if unauthorized access is suspected.</p>
             </section>
 
             {/* Section 10 */}
@@ -409,72 +409,69 @@ export default function AcceptableUsePolicyPage() {
                 <li>Content removal</li>
                 <li>Upload restrictions</li>
                 <li>Feature limitations</li>
-                <li>Shadow or temporary bans</li>
-                <li>Permanent suspension</li>
-                <li>Monetization clawback</li>
+                <li>Temporary or permanent bans</li>
+                <li>Monetization clawbacks</li>
                 <li>Revenue forfeiture</li>
                 <li>Legal reporting</li>
               </ul>
-              <p>Severity depends on risk, repetition, and intent.</p>
-              <p>We do not owe users an opportunity to violate repeatedly.</p>
-              <p>Enforcement may apply across all accounts linked to the same phone number, device,
-                identity, or payment method.</p>
+              <p>Enforcement severity depends on risk, repetition, and intent.</p>
+              <p>Flock is not required to allow repeated violations.</p>
+              <p>Actions may apply across all accounts linked to the same device, identity, phone number, or
+                payment method.</p>
             </section>
 
             {/* Section 11 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">11. COOPERATION WITH LAW ENFORCEMENT</h2>
-              <p>We may disclose data when:</p>
+              <p>Flock may disclose user data when:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Required by subpoena or court order</li>
                 <li>Investigating threats to safety</li>
                 <li>Addressing child exploitation</li>
                 <li>Preventing fraud or organized abuse</li>
               </ul>
-              <p>We are not obligated to notify users before doing so where legally prohibited.</p>
+              <p>User notification may be withheld where legally prohibited.</p>
             </section>
 
             {/* Section 12 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">12. APPEALS</h2>
-              <p>You may appeal a moderation decision once.</p>
+              <p>Users may submit one appeal per enforcement action.</p>
               <p>Appeals must include:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Why you believe we made an error</li>
-                <li>Supporting evidence (screenshots, context)</li>
-                <li>Proof of ownership if copyright-related</li>
+                <li>Reasoning for the appeal</li>
+                <li>Supporting evidence or context</li>
+                <li>Proof of ownership for copyright disputes</li>
               </ul>
-              <p>We may deny appeals where:</p>
+              <p>Appeals may be denied where:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Content is clearly illegal</li>
-                <li>User has prior violations</li>
+                <li>Prior violations exist</li>
                 <li>Fraud indicators are present</li>
               </ul>
               <p>Appeal decisions are final.</p>
-              <p>Submitting repeated appeals or creating new accounts to circumvent decisions may result in
-                additional penalties.</p>
+              <p>Circumventing enforcement through new accounts may result in additional penalties.</p>
             </section>
 
             {/* Section 13 */}
             <section className="space-y-4">
               <h2 className="text-3xl font-bold">13. GLOBAL COMPLIANCE</h2>
-              <p>Users must comply with laws in their jurisdiction, including:</p>
+              <p>Users must comply with applicable laws, including but not limited to:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>U.S. law (including COPPA, DMCA, SEC)</li>
+                <li>U.S. laws (COPPA, DMCA, SEC regulations)</li>
                 <li>GDPR (EU)</li>
                 <li>CCPA (California)</li>
                 <li>International child safety and online harm standards</li>
               </ul>
               <p>Using Flock to evade local laws is prohibited.</p>
-              <p>Creators are responsible for understanding tax obligations in their country and for accurately
-                reporting income earned on Flock.</p>
+              <p>Creators are responsible for understanding and reporting tax obligations in their jurisdiction.</p>
             </section>
 
             {/* Section 14 */}
             <section className="space-y-4">
-              <h2 className="text-3xl font-bold">14. UPDATES TO THIS POLICY</h2>
+              <h2 className="text-3xl font-bold">14. POLICY UPDATES</h2>
               <p>We may update this AUP at any time.</p>
-              <p>Continued use of the Platform constitutes acceptance of changes.</p>
+              <p>Continued use of the Platform constitutes acceptance of any changes.</p>
             </section>
 
             {/* Section 15 */}
@@ -485,7 +482,8 @@ export default function AcceptableUsePolicyPage() {
               <p>Legal Entity:</p>
               <p>Flock Together Global LLC</p>
               <p>30 N Gould St #53789</p>
-              <p>Sheridan, WY 82801, USA</p>
+              <p>Sheridan, WY 82801</p>
+              <p>USA</p>
             </section>
           </div>
         </div>
