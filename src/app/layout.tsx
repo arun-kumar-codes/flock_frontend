@@ -52,6 +52,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           data-cfasync="false"
         ></script>
 
+        {/* Ezoic queue: must exist before sa.min.js runs */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window._ezaq = window._ezaq || [];`,
+          }}
+        />
         {/* Main Ezoic header script */}
         <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
         <script
