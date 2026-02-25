@@ -16,7 +16,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="w-full py-3 bg-purple-900 text-white text-center border-t border-gray-700">
+    <footer className="relative z-20 w-full py-3 bg-purple-900 text-white text-center border-t border-gray-700">
       <div className="space-y-2">
 
         <div className="flex text-xs italic flex-wrap justify-center gap-4">
