@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   PlayIcon,
@@ -15,6 +15,7 @@ import bannerBg from "@/assets/LSbg.jpg";
 import BlogIcon from "@/assets/BlogSvg.png";
 import Image from "next/image";
 import Loader from "@/components/Loader";
+import { INK_LABEL } from "@/constants/contentLabels";
 import {
   getDashboardContent,
   getFollowings,
@@ -256,6 +257,14 @@ export default function DashboardPage() {
   const [mostLikedContent, setMostLikedContent] = useState<ContentItem[]>([]);
   const [isLoadingMostLiked, setIsLoadingMostLiked] = useState(true);
   const [mostLikedError, setMostLikedError] = useState("");
+
+  // Horizontal scroll hints for carousels
+  const mostViewedRef = useRef<HTMLDivElement | null>(null);
+  const mostLikedRef = useRef<HTMLDivElement | null>(null);
+  const [showMostViewedRightHint, setShowMostViewedRightHint] = useState(false);
+  const [showMostViewedLeftHint, setShowMostViewedLeftHint] = useState(false);
+  const [showMostLikedRightHint, setShowMostLikedRightHint] = useState(false);
+  const [showMostLikedLeftHint, setShowMostLikedLeftHint] = useState(false);
 
   // Creators state
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -565,6 +574,56 @@ export default function DashboardPage() {
     console.log("Fetching following data on mount");
   }, []);
 
+  // Utility to update scroll hint visibility (left + right)
+  const updateScrollHints = (
+    container: HTMLDivElement | null,
+    setLeft: (v: boolean) => void,
+    setRight: (v: boolean) => void
+  ) => {
+    if (!container) return;
+    const canScrollLeft = container.scrollLeft > 16;
+    const canScrollRight =
+      container.scrollWidth - container.clientWidth - container.scrollLeft > 16;
+    setLeft(canScrollLeft);
+    setRight(canScrollRight);
+  };
+
+  // Attach scroll listeners for carousels
+  useEffect(() => {
+    const mv = mostViewedRef.current;
+    const ml = mostLikedRef.current;
+
+    const handleMVScroll = () =>
+      updateScrollHints(mv, setShowMostViewedLeftHint, setShowMostViewedRightHint);
+    const handleMLScroll = () =>
+      updateScrollHints(ml, setShowMostLikedLeftHint, setShowMostLikedRightHint);
+
+    handleMVScroll();
+    handleMLScroll();
+
+    mv?.addEventListener("scroll", handleMVScroll);
+    ml?.addEventListener("scroll", handleMLScroll);
+    window.addEventListener("resize", handleMVScroll);
+    window.addEventListener("resize", handleMLScroll);
+
+    return () => {
+      mv?.removeEventListener("scroll", handleMVScroll);
+      ml?.removeEventListener("scroll", handleMLScroll);
+      window.removeEventListener("resize", handleMVScroll);
+      window.removeEventListener("resize", handleMLScroll);
+    };
+  }, [mostViewedContent.length, mostLikedContent.length, isLoadingMostViewed, isLoadingMostLiked]);
+
+  const scrollCarousel = (
+    ref: React.RefObject<HTMLDivElement | null>,
+    direction: "left" | "right"
+  ) => {
+    const el = ref.current;
+    if (!el) return;
+    const delta = el.clientWidth * 0.7;
+    el.scrollBy({ left: direction === "right" ? delta : -delta, behavior: "smooth" });
+  };
+
   const toggleVideoFavorite = (videoId: number) => {
     setContent((prev) =>
       prev.map((item) =>
@@ -832,7 +891,7 @@ const handleBlogClick = (blog: Blog) => {
 >
   <option value="all">All</option>
   <option value="videos">Videos</option>
-  <option value="blogs">Blogs</option>
+  <option value="blogs">{INK_LABEL}s</option>
 </select>
 
           {/* Dropdown arrow */}
@@ -856,7 +915,7 @@ const handleBlogClick = (blog: Blog) => {
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search creators, video or blogs here"
+            placeholder="Search creators, video or inks here"
             className="w-full bg-transparent py-2 pr-10 pl-2 
                        text-[12px] sm:text-[13px] lg:text-[14px]
                        text-gray-800 focus:outline-none placeholder:text-gray-500"
@@ -1049,6 +1108,7 @@ const handleBlogClick = (blog: Blog) => {
             <div className="relative">
               {/* Most Viewed Content Cards - Scrollable */}
               <div
+                ref={mostViewedRef}
                 className="
                   flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory 
                   scrollbar-hide pb-4 px-1
@@ -1137,6 +1197,50 @@ const handleBlogClick = (blog: Blog) => {
                    <EmptyState title="No most viewed content found" />
                 )}
               </div>
+
+              {/* Scroll hint arrow (left) */}
+              {showMostViewedLeftHint && filteredMostViewedContent.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => scrollCarousel(mostViewedRef, "left")}
+                  className="pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/60 bg-white/5 text-white flex items-center justify-center shadow-lg backdrop-blur-sm hover:bg-white/10 transition-colors"
+                  aria-label="Scroll most viewed left"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M15 6l-6 6 6 6" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Scroll hint arrow (right) */}
+              {showMostViewedRightHint && filteredMostViewedContent.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => scrollCarousel(mostViewedRef, "right")}
+                  className="pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/60 bg-white/5 text-white flex items-center justify-center shadow-lg backdrop-blur-sm hover:bg-white/10 transition-colors"
+                  aria-label="Scroll most viewed"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 6l6 6-6 6" />
+                  </svg>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -1186,6 +1290,7 @@ const handleBlogClick = (blog: Blog) => {
             <div className="relative">
               {/* Most Liked Content Cards - Scrollable */}
               <div
+                ref={mostLikedRef}
                 className="
                   flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory 
                   scrollbar-hide pb-4 px-1
@@ -1275,6 +1380,50 @@ const handleBlogClick = (blog: Blog) => {
                    <EmptyState title="No most liked content found" />
                 )}
               </div>
+
+              {/* Scroll hint arrow (left) */}
+              {showMostLikedLeftHint && filteredMostLikedContent.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => scrollCarousel(mostLikedRef, "left")}
+                  className="pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/60 bg-white/5 text-white flex items-center justify-center shadow-lg backdrop-blur-sm hover:bg-white/10 transition-colors"
+                  aria-label="Scroll most liked left"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M15 6l-6 6 6 6" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Scroll hint arrow (right) */}
+              {showMostLikedRightHint && filteredMostLikedContent.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => scrollCarousel(mostLikedRef, "right")}
+                  className="pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/60 bg-white/5 text-white flex items-center justify-center shadow-lg backdrop-blur-sm hover:bg-white/10 transition-colors"
+                  aria-label="Scroll most liked"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 6l6 6-6 6" />
+                  </svg>
+                </button>
+              )}
             </div>
           )}
         </div>

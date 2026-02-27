@@ -178,7 +178,7 @@ export default function CreatorEarningsPage() {
       <header className="mx-auto md:px-8 pt-5 md:pt-10 pb-6">
         <h1 className="text-xl md:text-4xl font-bold tracking-tight text-slate-900">Creator Earnings</h1>
         <p className="mt-2 text-slate-600">
-          Track your current month, lifetime totals, RPM rate, and per-video earnings.
+          Track your current month, lifetime totals, RPM rate, and per-content earnings.
         </p>
       </header>
 
@@ -255,9 +255,9 @@ export default function CreatorEarningsPage() {
               <thead className="bg-slate-50 text-slate-700">
                 <tr>
                   <th className="text-left font-semibold px-4 py-3">Date</th>
-                  <th className="text-left font-semibold px-4 py-3">Video</th>
+                  <th className="text-left font-semibold px-4 py-3">Content</th>
                   <th className="text-left font-semibold px-4 py-3">Views</th>
-                  <th className="text-left font-semibold px-4 py-3">Watch Time</th>
+                  <th className="text-left font-semibold px-4 py-3">Engagement Rate</th>
                   <th className="text-left font-semibold px-4 py-3">RPM Used</th>
                   <th className="text-left font-semibold px-4 py-3">Earnings</th>
                 </tr>

@@ -9,6 +9,7 @@ import placeholderImg from "../../../../../assets/profile.png";
 import VideoIcon from "@/assets/Video_Icon.svg";
 import { UserIcon } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
+import { INK_LABEL } from "@/constants/contentLabels";
 import {
   Tabs,
   TabsList,
@@ -239,7 +240,7 @@ export default function CreatorProfilePage() {
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-[#334155]/70"
             }`}
           >
-            📝 Blogs
+            📝 {INK_LABEL}s
           </TabsTrigger>
         </TabsList>
 

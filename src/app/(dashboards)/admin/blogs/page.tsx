@@ -122,11 +122,11 @@ export default function BlogsPage() {
       } else if (response?.blogs) {
         setBlogs(response.blogs)
       } else {
-        setError("Failed to fetch blogs data - unexpected response structure")
+        setError("Failed to fetch ink data - unexpected response structure")
       }
     } catch (error) {
-      console.error("Error fetching blogs:", error)
-      setError("Failed to fetch blogs. Please try again.")
+      console.error("Error fetching ink:", error)
+      setError("Failed to fetch ink. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -149,18 +149,18 @@ export default function BlogsPage() {
         setBlogToDelete(null)
       } else {
         setDeleteError(
-          `Failed to delete blog. Server response: ${response?.status || response?.message || "Unknown error"}`,
+          `Failed to delete ink. Server response: ${response?.status || response?.message || "Unknown error"}`,
         )
       }
     } catch (error: any) {
       if (error?.response?.status === 404) {
-        setDeleteError("Blog not found. It may have already been deleted.")
+        setDeleteError("ink not found. It may have already been deleted.")
       } else if (error?.response?.status === 403) {
-        setDeleteError("You don't have permission to delete this blog.")
+        setDeleteError("You don't have permission to delete this ink.")
       } else if (error?.response?.status === 401) {
         setDeleteError("Authentication failed. Please log in again.")
       } else {
-        setDeleteError(`Failed to delete blog: ${error?.message || error?.response?.data?.message || "Network error"}`)
+        setDeleteError(`Failed to delete ink: ${error?.message || error?.response?.data?.message || "Network error"}`)
       }
     } finally {
       setIsDeleting(false)
@@ -196,7 +196,7 @@ export default function BlogsPage() {
         setRejectReasonError("")
       } else {
         setRejectError(
-          `Failed to reject blog. Server response: ${response?.status || response?.message || "Unknown error"}`,
+          `Failed to reject ink. Server response: ${response?.status || response?.message || "Unknown error"}`,
         )
       }
     } catch (error: any) {
@@ -270,7 +270,7 @@ export default function BlogsPage() {
             <BookOpenIcon className="w-6 h-6 md:w-8 md:h-8 text-white" />
           </div>
           <h1 className="text-2xl md:text-5xl font-bold  bg-gradient-to-r from-gray-900 via-purple-900 to-indigo-900 bg-clip-text text-transparent mb-4  ">
-            Blog Management
+            Ink Management
           </h1>
         </div>
 
@@ -285,7 +285,7 @@ export default function BlogsPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl md:text-3xl font-bold text-gray-900">{totalBlogs}</div>
-                  <div className="text-xs md:text-sm font-medium text-blue-600">Total Blogs</div>
+                  <div className="text-xs md:text-sm font-medium text-blue-600">Total Inks</div>
                 </div>
               </div>
               <div className="flex items-center text-sm text-gray-600">
@@ -386,7 +386,7 @@ export default function BlogsPage() {
                   activeTab === "published" ? "bg-white text-purple-700 shadow-md" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                Published Blogs
+                Published Inks
               </button>
               <button
                 onClick={() => setActiveTab("rejected")}
@@ -394,7 +394,7 @@ export default function BlogsPage() {
                   activeTab === "rejected" ? "bg-white text-red-700 shadow-md" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                Rejected Blogs
+                Rejected Inks
               </button>
             </div>
 
@@ -434,7 +434,7 @@ export default function BlogsPage() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl mb-6 animate-pulse">
                   <BookOpenIcon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Loading blogs...</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Loading Inks...</h3>
                 <p className="text-gray-600">Please wait while we fetch your content</p>
               </div>
             ) : filteredBlogs.length > 0 ? (
@@ -509,7 +509,7 @@ export default function BlogsPage() {
                                     <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                                       <XCircleIcon className="w-4 h-4 text-red-600" />
                                     </div>
-                                    <span className="font-medium text-red-600">Reject Blog</span>
+                                    <span className="font-medium text-red-600">Reject Ink</span>
                                   </button>
                                 )}
                               </div>
@@ -601,7 +601,7 @@ export default function BlogsPage() {
                       <AlertCircleIcon className="w-6 h-6 text-red-600" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900">Delete Blog Post</h3>
+                      <h3 className="text-xl font-bold text-gray-900">Delete Ink Post</h3>
                       <p className="text-red-600 text-sm">This action cannot be undone</p>
                     </div>
                   </div>
@@ -632,7 +632,7 @@ export default function BlogsPage() {
 
                 <p className="text-gray-700 mb-6 leading-relaxed">
                   Are you sure you want to delete <strong>"{blogToDelete.title}"</strong>? This will permanently remove
-                  the blog post and all associated data including comments and likes.
+                  the ink post and all associated data including comments and likes.
                 </p>
 
                 {deleteError && (
@@ -670,7 +670,7 @@ export default function BlogsPage() {
                     ) : (
                       <>
                         <TrashIcon className="w-4 h-4 mr-2" />
-                        Delete Blog
+                        Delete Ink
                       </>
                     )}
                   </button>
@@ -689,7 +689,7 @@ export default function BlogsPage() {
             >
               <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-8 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-gray-900">Blog Content</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">Ink Content</h3>
                   <button
                     onClick={() => {
                       setShowViewModal(false)
@@ -968,7 +968,7 @@ export default function BlogsPage() {
                     ) : (
                       <>
                         <XCircleIcon className="w-4 h-4 mr-2" />
-                        Reject Blog
+                        Reject Ink
                       </>
                     )}
                   </button>

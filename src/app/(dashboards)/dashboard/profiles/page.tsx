@@ -33,6 +33,8 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading,setisLoading]=useState(true);
 
+  const [dob, setDob] = useState(initialUser.dob || "")
+  const [originalDob, setOriginalDob] = useState(initialUser.dob || "")
   // Change Password fields
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -58,6 +60,8 @@ export default function ProfilePage() {
     setBio(initialUser.bio || "")
     setOriginalBio(initialUser.bio || "")
     setOriginalProfileImage(initialUser.profileImage)
+    setDob(initialUser.dob || "")
+    setOriginalDob(initialUser.dob || "")
     setisLoading(false);
   }, [initialUser])
 
@@ -66,7 +70,9 @@ export default function ProfilePage() {
     const usernameChanged = username !== originalUsername
     const imageChanged = imageFile !== null
     const bioChanged = bio !== originalBio
-    return usernameChanged || imageChanged || bioChanged
+    const dobCanChange = !originalDob
+    const dobChanged = dobCanChange && !!dob && dob !== originalDob
+    return usernameChanged || imageChanged || bioChanged || dobChanged
   }
 
   const handleAvatarClick = () => {
@@ -92,10 +98,23 @@ export default function ProfilePage() {
       return
     }
 
+    // Optional client-side age validation (backend also enforces this)
+    if (!originalDob && dob) {
+      const today = new Date()
+      const birthDate = new Date(dob)
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const m = today.getMonth() - birthDate.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+      if (age < 13) {
+        toast.error("You must be at least 13 years old to use this service.")
+        return
+      }
+    }
+
     setIsSaving(true)
     try {
-      // In a real app, you'd upload the file if it has changed and get back a URL.
-      const updatedFields = { username, profileImage }
       const form = new FormData()
       if (imageFile) {
         form.append("profile_picture", imageFile)
@@ -104,25 +123,31 @@ export default function ProfilePage() {
       if (bio) {
         form.append("bio", bio)
       }
+      if (!originalDob && dob) {
+        form.append("dob", dob)
+      }
       const response = await updateProfile(form)
 
       console.log("Update response:", response.data.user);
 
       if(response.status==200){
         toast.success("Profile updated successfully!")
-           setOriginalUsername(username)
-      setOriginalProfileImage(profileImage)
-      setImageFile(null) // Reset image file after successful upload
-      dispatch(setUser(response?.data?.user)); // Update Redux store with new user data
+        const updatedUser = response.data.user
+        setOriginalUsername(updatedUser.username || username)
+        setOriginalProfileImage(updatedUser.profile_picture || profileImage)
+        setImageFile(null) // Reset image file after successful upload
+        setBio(updatedUser.bio || "")
+        setOriginalBio(updatedUser.bio || "")
+        setDob(updatedUser.dob || originalDob || "")
+        setOriginalDob(updatedUser.dob || originalDob || "")
+        dispatch(setUser(updatedUser)); // Update Redux store with new user data
       }else{
-        toast.error("Error on profile update. Please try again.");
+        toast.error(response?.data?.error || "Error on profile update. Please try again.");
       }
 
-      // Update original values after successful save
-
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error updating profile:", error)
-      toast.error("Error: Failed to connect to the server. Please try again.")
+      toast.error(error?.response?.data?.error || "Error: Failed to connect to the server. Please try again.")
     } finally {
       setIsSaving(false)
     }
@@ -165,6 +190,8 @@ export default function ProfilePage() {
     setUsername(originalUsername)
     setProfileImage(originalProfileImage)
     setImageFile(null)
+    setBio(originalBio)
+    setDob(originalDob || "")
   }
 
   if(isLoading){
@@ -342,18 +369,37 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="md:col-span-2">
-                      <label htmlFor="bio" className="block text-sm font-semibold text-gray-700 mb-3">
-                        Bio (optional)
-                      </label>
-                      <textarea
-                        id="bio"
-                        value={bio}
-                        onChange={(e) => setBio(e.target.value)}
-                        placeholder="Tell something about yourself..."
-                        rows={4}
-                        className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm md:text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 resize-none"
-                      />
-                    </div>
+                        <label htmlFor="bio" className="block text-sm font-semibold text-gray-700 mb-3">
+                          Bio (optional)
+                        </label>
+                        <textarea
+                          id="bio"
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                          placeholder="Tell something about yourself..."
+                          rows={4}
+                          className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm md:text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 resize-none"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label htmlFor="dob" className="block text-sm font-semibold text-gray-700 mb-3">
+                          Date of Birth
+                        </label>
+                        <input
+                          id="dob"
+                          type="date"
+                          value={dob ? dob.substring(0, 10) : ""}
+                          onChange={(e) => setDob(e.target.value)}
+                          disabled={!!originalDob}
+                          className="w-full h-10 md:h-14 rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm md:text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                        />
+                        <p className="text-xs md:text-sm text-gray-500 mt-2">
+                          {originalDob
+                            ? "Your date of birth is already set and cannot be changed."
+                            : "You can set your date of birth once. You must be at least 13 years old."}
+                        </p>
+                      </div>
 
                     </div>
 

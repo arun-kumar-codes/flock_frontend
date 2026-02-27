@@ -28,6 +28,9 @@ export default function ProfilePage() {
   const [showCreatorModal, setShowCreatorModal] = useState(false);
   const [isBecomingCreator, setIsBecomingCreator] = useState(false);
 
+  const [bio, setBio] = useState(user.bio || "");
+  const [originalBio, setOriginalBio] = useState(user.bio || "");
+
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -47,39 +50,45 @@ export default function ProfilePage() {
       : profilePlaceholder.src
   );
 
-useEffect(() => {
-  if (!user?.isLogin) {
-    router.push("/login");
-    return;
-  }
+  useEffect(() => {
+    if (!user?.isLogin) {
+      router.push("/login");
+      return;
+    }
 
-  setUsername(user.username);
-  setOriginalUsername(user.username);
+    setUsername(user.username);
+    setOriginalUsername(user.username);
 
-  setDob(user.dob || "");
-  setOriginalDob(user.dob || "");
+    setDob(user.dob || "");
+    setOriginalDob(user.dob || "");
 
-  // ✅ Normalize both possible keys (profile_picture or profileImage)
-  const validProfile =
-    user?.profile_picture ||
-    user?.profileImage
-      ? (user.profile_picture || user.profileImage)
-      : null;
+    setBio(user.bio || "");
+    setOriginalBio(user.bio || "");
 
-  const safeProfile =
-    validProfile && validProfile !== "null" && validProfile.trim() !== ""
-      ? validProfile
-      : profilePlaceholder.src;
+    // ✅ Normalize both possible keys (profile_picture or profileImage)
+    const validProfile =
+      user?.profile_picture ||
+      user?.profileImage
+        ? (user.profile_picture || user.profileImage)
+        : null;
 
-  setProfileImage(safeProfile);
-  setOriginalProfileImage(safeProfile);
-  setIsLoading(false);
-}, [user]);
+    const safeProfile =
+      validProfile && validProfile !== "null" && validProfile.trim() !== ""
+        ? validProfile
+        : profilePlaceholder.src;
+
+    setProfileImage(safeProfile);
+    setOriginalProfileImage(safeProfile);
+    setIsLoading(false);
+  }, [user]);
 
   const hasChanges = () => {
     const usernameChanged = username !== originalUsername;
     const imageChanged = imageFile !== null;
-    return usernameChanged || imageChanged;
+    const bioChanged = bio !== originalBio;
+    const dobCanChange = !originalDob; // One-time DOB set
+    const dobChanged = dobCanChange && !!dob && dob !== originalDob;
+    return usernameChanged || imageChanged || bioChanged || dobChanged;
   };
 
   const handleAvatarClick = () => fileInputRef.current?.click();
@@ -97,11 +106,28 @@ useEffect(() => {
     e.preventDefault();
     if (!hasChanges()) return;
 
+    // Optional client-side age validation (backend also enforces this)
+    if (!originalDob && dob) {
+      const today = new Date();
+      const birthDate = new Date(dob);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 13) {
+        toast.error("You must be at least 13 years old to use this service.");
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const form = new FormData();
       form.append("username", username);
       if (imageFile) form.append("profile_picture", imageFile);
+      if (bio) form.append("bio", bio);
+      if (!originalDob && dob) form.append("dob", dob);
 
       const response = await updateProfile(form);
       if (response?.status === 200) {
@@ -114,29 +140,35 @@ useEffect(() => {
             ? updatedUser.profile_picture
             : profilePlaceholder.src;
 
-       const newProfile =
-  updatedUser?.profile_picture &&
-  updatedUser.profile_picture !== "null" &&
-  updatedUser.profile_picture.trim() !== ""
-    ? updatedUser.profile_picture
-    : profilePlaceholder.src;
+        const newProfile =
+          updatedUser?.profile_picture &&
+          updatedUser.profile_picture !== "null" &&
+          updatedUser.profile_picture.trim() !== ""
+            ? updatedUser.profile_picture
+            : profilePlaceholder.src;
 
-dispatch(
-  setUser({
-    ...user,
-    ...updatedUser,
-    profile_picture: newProfile,
-    profileImage: newProfile, // ✅ ensure Redux has both keys
-  })
-);
+        dispatch(
+          setUser({
+            ...user,
+            ...updatedUser,
+            profile_picture: newProfile,
+            profileImage: newProfile, // ✅ ensure Redux has both keys
+            bio: updatedUser.bio || "",
+            dob: updatedUser.dob || originalDob,
+          })
+        );
 
-setProfileImage(newProfile);
+        setProfileImage(newProfile);
+        setBio(updatedUser.bio || "");
+        setOriginalBio(updatedUser.bio || "");
+        setDob(updatedUser.dob || originalDob || "");
+        setOriginalDob(updatedUser.dob || originalDob || "");
 
         setOriginalUsername(username);
         setOriginalProfileImage(safeProfile);
         setImageFile(null);
       } else {
-        toast.error("Error updating profile. Please try again.");
+        toast.error(response?.data?.error || "Error updating profile. Please try again.");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -393,6 +425,45 @@ setProfileImage(newProfile);
                         </div>
                         <p className="text-xs md:text-sm theme-text-muted mt-2">
                           Email cannot be changed for security reasons
+                        </p>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label
+                          htmlFor="bio"
+                          className="block text-sm font-semibold theme-text-primary mb-3"
+                        >
+                          Bio (optional)
+                        </label>
+                        <textarea
+                          id="bio"
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                          placeholder="Tell us something about yourself..."
+                          rows={4}
+                          className="w-full rounded-xl theme-input px-4 py-3 text-sm md:text-base theme-text-primary placeholder:theme-text-muted transition-all duration-200 resize-none"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label
+                          htmlFor="dob"
+                          className="block text-sm font-semibold theme-text-primary mb-3"
+                        >
+                          Date of Birth
+                        </label>
+                        <input
+                          id="dob"
+                          type="date"
+                          value={dob ? dob.substring(0, 10) : ""}
+                          onChange={(e) => setDob(e.target.value)}
+                          disabled={!!originalDob}
+                          className="w-full h-10 md:h-14 rounded-xl theme-input px-4 py-3 text-sm md:text-base theme-text-primary placeholder:theme-text-muted transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                        />
+                        <p className="text-xs md:text-sm theme-text-muted mt-2">
+                          {originalDob
+                            ? "Your date of birth is already set and cannot be changed."
+                            : "You can set your date of birth once. You must be at least 13 years old."}
                         </p>
                       </div>
                     </div>

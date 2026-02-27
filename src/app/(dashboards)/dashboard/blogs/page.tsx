@@ -18,6 +18,7 @@ import {
   deleteComment,
   toggleBlogLike,
 } from "@/api/content";
+import { INK_LABEL } from "@/constants/contentLabels";
 import {
   PlusIcon,
   SearchIcon,
@@ -1693,10 +1694,10 @@ export default function BlogsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="text-center sm:text-left">
                   <h1 className="text-xl md:text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2 sm:mb-3">
-                    Blog Management
+                    Ink Management
                   </h1>
-                  <p className="text-slate-600 text-sm md:text-base lg:text-lg">
-                    Create, edit, and manage your blog posts with style
+                <p className="text-slate-600 text-sm md:text-base lg:text-lg">
+                    Create, edit, and manage your {INK_LABEL.toLowerCase()} posts with style
                   </p>
                 </div>
                 <div className="flex justify-center sm:justify-end">
@@ -1806,14 +1807,14 @@ export default function BlogsPage() {
               <div className="flex flex-col gap-4 mb-4 sm:mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                    Your Blogs
+                    Your {INK_LABEL}
                   </h3>
                   <button
                     className="group inline-flex cursor-pointer items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg sm:rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <PlusIcon className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                    Create New Blog
+                    Create New {INK_LABEL}
                   </button>
                 </div>
 
@@ -1831,7 +1832,7 @@ export default function BlogsPage() {
                   >
                     <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                       <FileTextIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden xs:inline">Active Blogs</span>
+                      <span className="hidden xs:inline">Active {INK_LABEL}</span>
                       <span className="xs:hidden">Active</span>
                       <span className="bg-indigo-100 text-indigo-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-bold">
                         {activeBlogs.length}
@@ -1885,7 +1886,7 @@ export default function BlogsPage() {
                 <SearchIcon className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
                 <input
                   type="text"
-                  placeholder={`Search ${activeTab} blogs...`}
+                  placeholder={`Search ${activeTab} ${INK_LABEL.toLowerCase()}s...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-slate-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80 backdrop-blur-sm text-slate-900 placeholder-slate-500 shadow-sm text-sm md:text-base"
@@ -2434,15 +2435,15 @@ export default function BlogsPage() {
                     )}
                   </div>
                   <h3 className="text-lg font-medium text-slate-800 mb-2">
-                    No {activeTab} blogs found
+                    No {activeTab} {INK_LABEL.toLowerCase()}s found
                   </h3>
                   <p className="text-slate-600 mb-4">
                     {searchTerm ||
                     (activeTab === "active" && filterStatus !== "all")
                       ? "Try adjusting your search or filter criteria"
                       : activeTab === "active"
-                      ? "Get started by creating your first blog post"
-                      : "No archived blogs yet"}
+                      ? "Get started by creating your first ink post"
+                      : "No archived inks yet"}
                   </p>
                   {!searchTerm &&
                     activeTab === "active" &&
@@ -2452,7 +2453,7 @@ export default function BlogsPage() {
                         onClick={() => setShowCreateModal(true)}
                       >
                         <PlusIcon className="w-4 h-4 mr-2" />
-                        Create Your First Blog
+                        {`Create Your First ${INK_LABEL}`}
                       </button>
                     )}
                 </div>
@@ -2519,7 +2520,7 @@ export default function BlogsPage() {
             </div>
           )}
 
-          {/* Create Blog Modal */}
+          {/* Create {INK_LABEL} Modal */}
           {showCreateModal && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
               <div
@@ -2530,7 +2531,7 @@ export default function BlogsPage() {
                 <div className="p-4 sm:p-6 border-b border-slate-200 flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg sm:text-xl font-semibold text-slate-800">
-                      Create New Blog
+                      Create New {INK_LABEL}
                     </h3>
                     <button
                       onMouseDown={(e) => e.stopPropagation()}
@@ -2600,7 +2601,7 @@ export default function BlogsPage() {
                           htmlFor="title"
                           className="block text-sm font-medium text-slate-700 mb-2"
                         >
-                          Blog Title *
+                          {INK_LABEL} Title *
                         </label>
                         <input
                           type="text"
@@ -2610,7 +2611,7 @@ export default function BlogsPage() {
                             handleFormChange("title", e.target.value)
                           }
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
-                          placeholder="Enter your blog title..."
+                          placeholder={`Enter your ${INK_LABEL.toLowerCase()} title...`}
                           maxLength={200}
                         />
                         <p className="text-xs text-slate-500 mt-1">
@@ -2620,7 +2621,7 @@ export default function BlogsPage() {
                       {/* Image Upload */}
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Blog Image (Optional)
+                          {INK_LABEL} Image (Optional)
                         </label>
                         
                         {/* Upload Requirements */}
@@ -2716,14 +2717,14 @@ export default function BlogsPage() {
                       {/* Content - TipTap Editor */}
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Blog Content *
+                          {INK_LABEL} Content *
                         </label>
                         <TipTapEditor
                           content={blogForm.content}
                           onChange={(content) =>
                             handleFormChange("content", content)
                           }
-                          placeholder="Start writing your blog content..."
+                          placeholder={`Start writing your ${INK_LABEL.toLowerCase()} content...`}
                           className="min-h-[250px] sm:min-h-[300px]"
                         />
                         <p className="text-xs text-slate-500 mt-1">
@@ -3072,7 +3073,7 @@ export default function BlogsPage() {
                         ) : (
                           <>
                             <SaveIcon className="w-4 h-4 mr-2" />
-                            Create Blog
+                            Create {INK_LABEL}
                           </>
                         )}
                       </button>
@@ -3186,7 +3187,7 @@ export default function BlogsPage() {
                           htmlFor="edit-title"
                           className="block text-sm font-medium text-slate-700 mb-2"
                         >
-                          Blog Title *
+                          {INK_LABEL} Title *
                         </label>
                         <input
                           type="text"
@@ -3196,7 +3197,7 @@ export default function BlogsPage() {
                             handleEditFormChange("title", e.target.value)
                           }
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
-                          placeholder="Enter your blog title..."
+                          placeholder={`Enter your ${INK_LABEL.toLowerCase()} title...`}
                           maxLength={200}
                         />
                         <p className="text-xs text-slate-500 mt-1">
@@ -3206,7 +3207,7 @@ export default function BlogsPage() {
                       {/* Image Upload */}
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Blog Image (Optional)
+                          {INK_LABEL} Image (Optional)
                         </label>
                         
                         
@@ -3292,14 +3293,14 @@ export default function BlogsPage() {
                       {/* Content - TipTap Editor */}
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Blog Content *
+                          {INK_LABEL} Content *
                         </label>
                         <TipTapEditor
                           content={editBlogForm.content}
                           onChange={(content) =>
                             handleEditFormChange("content", content)
                           }
-                          placeholder="Edit your blog content..."
+                          placeholder={`Edit your ${INK_LABEL.toLowerCase()} content...`}
                           className="min-h-[250px] sm:min-h-[300px]"
                         />
                         <p className="text-xs text-slate-500 mt-1">

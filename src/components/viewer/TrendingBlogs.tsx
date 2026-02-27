@@ -4,6 +4,7 @@ import { FlameIcon as FireIcon, ArrowRightIcon, Loader2, Heart, Eye, MessageCirc
 import { useState, useEffect } from "react"
 import { getTrendingBlog, toggleBlogLike } from "@/api/content"
 import { useRouter } from "next/navigation"
+import { INK_LABEL } from "@/constants/contentLabels"
 
 interface BlogPost {
   id: number
@@ -119,7 +120,7 @@ export default function TrendingBlogsTab() {
               <FireIcon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-800">Trending Blogs</h3>
+              <h3 className="text-2xl font-bold text-slate-800">Trending {INK_LABEL}s</h3>
               <p className="text-slate-600 text-sm">Discover the hottest content</p>
             </div>
           </div>
@@ -127,7 +128,7 @@ export default function TrendingBlogsTab() {
         <div className="flex items-center justify-center py-16 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 rounded-2xl border border-orange-200">
           <div className="text-center">
             <Loader2 className="w-10 h-10 text-orange-500 animate-spin mx-auto mb-4" />
-            <p className="text-slate-600 font-medium">Loading trending blogs...</p>
+            <p className="text-slate-600 font-medium">Loading trending {INK_LABEL.toLowerCase()}s...</p>
           </div>
         </div>
       </div>
@@ -143,7 +144,7 @@ export default function TrendingBlogsTab() {
               <FireIcon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-800">Trending Blogs</h3>
+              <h3 className="text-2xl font-bold text-slate-800">Trending {INK_LABEL}s</h3>
               <p className="text-slate-600 text-sm">Discover the hottest content</p>
             </div>
           </div>
@@ -174,7 +175,7 @@ export default function TrendingBlogsTab() {
               <FireIcon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-800">Trending Blogs</h3>
+              <h3 className="text-2xl font-bold text-slate-800">Trending {INK_LABEL}s</h3>
               <p className="text-slate-600 text-sm">Discover the hottest content</p>
             </div>
             <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
@@ -284,7 +285,7 @@ export default function TrendingBlogsTab() {
             <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <FireIcon className="w-10 h-10 text-orange-500" />
             </div>
-            <h4 className="text-xl font-semibold text-slate-800 mb-2">No trending blogs yet</h4>
+            <h4 className="text-xl font-semibold text-slate-800 mb-2">No trending {INK_LABEL.toLowerCase()}s yet</h4>
             <p className="text-slate-600 max-w-md mx-auto">Be the first to create amazing content that trends!</p>
           </div>
         )}
