@@ -61,8 +61,8 @@ export default function BlogImageCropper({ imageSrc, aspect = 16 / 9, onCancel, 
   const handleSave = useCallback(async () => {
     if (!croppedAreaPixels) return
     try {
-      const MAX_W = 1600
-      const MAX_H = 900
+      const MAX_W = 1280
+      const MAX_H = 720
       const source = localImageSrc || imageSrc
       const blob = await getCroppedImg(source as string, croppedAreaPixels, rotation, MAX_W, MAX_H)
       const file = new File([blob], `blog_${Date.now()}.jpg`, { type: "image/jpeg" })

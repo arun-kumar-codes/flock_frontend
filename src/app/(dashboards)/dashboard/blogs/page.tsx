@@ -2629,13 +2629,12 @@ export default function BlogsPage() {
                         
                         {/* Image Preview */}
                         {imagePreview && (
-                          <div className="mb-4 relative">
+                          <div className="mb-4 relative w-full aspect-video overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                             <Image
                               src={imagePreview || "/placeholder.svg"}
                               alt="Preview"
-                              width={400}
-                              height={200}
-                              className="w-full h-auto object-cover rounded-lg border border-slate-200"
+                              fill
+                              className="object-cover"
                             />
                             <div className="absolute top-2 right-2 flex space-x-2">
                               <button
@@ -2694,8 +2693,8 @@ export default function BlogsPage() {
                                   or drag and drop
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  PNG, JPG, JPEG, GIF, WebP • Min 1000×1000px 
-                                </p>
+                                  PNG, JPG, JPEG, GIF, WebP • 1280×720px (16:9 ratio)
+                                 </p>
                               </div>
                             </div>
                             <input
@@ -2835,7 +2834,7 @@ export default function BlogsPage() {
                             onChange={(e) => setBrandTagInput(e.target.value)}
                             onKeyDown={(e) => handleBrandTagKeyPress(e, false)}
                             className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
-                            maxLength={50}
+                            maxLength={500}
                           />
                           <button
                             type="button"
@@ -2909,7 +2908,7 @@ export default function BlogsPage() {
                             onKeyPress={handleKeywordKeyPress}
                             className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
                             placeholder="Enter a keyword..."
-                            maxLength={50}
+                            maxLength={500}
                           />
                           <button
                             type="button"
@@ -3100,6 +3099,27 @@ export default function BlogsPage() {
                       }}
                     />
                   )}
+                  {/* Inline Cropper inside Edit Modal */}
+                  {showEditCropper && pendingImageSrc && showEditModal && (
+                    <BlogImageCropper
+                      imageSrc={pendingImageSrc}
+                      aspect={16 / 9}
+                      inline={true}
+                      onCancel={() => {
+                        setShowEditCropper(false);
+                        setPendingImageSrc(null);
+                      }}
+                      onSave={(file: File) => {
+                        setEditBlogForm((prev) => ({ ...prev, image: file }));
+                        const reader = new FileReader();
+                        reader.onload = (e) =>
+                          setEditImagePreview(e.target?.result as string);
+                        reader.readAsDataURL(file);
+                        setShowEditCropper(false);
+                        setPendingImageSrc(null);
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -3214,16 +3234,32 @@ export default function BlogsPage() {
                         
                         {/* Current/Preview Image */}
                         {editImagePreview && !removeExistingImage && (
-                          <div className="mb-4 relative">
+                          <div className="mb-4 relative w-full aspect-video overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                             <Image
                               src={editImagePreview || "/placeholder.svg"}
                               alt="Preview"
-                              width={400}
-                              height={200}
-                              className="w-full h-auto object-cover rounded-lg border border-slate-200"
+                              fill
+                              className="object-cover"
                             />
                             <div className="absolute top-2 right-2 flex space-x-2">
-                              {/* Crop functionality removed from edit modal per request */}
+                              <button
+                                type="button"
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  if (editImagePreview) {
+                                    setPendingImageSrc(editImagePreview);
+                                    setShowEditCropper(true);
+                                  } else if (editBlogForm.existingImageUrl) {
+                                    setPendingImageSrc(editBlogForm.existingImageUrl);
+                                    setShowEditCropper(true);
+                                  }
+                                }}
+                                className="px-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 text-md cursor-pointer"
+                              >
+                                Crop Image
+                              </button>
                               <button
                                 type="button"
                                 onMouseDown={(e) => e.stopPropagation()}
@@ -3269,7 +3305,7 @@ export default function BlogsPage() {
                                   or drag and drop
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  PNG, JPG, JPEG, GIF, WebP • Min 1000×1000px • Max 19MB
+                                  PNG, JPG, JPEG, GIF, WebP • 1280×720px (16:9 ratio) • Max 19MB
                                 </p>
                               </div>
                             </div>
@@ -3479,7 +3515,7 @@ export default function BlogsPage() {
                             onKeyPress={(e) => handleKeywordKeyPress(e, true)}
                             className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
                             placeholder="Enter a keyword..."
-                            maxLength={50}
+                            maxLength={500}
                           />
                           <button
                             type="button"

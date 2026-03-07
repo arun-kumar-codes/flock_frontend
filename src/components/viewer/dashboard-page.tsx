@@ -261,10 +261,13 @@ export default function DashboardPage() {
   // Horizontal scroll hints for carousels
   const mostViewedRef = useRef<HTMLDivElement | null>(null);
   const mostLikedRef = useRef<HTMLDivElement | null>(null);
+  const creatorsRef = useRef<HTMLDivElement | null>(null);
   const [showMostViewedRightHint, setShowMostViewedRightHint] = useState(false);
   const [showMostViewedLeftHint, setShowMostViewedLeftHint] = useState(false);
   const [showMostLikedRightHint, setShowMostLikedRightHint] = useState(false);
   const [showMostLikedLeftHint, setShowMostLikedLeftHint] = useState(false);
+  const [showCreatorsRightHint, setShowCreatorsRightHint] = useState(false);
+  const [showCreatorsLeftHint, setShowCreatorsLeftHint] = useState(false);
 
   // Creators state
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -431,10 +434,13 @@ export default function DashboardPage() {
   const fetchCreators = async () => {
     setCreatorsError("");
     try {
-      const response = await getAllCreators();
+      // Request all creators from database (not limited to those with content)
+      const response = await getAllCreators({ all: true });
 
-      if (response?.data?.creators) {
+      if (response?.data?.creators && Array.isArray(response.data.creators)) {
         setCreators(response.data.creators);
+      } else if (Array.isArray(response?.data)) {
+        setCreators(response.data);
       }
     } catch (error) {
       console.error("Error fetching creators:", error);
@@ -592,27 +598,43 @@ export default function DashboardPage() {
   useEffect(() => {
     const mv = mostViewedRef.current;
     const ml = mostLikedRef.current;
+    const cr = creatorsRef.current;
 
     const handleMVScroll = () =>
       updateScrollHints(mv, setShowMostViewedLeftHint, setShowMostViewedRightHint);
     const handleMLScroll = () =>
       updateScrollHints(ml, setShowMostLikedLeftHint, setShowMostLikedRightHint);
+    const handleCRScroll = () =>
+      updateScrollHints(cr, setShowCreatorsLeftHint, setShowCreatorsRightHint);
 
     handleMVScroll();
     handleMLScroll();
+    handleCRScroll();
 
     mv?.addEventListener("scroll", handleMVScroll);
     ml?.addEventListener("scroll", handleMLScroll);
+    cr?.addEventListener("scroll", handleCRScroll);
     window.addEventListener("resize", handleMVScroll);
     window.addEventListener("resize", handleMLScroll);
+    window.addEventListener("resize", handleCRScroll);
 
     return () => {
       mv?.removeEventListener("scroll", handleMVScroll);
       ml?.removeEventListener("scroll", handleMLScroll);
+      cr?.removeEventListener("scroll", handleCRScroll);
       window.removeEventListener("resize", handleMVScroll);
       window.removeEventListener("resize", handleMLScroll);
+      window.removeEventListener("resize", handleCRScroll);
     };
-  }, [mostViewedContent.length, mostLikedContent.length, isLoadingMostViewed, isLoadingMostLiked]);
+  }, [
+    mostViewedContent.length,
+    mostLikedContent.length,
+    creators.length,
+    searchTerm,
+    isLoadingMostViewed,
+    isLoadingMostLiked,
+    isLoadingCreators,
+  ]);
 
   const scrollCarousel = (
     ref: React.RefObject<HTMLDivElement | null>,
@@ -810,14 +832,23 @@ const handleBlogClick = (blog: Blog) => {
     setShowVideoOverlay(false);
   };
 
+  // Search all creators (from full DB list) by username, display name, or email
+  const filteredCreators = creators.filter((creator) => {
+    const term = (searchTerm || "").trim().toLowerCase();
+    if (!term) return true;
+    const username = (creator.username || "").toLowerCase();
+    const displayName = (creator.display_name || "").toLowerCase();
+    const email = (creator.email || "").toLowerCase();
+    return (
+      username.includes(term) ||
+      displayName.includes(term) ||
+      email.includes(term)
+    );
+  });
+
   if (isLoading || isLoadingFollowing) {
     return <Loader />;
   }
-
-  const filteredCreators = creators.filter((creator) => {
-    const name = (creator.username || creator.display_name || "").toLowerCase();
-    return name.includes((searchTerm || "").toLowerCase());
-  });
 
   return (
     <div className={`min-h-screen theme-bg-primary transition-colors duration-300 ${inter.className}`}>
@@ -1460,6 +1491,7 @@ const handleBlogClick = (blog: Blog) => {
   ) : (
     <div className="relative">
       <div
+        ref={creatorsRef}
         className="
           flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory
           scrollbar-hide pb-4 px-1
@@ -1512,7 +1544,7 @@ const handleBlogClick = (blog: Blog) => {
             </div>
           ))
         ) : (
-          /* EMPTY STATE — MATCHES TRENDING STYLE */
+          /* EMPTY STATE — no creators or none match search */
           <div className="flex-shrink-0 w-full text-center py-8">
             <div className="bg-white rounded-4xl shadow-sm p-8">
               <div className="text-center">
@@ -1520,16 +1552,64 @@ const handleBlogClick = (blog: Blog) => {
                   <Image src={SearchIcon} alt="Search" className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  No creators found
+                  {creators.length > 0 && (searchTerm || "").trim()
+                    ? "No creators match your search"
+                    : "No creators found"}
                 </h3>
                 <p className="text-gray-500 text-sm">
-                  Try adjusting your search or filter criteria
+                  {creators.length > 0 && (searchTerm || "").trim()
+                    ? "Try a different name or search term"
+                    : "Creators will appear here once they join the platform"}
                 </p>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Scroll hint arrow (left) */}
+      {showCreatorsLeftHint && filteredCreators.length > 0 && (
+        <button
+          type="button"
+          onClick={() => scrollCarousel(creatorsRef, "left")}
+          className="pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/60 bg-white/5 text-white flex items-center justify-center shadow-lg backdrop-blur-sm hover:bg-white/10 transition-colors"
+          aria-label="Scroll creators left"
+        >
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+      )}
+
+      {/* Scroll hint arrow (right) */}
+      {showCreatorsRightHint && filteredCreators.length > 0 && (
+        <button
+          type="button"
+          onClick={() => scrollCarousel(creatorsRef, "right")}
+          className="pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/60 bg-white/5 text-white flex items-center justify-center shadow-lg backdrop-blur-sm hover:bg-white/10 transition-colors"
+          aria-label="Scroll creators right"
+        >
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </button>
+      )}
     </div>
   )}
 </div>

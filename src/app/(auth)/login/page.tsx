@@ -6,6 +6,8 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import SocialLogIn from "@/components/SocialLogIn";
 import { logIn } from "@/api/auth";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/slice/userSlice";
 import ReCAPTCHA from "react-google-recaptcha";
 import Loader from "@/components/Loader";
 import Image from "next/image";
@@ -97,6 +99,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
   const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
@@ -158,10 +161,25 @@ export default function Login() {
           localStorage.removeItem("refresh_token");
         }
         const user = response.data.user;
-        if (user.role.toLowerCase() === "admin") {
-          router.push("/admin");
+        const profileComplete = response.data.profile_complete;
+
+        // Dispatch user data so Authguard can see it immediately
+        dispatch(setUser({
+          ...user,
+          is_profile_completed: profileComplete
+        }));
+
+        if (profileComplete === false) {
+          router.push("/complete-profile");
         } else {
-          router.push("/dashboard");
+          const role = (user.role || "").toLowerCase();
+          if (role === "admin") {
+            router.push("/admin");
+          } else if (role === "viewer") {
+            router.push("/viewer");
+          } else {
+            router.push("/dashboard");
+          }
         }
       } else {
         setErrorMessage(

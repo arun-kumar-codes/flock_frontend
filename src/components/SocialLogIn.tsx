@@ -9,6 +9,8 @@ import {
   signOut,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useDispatch } from "react-redux";
+import { setUser as setReduxUser } from "@/slice/userSlice";
 import google from "@/assets/google.svg";
 import facebook from "@/assets/facebook.svg";
 // import x from "@/assets/x.svg"
@@ -23,6 +25,7 @@ const SocialLogin = () => {
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const loginWithProvider = async (provider: any, providerName: string) => {
     setIsLoading(providerName);
@@ -45,12 +48,25 @@ const SocialLogin = () => {
         localStorage.setItem("refresh_token", refresh_token);
 
         const userData = response.data;
-        console.log("User Data:", userData);
+        const user = userData.user;
 
-        if (userData.is_new_user) {
-          router.push("/dashboard/profiles");
+        // Dispatch user data so Authguard can see it immediately
+        dispatch(setReduxUser({
+          ...user,
+          is_profile_completed: userData.profile_complete
+        }));
+
+        if (userData.profile_complete === false) {
+          router.push("/complete-profile");
         } else {
-          router.push("/dashboard");
+          const role = (user.role || "").toLowerCase();
+          if (role === "admin") {
+            router.push("/admin");
+          } else if (role === "viewer") {
+            router.push("/viewer");
+          } else {
+            router.push("/dashboard");
+          }
         }
       } else {
         // Handle login error

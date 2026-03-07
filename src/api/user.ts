@@ -106,12 +106,18 @@ export async function getAllViewer() {
 }
 
 
-export async function getAllCreators() {
+/**
+ * Fetches creators. Use { all: true } to request all creators from the database
+ * (not limited to those with content). Backend should return all users with creator
+ * role when all=true so dashboard search can find every creator.
+ */
+export async function getAllCreators(params?: { all?: boolean }) {
   try {
-    const response = await axiosInstance.get('/auth/all-creators');
+    const query = params?.all ? "?all=true" : "";
+    const response = await axiosInstance.get(`/auth/all-creators${query}`);
     return response;
-  } catch (error:any) {
-    console.error("Error changing password:", error);
+  } catch (error: any) {
+    console.error("Error fetching creators:", error);
     return error.response;
   }
 }

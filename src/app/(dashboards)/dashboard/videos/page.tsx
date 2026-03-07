@@ -3139,6 +3139,7 @@ useEffect(() => {
                         onChange={(e) => setBrandTagInput(e.target.value)}
                         onKeyDown={(e) => handleBrandTagKeyPress(e)}
                         placeholder="Add tags (comma separated or Enter)"
+                        maxLength={500}
                         className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
                       />
                       <button
@@ -3187,6 +3188,7 @@ useEffect(() => {
                         value={keywordInput}
                         onChange={(e) => setKeywordInput(e.target.value)}
                         onKeyPress={(e) => handleKeywordKeyPress(e)}
+                        maxLength={500}
                         className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                         placeholder="Add a keyword..."
                         disabled={isCreating}
@@ -3704,6 +3706,7 @@ useEffect(() => {
                         onChange={(e) => setEditBrandTagInput(e.target.value)}
                         onKeyDown={(e) => handleBrandTagKeyPress(e, true)}
                         placeholder="Add brand names"
+                        maxLength={500}
                         className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                       />
                       <button
@@ -3752,6 +3755,7 @@ useEffect(() => {
                         value={editKeywordInput}
                         onChange={(e) => setEditKeywordInput(e.target.value)}
                         onKeyPress={(e) => handleKeywordKeyPress(e, true)}
+                        maxLength={500}
                         className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                         placeholder="Add a keyword..."
                         disabled={isUpdating}

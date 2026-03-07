@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import flockLogo from "@/assets/Flock-LOGO.png";
-import aboutInfographic from "@/assets/About Us.png"; 
+import aboutInfographic from "@/assets/About Us.png";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getUserProfile } from "@/api/user";
@@ -167,9 +167,6 @@ export default function AboutUsPage() {
           <div className="max-w-4xl mx-auto">
             <p className="text-2xl md:text-3xl tracking-[0.2em] text-center mb-2 uppercase text-gray-800 font-extrabold">
               About Us
-            </p>
-            <p className="text-xs tracking-[0.35em] text-center mb-6 uppercase text-gray-500 font-semibold">
-              A B O V E &nbsp; T H E &nbsp; F O L D
             </p>
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-6">
               Who We Are

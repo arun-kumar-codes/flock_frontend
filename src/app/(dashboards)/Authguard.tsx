@@ -32,7 +32,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       try {
         let currentUser = user;
 
-        if (!user?.role?.trim()) {
+        if (!user?.role?.trim() || user?.is_profile_completed === null) {
           const response = await getUserProfile();
           if (response.status === 200) {
             currentUser = response.data.user;
@@ -42,14 +42,34 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 is_profile_completed: response.data.profile_complete,
               })
             );
+            currentUser = {
+              ...currentUser,
+              is_profile_completed: response.data.profile_complete,
+            };
           } else {
             router.replace("/viewer");
             return;
           }
         }
 
+        // 3️⃣ Mandatory Profile Completion
+        if (currentUser.is_profile_completed === false && pathname !== "/complete-profile") {
+          router.replace("/complete-profile");
+          return;
+        }
+
         const role = currentUser.role.toLowerCase() as keyof typeof roleRoutes;
         const allowedRoutes = roleRoutes[role] || [];
+        
+        // Allow access to complete-profile if profile is not complete
+        if (pathname === "/complete-profile") {
+          if (currentUser.is_profile_completed === true) {
+            router.replace(allowedRoutes[0] || "/viewer");
+          }
+          setLoading(false);
+          return;
+        }
+
         const isAllowed = allowedRoutes.some((route: string) =>
           pathname.startsWith(route)
         );

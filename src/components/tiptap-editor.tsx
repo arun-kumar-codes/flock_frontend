@@ -538,10 +538,21 @@ export default function TipTapEditor({
           margin: 0.75rem 0;
         }
         
-        .tiptap-editor-content ul,
+        .tiptap-editor-content ul {
+          list-style-type: disc !important;
+          margin: 0.75rem 0 0.75rem 1.5rem !important;
+          padding-left: 0.5rem !important;
+        }
+        
         .tiptap-editor-content ol {
-          margin: 0.75rem 0;
-          padding-left: 1.5rem;
+          list-style-type: decimal !important;
+          margin: 0.75rem 0 0.75rem 1.5rem !important;
+          padding-left: 0.5rem !important;
+        }
+
+        .tiptap-editor-content li {
+          display: list-item !important;
+          margin-bottom: 0.25rem !important;
         }
         
         .tiptap-editor-content blockquote {

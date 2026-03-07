@@ -110,7 +110,7 @@ export default function CreatorEarningsPage() {
   const [totalEarnings, setTotalEarnings] = useState<number>(0)
   const [cpmRate, setCpmRate] = useState<number>(0)
   const [cpmDesc, setCpmDesc] = useState<string>("")
-  const [isLoading,setIsLoading]=useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   // History
   const [loadingHistory, setLoadingHistory] = useState(true)
@@ -167,7 +167,7 @@ export default function CreatorEarningsPage() {
     loadHistory()
   }, [])
 
-  if(isLoading){
+  if (isLoading) {
     return <Loader2></Loader2>
   }
 
@@ -237,14 +237,14 @@ export default function CreatorEarningsPage() {
           </div>
         </section>
 
-     
+
 
         {/* History */}
         <section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Earnings History</h2>
-              <p className="text-sm text-slate-600">Per-video calculations and watch time</p>
+              <p className="text-sm text-slate-600">Per-content calculations and watch time</p>
             </div>
           </div>
 
@@ -327,8 +327,8 @@ export default function CreatorEarningsPage() {
                       <td className="px-4 py-3 text-slate-900">{row.video?.views ?? 0}</td>
                       <td className="px-4 py-3 text-slate-900">
                         {row.video?.total_watch_time_formatted || "0:00"}
-                      </td>  
-                       {/* <td className="px-4 py-3 text-slate-900">{row.watch_time_minutes} min</td> */} {/* before edit - used minute logic */}
+                      </td>
+                      {/* <td className="px-4 py-3 text-slate-900">{row.watch_time_minutes} min</td> */} {/* before edit - used minute logic */}
                       <td className="px-4 py-3 text-slate-900">${row.cpm_rate_used?.toFixed(2)}</td>
                       <td className="px-4 py-3 text-slate-900">{formatUSD(row.earnings)}</td>
                     </tr>

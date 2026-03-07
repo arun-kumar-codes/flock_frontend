@@ -44,20 +44,21 @@ export default function TipTapContentDisplay({ content, className = "" }: TipTap
         
         .tiptap-content-display ul {
           list-style-type: disc !important;
-          padding-left: 1.5rem !important;
-          margin-bottom: 0.75rem !important;
+          margin: 0.75rem 0 0.75rem 1.5rem !important;
+          padding-left: 0.5rem !important;
         }
         
         .tiptap-content-display ol {
           list-style-type: decimal !important;
-          padding-left: 1.5rem !important;
-          margin-bottom: 0.75rem !important;
+          margin: 0.75rem 0 0.75rem 1.5rem !important;
+          padding-left: 0.5rem !important;
         }
         
         .tiptap-content-display li {
+          display: list-item !important;
           margin-bottom: 0.25rem !important;
           line-height: 1.6 !important;
-          color: #111827 !important; /* Ensure dark text in light mode */
+          color: inherit !important;
         }
         
         .tiptap-content-display blockquote {
