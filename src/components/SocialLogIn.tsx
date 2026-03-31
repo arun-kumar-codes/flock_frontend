@@ -73,8 +73,15 @@ const SocialLogin = () => {
         console.error("Login failed:", response.data);
         toast.error("Login failed. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      
+      // If the email is already registered with another provider (like Google)
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        toast.error("An account already exists with the same email. Try logging in with Google instead.");
+      } else {
+        toast.error("Authentication failed. Please try again.");
+      }
     } finally {
       setIsLoading(null);
     }
