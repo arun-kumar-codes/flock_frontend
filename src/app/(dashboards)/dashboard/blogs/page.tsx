@@ -119,6 +119,8 @@ interface EditBlogData extends CreateBlogData {
   id: number;
   existingImageUrl?: string;
   locations?: string[];
+  is_scheduled?: boolean;
+  scheduled_at?: string | null;
 }
 
 export default function BlogsPage() {
@@ -190,6 +192,8 @@ export default function BlogsPage() {
   // Inside your component state
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
+  const [isEditScheduled, setIsEditScheduled] = useState(false);
+  const [editScheduledAt, setEditScheduledAt] = useState<Date | null>(null);
 
   // Image upload states
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -232,6 +236,8 @@ export default function BlogsPage() {
     locations: [],
     brand_tags: [],
     paid_promotion: false,
+    is_scheduled: false,
+    scheduled_at: null,
   });
 
   // Store original edit form data for comparison
@@ -248,6 +254,8 @@ export default function BlogsPage() {
     locations: [],
     brand_tags: [],
     paid_promotion: false,
+    is_scheduled: false,
+    scheduled_at: null,
   });
   const [keywordInput, setKeywordInput] = useState("");
   const [editKeywordInput, setEditKeywordInput] = useState("");
@@ -923,6 +931,16 @@ export default function BlogsPage() {
     }
   };
 
+  const parseScheduledAt = (value: unknown): Date | null => {
+    if (!value) return null;
+    const raw = String(value).trim();
+    if (!raw) return null;
+    const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(raw);
+    const normalized = hasTimezone ? raw : `${raw}Z`;
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   // Enhanced edit blog handler
   const handleEditBlog = (blog: Blog) => {
     //console.log("Edit blog clicked:", blog.id)
@@ -931,6 +949,11 @@ export default function BlogsPage() {
     setUpdateSuccess("");
     setImageError("");
     setRemoveExistingImage(false);
+    const parsedScheduledAt = parseScheduledAt(blog.scheduled_at);
+    const isBlogScheduled = Boolean(blog.is_scheduled);
+    const fallbackScheduledAt = new Date(Date.now() + 30 * 60 * 1000);
+    const effectiveScheduledAt =
+      parsedScheduledAt ?? (isBlogScheduled ? fallbackScheduledAt : null);
 
     const editData = {
       id: blog.id,
@@ -952,10 +975,16 @@ export default function BlogsPage() {
         : [],
       brand_tags: blog.brand_tags || [],
       paid_promotion: blog.paid_promotion || false,
+      is_scheduled: isBlogScheduled,
+      scheduled_at: effectiveScheduledAt
+        ? effectiveScheduledAt.toISOString()
+        : null,
     };
 
     setEditBlogForm(editData);
     setOriginalEditData(editData); // Store original data for comparison
+    setIsEditScheduled(isBlogScheduled);
+    setEditScheduledAt(effectiveScheduledAt);
 
     const imageUrl = blog.image;
     if (imageUrl) {
@@ -1214,6 +1243,36 @@ export default function BlogsPage() {
         hasChanges = true;
       }
 
+      if (
+        isEditScheduled &&
+        (!editScheduledAt ||
+          editScheduledAt <= new Date(Date.now() + 5 * 60 * 1000))
+      ) {
+        setUpdateError(
+          "Please select a valid future date and time for scheduling."
+        );
+        setIsUpdating(false);
+        return;
+      }
+
+      const originalIsScheduled = Boolean(originalEditData.is_scheduled);
+      const originalScheduledAt = originalEditData.scheduled_at || null;
+      const currentScheduledAt = editScheduledAt
+        ? editScheduledAt.toISOString()
+        : null;
+      const scheduleChanged =
+        isEditScheduled !== originalIsScheduled ||
+        (isEditScheduled && currentScheduledAt !== originalScheduledAt);
+
+      if (scheduleChanged) {
+        formData.append("is_scheduled", isEditScheduled ? "true" : "false");
+        formData.append(
+          "scheduled_at",
+          isEditScheduled && currentScheduledAt ? currentScheduledAt : ""
+        );
+        hasChanges = true;
+      }
+
       if (!hasChanges) {
         setUpdateError("No changes detected");
         setIsUpdating(false);
@@ -1238,6 +1297,10 @@ export default function BlogsPage() {
           image:
             response.data?.image ||
             (removeExistingImage ? null : editBlogForm.existingImageUrl),
+          is_scheduled: isEditScheduled,
+          scheduled_at:
+            response.data?.blog?.scheduled_at ||
+            (isEditScheduled && currentScheduledAt ? currentScheduledAt : ""),
         };
 
         setUserData((prev) => ({
@@ -1263,6 +1326,8 @@ export default function BlogsPage() {
             image: null,
             existingImageUrl: "",
             keywords: [],
+            is_scheduled: false,
+            scheduled_at: null,
           });
           setOriginalEditData({
             id: 0,
@@ -1273,7 +1338,11 @@ export default function BlogsPage() {
             image: null,
             existingImageUrl: "",
             keywords: [],
+            is_scheduled: false,
+            scheduled_at: null,
           });
+          setIsEditScheduled(false);
+          setEditScheduledAt(null);
         }, 2000);
       } else {
         throw new Error("Failed to update blog");
@@ -3159,6 +3228,8 @@ export default function BlogsPage() {
                             image: null,
                             existingImageUrl: "",
                             keywords: [],
+                            is_scheduled: false,
+                            scheduled_at: null,
                           });
                           setEditImagePreview(null);
                           setRemoveExistingImage(false);
@@ -3166,6 +3237,8 @@ export default function BlogsPage() {
                           setUpdateError("");
                           setUpdateSuccess("");
                           setEditKeywordInput("");
+                          setIsEditScheduled(false);
+                          setEditScheduledAt(null);
                           if (editFileInputRef.current) {
                             editFileInputRef.current.value = "";
                           }
@@ -3579,6 +3652,35 @@ export default function BlogsPage() {
                           badge.
                         </p>
                       </div>
+
+                      <div>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={isEditScheduled}
+                            onChange={(e) => {
+                              setIsEditScheduled(e.target.checked);
+                              if (!e.target.checked) {
+                                setEditScheduledAt(null);
+                              } else if (!editScheduledAt) {
+                                setEditScheduledAt(
+                                  new Date(Date.now() + 30 * 60 * 1000)
+                                );
+                              }
+                            }}
+                            disabled={isUpdating}
+                            className="w-5 h-5 accent-indigo-600 cursor-pointer rounded border border-slate-300"
+                          />
+                          Schedule or reschedule publish
+                        </label>
+                        {isEditScheduled && (
+                          <Scheduler
+                            value={editScheduledAt}
+                            onChange={setEditScheduledAt}
+                            label="Update Schedule"
+                          />
+                        )}
+                      </div>
                     </div>
                     {/* Form Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
@@ -3595,6 +3697,8 @@ export default function BlogsPage() {
                             image: null,
                             existingImageUrl: "",
                             keywords: [],
+                            is_scheduled: false,
+                            scheduled_at: null,
                           });
                           setEditImagePreview(null);
                           setRemoveExistingImage(false);
@@ -3602,6 +3706,8 @@ export default function BlogsPage() {
                           setUpdateError("");
                           setUpdateSuccess("");
                           setEditKeywordInput("");
+                          setIsEditScheduled(false);
+                          setEditScheduledAt(null);
                           if (editFileInputRef.current) {
                             editFileInputRef.current.value = "";
                           }

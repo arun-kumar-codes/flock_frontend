@@ -151,6 +151,8 @@ interface EditVideoData {
   age_restricted: boolean;
   brand_tags?: string[];
   paid_promotion?: boolean;
+  is_scheduled?: boolean;
+  scheduled_at?: string | null;
 }
 
 export default function VideoDashboard() {
@@ -183,6 +185,8 @@ export default function VideoDashboard() {
   const [scheduledAt, setScheduledAt] = useState<Date | null>(
     new Date(new Date().getTime() + 30 * 60 * 1000)
   );
+  const [isEditScheduled, setIsEditScheduled] = useState(false);
+  const [editScheduledAt, setEditScheduledAt] = useState<Date | null>(null);
 
   const [canCancel, setCanCancel] = useState(false);
 
@@ -273,6 +277,8 @@ export default function VideoDashboard() {
     age_restricted: false,
     brand_tags: [],
     paid_promotion: false,
+    is_scheduled: false,
+    scheduled_at: null,
   });
 
   // Store original edit form data for comparison
@@ -291,6 +297,8 @@ export default function VideoDashboard() {
     age_restricted: false,
     brand_tags: [],
     paid_promotion: false,
+    is_scheduled: false,
+    scheduled_at: null,
   });
 
   // Toast helper functions
@@ -1026,6 +1034,16 @@ useEffect(() => {
     }
   };
 
+  const parseScheduledAt = (value: unknown): Date | null => {
+    if (!value) return null;
+    const raw = String(value).trim();
+    if (!raw) return null;
+    const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(raw);
+    const normalized = hasTimezone ? raw : `${raw}Z`;
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   // Enhanced edit video handler
   const handleEditVideo = (video: VideoType) => {
     //console.log("Edit video clicked:", video.id)
@@ -1034,6 +1052,11 @@ useEffect(() => {
     setUpdateError("");
     setUpdateSuccess("");
     setThumbnailPreview(null);
+    const parsedScheduledAt = parseScheduledAt(video.scheduled_at);
+    const isVideoScheduled = Boolean(video.is_scheduled);
+    const fallbackScheduledAt = new Date(Date.now() + 30 * 60 * 1000);
+    const effectiveScheduledAt =
+      parsedScheduledAt ?? (isVideoScheduled ? fallbackScheduledAt : null);
 
     const editData = {
       id: video.id,
@@ -1050,11 +1073,17 @@ useEffect(() => {
       age_restricted: video.age_restricted || false,
       brand_tags: video.brand_tags || [],
       paid_promotion: video.paid_promotion || false,
+      is_scheduled: isVideoScheduled,
+      scheduled_at: effectiveScheduledAt
+        ? effectiveScheduledAt.toISOString()
+        : null,
     };
 
     //console.log("Edit data:", editData)
     setEditVideoForm(editData);
     setOriginalEditData(editData);
+    setIsEditScheduled(isVideoScheduled);
+    setEditScheduledAt(effectiveScheduledAt);
     setShowEditModal(true);
   };
 
@@ -1274,6 +1303,36 @@ useEffect(() => {
         hasChanges = true;
       }
 
+      if (
+        isEditScheduled &&
+        (!editScheduledAt ||
+          editScheduledAt <= new Date(Date.now() + 5 * 60 * 1000))
+      ) {
+        setUpdateError(
+          "Please select a valid future date and time for scheduling."
+        );
+        setIsUpdating(false);
+        return;
+      }
+
+      const originalIsScheduled = Boolean(originalEditData.is_scheduled);
+      const originalScheduledAt = originalEditData.scheduled_at || null;
+      const currentScheduledAt = editScheduledAt
+        ? editScheduledAt.toISOString()
+        : null;
+      const scheduleChanged =
+        isEditScheduled !== originalIsScheduled ||
+        (isEditScheduled && currentScheduledAt !== originalScheduledAt);
+
+      if (scheduleChanged) {
+        formData.append("is_scheduled", isEditScheduled ? "true" : "false");
+        formData.append(
+          "scheduled_at",
+          isEditScheduled && currentScheduledAt ? currentScheduledAt : ""
+        );
+        hasChanges = true;
+      }
+
       if (!hasChanges) {
         setUpdateError("No changes detected");
         setIsUpdating(false);
@@ -1286,6 +1345,10 @@ useEffect(() => {
           ...editVideoForm,
           title: editVideoForm.title.trim(),
           description: editVideoForm.description.trim(),
+          is_scheduled: isEditScheduled,
+          scheduled_at:
+            response.data?.video?.scheduled_at ||
+            (isEditScheduled && currentScheduledAt ? currentScheduledAt : ""),
         };
 
         setUserData((prev) => ({
@@ -1317,6 +1380,8 @@ useEffect(() => {
             keywords: [],
             thumbnail: null,
             age_restricted: false,
+            is_scheduled: false,
+            scheduled_at: null,
           });
           setOriginalEditData({
             id: 0,
@@ -1330,7 +1395,11 @@ useEffect(() => {
             is_draft: true,
             keywords: [],
             age_restricted: false,
+            is_scheduled: false,
+            scheduled_at: null,
           });
+          setIsEditScheduled(false);
+          setEditScheduledAt(null);
           setEditKeywordInput("");
         }, 2000);
       } else {
@@ -3397,6 +3466,8 @@ useEffect(() => {
                     setUpdateSuccess("");
                     setEditKeywordInput("");
                     setThumbnailPreview(null);
+                    setIsEditScheduled(false);
+                    setEditScheduledAt(null);
                   }}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                   disabled={isUpdating}
@@ -3821,6 +3892,35 @@ useEffect(() => {
                       badge.
                     </p>
                   </div>
+
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={isEditScheduled}
+                        onChange={(e) => {
+                          setIsEditScheduled(e.target.checked);
+                          if (!e.target.checked) {
+                            setEditScheduledAt(null);
+                          } else if (!editScheduledAt) {
+                            setEditScheduledAt(
+                              new Date(Date.now() + 30 * 60 * 1000)
+                            );
+                          }
+                        }}
+                        disabled={isUpdating}
+                        className="w-5 h-5 accent-indigo-600 cursor-pointer rounded border border-slate-300"
+                      />
+                      Schedule or reschedule publish
+                    </label>
+                    {isEditScheduled && (
+                      <Scheduler
+                        value={editScheduledAt}
+                        onChange={setEditScheduledAt}
+                        label="Update Schedule"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Form Actions */}
@@ -3833,6 +3933,8 @@ useEffect(() => {
                       setUpdateSuccess("");
                       setEditKeywordInput("");
                       setThumbnailPreview(null);
+                      setIsEditScheduled(false);
+                      setEditScheduledAt(null);
                     }}
                     disabled={isUpdating}
                     className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
