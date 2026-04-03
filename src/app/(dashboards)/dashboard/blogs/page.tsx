@@ -851,12 +851,12 @@ export default function BlogsPage() {
         );
         setTimeout(() => setUpdateSuccess(""), 3000);
       } else {
-        throw new Error("Failed to update blog status");
+        throw new Error("Failed to update Ink status");
       }
     } catch (error: any) {
-      console.error("Error updating blog status:", error);
+      console.error("Error updating Ink status:", error);
       setUpdateError(
-        error?.response?.data?.message || "Failed to update blog status"
+        error?.response?.data?.message || "Failed to update Ink status"
       );
       setTimeout(() => setUpdateError(""), 3000);
     } finally {
