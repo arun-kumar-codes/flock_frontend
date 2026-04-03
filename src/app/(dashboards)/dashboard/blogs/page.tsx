@@ -3734,7 +3734,7 @@ export default function BlogsPage() {
                         ) : (
                           <>
                             <SaveIcon className="w-4 h-4 mr-2" />
-                            Update Blog
+                            Update Ink
                           </>
                         )}
                       </button>
