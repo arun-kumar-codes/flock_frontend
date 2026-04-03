@@ -33,9 +33,10 @@ const SocialLogin = () => {
       const result = await signInWithPopup(auth, provider);
       const loggedInUser = result.user;
       setUser(loggedInUser);
-      // Optional: get Firebase token for backend auth
-      const fireBaseIdtoken = await loggedInUser.getIdToken();
-      console.log("Firebase ID Token:", fireBaseIdtoken);
+      console.log(loggedInUser.email);
+      const idTokenResult = await loggedInUser.getIdTokenResult(true);
+      console.log(idTokenResult.claims.email);
+      const fireBaseIdtoken = await loggedInUser.getIdToken(true);
       const response = await logInWithSocial({
         idToken: fireBaseIdtoken,
       });
@@ -124,9 +125,11 @@ const SocialLogin = () => {
 
         {/* Facebook Login */}
         <button
-          onClick={() =>
-            loginWithProvider(new FacebookAuthProvider(), "facebook")
-          }
+          onClick={() => {
+            const provider = new FacebookAuthProvider();
+            provider.addScope("email");
+            loginWithProvider(provider, "facebook");
+          }}
           disabled={isLoading !== null}
           className="flex-1 flex items-center justify-center gap-2 py-2 px-3 cursor-pointer rounded-full border border-gray-300 bg-white text-black shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >
