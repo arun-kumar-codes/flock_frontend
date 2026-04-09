@@ -19,6 +19,17 @@ export default function ShareButton({
   const [copied, setCopied] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
+  const cleanedSummary = useMemo(() => {
+    if (!summary) return "";
+    const stripped = String(summary)
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!stripped) return "";
+    return stripped.length > 160 ? `${stripped.slice(0, 157)}...` : stripped;
+  }, [summary]);
+
   const publicUrl = useMemo(() => {
     let origin =
       publicBaseUrl ||
@@ -86,7 +97,7 @@ export default function ShareButton({
         try {
           await navigator.share({
             title,
-            text: summary || title,
+            text: cleanedSummary || title,
             url: publicUrl,
           });
           return;
@@ -100,7 +111,7 @@ export default function ShareButton({
         setShowPopup(true);
       }
     },
-    [publicUrl, title, summary, copyToClipboard]
+    [publicUrl, title, cleanedSummary, copyToClipboard]
   );
 
   return (

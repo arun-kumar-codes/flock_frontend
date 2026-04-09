@@ -832,6 +832,9 @@ const handleBlogClick = (blog: Blog) => {
     setShowVideoOverlay(false);
   };
 
+  const getCreatorSortName = (creator: Creator) =>
+    (creator.display_name || creator.username || creator.email || "").trim();
+
   // Search all creators (from full DB list) by username, display name, or email
   const filteredCreators = creators.filter((creator) => {
     const term = (searchTerm || "").trim().toLowerCase();
@@ -844,7 +847,12 @@ const handleBlogClick = (blog: Blog) => {
       displayName.includes(term) ||
       email.includes(term)
     );
-  });
+  }).sort((a, b) =>
+    getCreatorSortName(a).localeCompare(getCreatorSortName(b), undefined, {
+      sensitivity: "base",
+      numeric: true,
+    })
+  );
 
   if (isLoading || isLoadingFollowing) {
     return <Loader />;

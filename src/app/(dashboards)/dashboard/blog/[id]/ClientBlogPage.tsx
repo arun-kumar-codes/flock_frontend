@@ -44,6 +44,8 @@ interface Blog {
       display_name?: string;
     };
     created_at: string;
+    published_at?: string;
+    scheduled_at?: string;
     created_by: number;
     comments: Array<{
       id: number;
@@ -255,6 +257,27 @@ export default function DashboardBlogDetailPage({
     }
   };
 
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return "Unknown date/time";
+    try {
+      return new Date(dateString).toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid date/time";
+    }
+  };
+
+  const getPublishedTimestamp = () =>
+    blog?.blog?.published_at ||
+    blog?.blog?.scheduled_at ||
+    blog?.blog?.created_at ||
+    "";
+
   const calculateReadTime = (content: string): string => {
     const wordsPerMinute = 200;
     const textContent = content.replace(/<[^>]*>/g, "");
@@ -348,7 +371,7 @@ export default function DashboardBlogDetailPage({
   </span>
   <span className="flex items-center gap-1 w-full xs:w-auto">
     <Calendar className="w-4 h-4" />
-    {formatDate(blog.blog?.created_at || "")}
+    Published: {formatDateTime(getPublishedTimestamp())}
   </span>
 </div>
 

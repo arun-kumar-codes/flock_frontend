@@ -12,6 +12,8 @@ import {
   deleteVideoComment,
   editVideoComment,
   addWatchTime,
+  addFollowing,
+  removeFollowing,
 } from "@/api/content";
 import {
   ArrowLeft,
@@ -25,6 +27,8 @@ import {
   Edit,
   Trash2,
   Send,
+  UserPlus,
+  UserCheck,
 } from "lucide-react";
 import Loader from "@/components/Loader";
 
@@ -38,6 +42,8 @@ interface Video {
     likes: number;
     is_liked: boolean;
     created_at: string;
+    published_at?: string;
+    scheduled_at?: string;
     description: string;
     title: string;
     creator: {
@@ -45,6 +51,7 @@ interface Video {
       username: string;
       email: string;
       profile_picture?: string;
+      display_name?: string;
     };
     comments: Array<{
       id: number;
@@ -65,6 +72,8 @@ interface Video {
     paid_promotion?: boolean;
     status?: string;
     show_comments?: boolean;
+    is_following_creator?: boolean;
+    is_following_author?: boolean;
   };
 }
 
@@ -78,6 +87,8 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isLiked, setIsLiked] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowingLoading, setIsFollowingLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
@@ -93,6 +104,7 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
   const [startTime, setStartTime] = useState<number | null>(null);
   const [totalWatchTime, setTotalWatchTime] = useState<number>(0);
   const watchTimeRef = useRef<number>(0);
+  const hasViewBeenAddedRef = useRef(false);
   console.log("window url", videoUrl);
 
   useEffect(() => {
@@ -114,6 +126,18 @@ useEffect(() => {
     setStartTime(Date.now());
   }
 }, []);
+
+useEffect(() => {
+  setIsFollowing(
+    Boolean(
+      video?.video?.is_following_creator ?? video?.video?.is_following_author
+    )
+  );
+}, [video?.video?.is_following_creator, video?.video?.is_following_author]);
+
+useEffect(() => {
+  hasViewBeenAddedRef.current = false;
+}, [videoId]);
 
 
   // Handle clicking outside comment menu
@@ -182,6 +206,26 @@ useEffect(() => {
     }
   };
 
+  const handleFollow = async () => {
+    const creatorId = video?.video?.creator?.id;
+    if (!creatorId || isFollowingLoading) return;
+
+    setIsFollowingLoading(true);
+    try {
+      const response = isFollowing
+        ? await removeFollowing(String(creatorId))
+        : await addFollowing(String(creatorId));
+
+      if (response?.status === 200 || response?.success === true) {
+        setIsFollowing(!isFollowing);
+      }
+    } catch (err) {
+      console.error("Error toggling follow:", err);
+    } finally {
+      setIsFollowingLoading(false);
+    }
+  };
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
@@ -228,10 +272,35 @@ useEffect(() => {
     }
   };
 
+  const recordView = async () => {
+    if (!user?.isLogin || hasViewBeenAddedRef.current) {
+      return;
+    }
+
+    hasViewBeenAddedRef.current = true;
+
+    try {
+      const response = await addView(videoId);
+
+      if (response?.status === 200 || response?.status === 201) {
+        const videoResponse = await getVideoById(videoId);
+        if (videoResponse?.data) {
+          setVideo(videoResponse.data);
+        }
+        return;
+      }
+    } catch (err) {
+      console.error("Error adding view:", err);
+    }
+
+    hasViewBeenAddedRef.current = false;
+  };
+
   // Start timer when iframe loads
 const handleIframeLoad = () => {
   console.log("▶️ Iframe loaded: Watch timer started");
   setStartTime(Date.now());
+  void recordView();
 };
 
   const handleDeleteComment = async (commentId: number) => {
@@ -275,6 +344,27 @@ const handleIframeLoad = () => {
       return "Invalid date";
     }
   };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return "Unknown date/time";
+    try {
+      return new Date(dateString).toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid date/time";
+    }
+  };
+
+  const getPublishedTimestamp = () =>
+    video?.video?.published_at ||
+    video?.video?.scheduled_at ||
+    video?.video?.created_at ||
+    "";
 
   const formatDuration = (seconds: number) => {
     if (!seconds || isNaN(seconds) || seconds < 0) {
@@ -383,30 +473,67 @@ const handleIframeLoad = () => {
                   {formatDuration(video.video?.duration || 0)}
                 </span>
                 <span className="whitespace-nowrap">
-                  {formatDate(video.video?.created_at || "")}
+                  Published: {formatDateTime(getPublishedTimestamp())}
                 </span>
               </div>
 
               {/* Creator Info */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                  {video.video?.creator?.profile_picture ? (
-                    <Image
-                      src={video.video.creator.profile_picture}
-                      alt={video.video?.creator?.username || "Creator"}
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User className="w-5 h-5 text-white" />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium theme-text-primary">
-                    {video.video?.creator?.username || "Unknown Creator"}
-                  </p>
-                </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const id = video.video?.creator?.id;
+                    if (id != null) router.push(`/viewer/creator/${id}`);
+                  }}
+                  className="flex items-center gap-3 text-left hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                >
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {video.video?.creator?.profile_picture ? (
+                      <Image
+                        src={video.video.creator.profile_picture}
+                        alt={video.video?.creator?.username || "Creator"}
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium theme-text-primary underline decoration-transparent hover:decoration-current">
+                      {video.video?.creator?.display_name ??
+                        video.video?.creator?.username ??
+                        "Unknown Creator"}
+                    </p>
+                  </div>
+                </button>
+
+                {video.video?.creator?.id !== user?.id && (
+                  <button
+                    onClick={handleFollow}
+                    disabled={isFollowingLoading}
+                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isFollowing
+                        ? "bg-green-400 text-gray-800 hover:bg-green-500"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    } disabled:opacity-50`}
+                  >
+                    {isFollowingLoading ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : isFollowing ? (
+                      <>
+                        <UserCheck className="w-4 h-4" />
+                        <span>Following</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        <span>Follow</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               {/* Description */}

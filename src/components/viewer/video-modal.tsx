@@ -46,6 +46,10 @@ export function VideoModal({
   onRefreshVideos,
 }: VideoModalProps) {
   console.log("Videos in modal:", video);
+  const videoDurationSeconds =
+    typeof video.duration === "number" ? video.duration : Number(video.duration);
+  const canTrackWatchTime =
+    Number.isFinite(videoDurationSeconds) && videoDurationSeconds > 0;
   const user = useSelector((state: any) => state.user);
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
@@ -125,13 +129,21 @@ export function VideoModal({
   };
   // Function to send watch time to API
   const sendWatchTimeToAPI = async (watchTime: number) => {
-    if (watchTime > 0 && user.isLogin) {
-      try {
-        await addWatchTime(video.id, watchTime);
-        //console.log("Watch time sent to API:", watchTime, "seconds")
-      } catch (error) {
-        console.error("Error sending watch time:", error);
-      }
+    const normalizedWatchTime = Number(watchTime);
+    if (
+      !user.isLogin ||
+      !canTrackWatchTime ||
+      !Number.isFinite(normalizedWatchTime) ||
+      normalizedWatchTime <= 0
+    ) {
+      return;
+    }
+
+    try {
+      await addWatchTime(video.id, normalizedWatchTime);
+      //console.log("Watch time sent to API:", normalizedWatchTime, "seconds")
+    } catch (error) {
+      console.error("Error sending watch time:", error);
     }
   };
   // Handle modal close

@@ -20,6 +20,8 @@ import { ResponsiveCaptcha } from "@/components/ResponsiveCaptcha";
 
 
 const inter = Inter({ subsets: ["latin"] });
+const SIGNUP_DRAFT_KEY = "signupFormDraft";
+const SIGNUP_VERIFY_KEY = "signupPendingVerification";
 
 function GridTile({
   image,
@@ -108,6 +110,12 @@ export default function Signup() {
   const [userEmail, setUserEmail] = useState("");
   const [verifyError, setVerifyError] = useState("");
 
+  const clearSignupPersistedState = () => {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem(SIGNUP_DRAFT_KEY);
+    localStorage.removeItem(SIGNUP_VERIFY_KEY);
+  };
+
   const handleChange = (name: string, value: string) => {
     if (name === "email") value = value.toLowerCase();
     setFormData({
@@ -132,30 +140,139 @@ export default function Signup() {
     }
   };
 
+  const normalizeDobInput = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+  };
+
+  const toDobDisplay = (raw: string) => {
+    if (!raw) return "";
+    const trimmed = raw.trim();
+
+    // yyyy-mm-dd -> dd/mm/yyyy
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [yyyy, mm, dd] = trimmed.split("-");
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    // already slash-separated (or pasted with mixed chars) -> normalize
+    return normalizeDobInput(trimmed);
+  };
+
+  const parseDob = (dobStr: string) => {
+    const display = toDobDisplay(dobStr);
+    const [dd, mm, yyyy] = display.split("/").map(Number);
+
+    if (!dd || !mm || !yyyy) return null;
+    if (mm < 1 || mm > 12) return null;
+    if (dd < 1 || dd > 31) return null;
+    if (yyyy < 1900 || yyyy > new Date().getFullYear()) return null;
+
+    const dateObj = new Date(yyyy, mm - 1, dd);
+    if (
+      dateObj.getFullYear() !== yyyy ||
+      dateObj.getMonth() !== mm - 1 ||
+      dateObj.getDate() !== dd
+    ) {
+      return null;
+    }
+    return dateObj;
+  };
+
+  const toIsoDob = (dobStr: string) => {
+    const display = toDobDisplay(dobStr);
+    const [dd, mm, yyyy] = display.split("/");
+    if (!dd || !mm || !yyyy) return "";
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   // VALIDATE REAL DATE (DD/MM/YYYY)
 function isValidDOB(dobStr: string) {
-  const [dd, mm, yyyy] = dobStr.split("/").map(Number);
-
-  // Required parts
-  if (!dd || !mm || !yyyy) return false;
-
-  // Logical ranges
-  if (mm < 1 || mm > 12) return false;
-  if (dd < 1 || dd > 31) return false;
-  if (yyyy < 1900 || yyyy > new Date().getFullYear()) return false;
-
-  // Create real date
-  const dateObj = new Date(yyyy, mm - 1, dd);
-
-  // Verify JS didn’t auto-correct invalid date
-  return (
-    dateObj.getFullYear() === yyyy &&
-    dateObj.getMonth() === mm - 1 &&
-    dateObj.getDate() === dd
-  );
+  return parseDob(dobStr) !== null;
 }
 
 const params = useSearchParams();
+
+useEffect(() => {
+  if (typeof window === "undefined") return;
+  try {
+    const savedDraftRaw = localStorage.getItem(SIGNUP_DRAFT_KEY);
+    if (savedDraftRaw) {
+      const savedDraft = JSON.parse(savedDraftRaw) as {
+        email?: string;
+        username?: string;
+        password?: string;
+        dob?: string;
+        confirmPassword?: string;
+      };
+      setFormData((prev) => ({
+        ...prev,
+        email: savedDraft.email ?? prev.email,
+        username: savedDraft.username ?? prev.username,
+        password: savedDraft.password ?? prev.password,
+        dob: savedDraft.dob ?? prev.dob,
+        recaptchaToken: "",
+      }));
+      setConfirmPassword(savedDraft.confirmPassword ?? "");
+    }
+
+    const savedVerifyRaw = localStorage.getItem(SIGNUP_VERIFY_KEY);
+    if (savedVerifyRaw) {
+      const savedVerify = JSON.parse(savedVerifyRaw) as {
+        showVerification?: boolean;
+        userEmail?: string;
+        verificationCode?: string;
+      };
+      if (savedVerify.showVerification && savedVerify.userEmail) {
+        setShowVerification(true);
+        setUserEmail(savedVerify.userEmail);
+        setVerificationCode(savedVerify.verificationCode ?? "");
+      }
+    }
+  } catch {
+    localStorage.removeItem(SIGNUP_DRAFT_KEY);
+    localStorage.removeItem(SIGNUP_VERIFY_KEY);
+  }
+}, []);
+
+useEffect(() => {
+  if (typeof window === "undefined" || showVerification) return;
+  localStorage.setItem(
+    SIGNUP_DRAFT_KEY,
+    JSON.stringify({
+      email: formData.email,
+      username: formData.username,
+      password: formData.password,
+      dob: formData.dob,
+      confirmPassword,
+    })
+  );
+}, [
+  showVerification,
+  formData.email,
+  formData.username,
+  formData.password,
+  formData.dob,
+  confirmPassword,
+]);
+
+useEffect(() => {
+  if (typeof window === "undefined") return;
+  if (showVerification && userEmail) {
+    localStorage.setItem(
+      SIGNUP_VERIFY_KEY,
+      JSON.stringify({
+        showVerification: true,
+        userEmail,
+        verificationCode,
+      })
+    );
+  } else {
+    localStorage.removeItem(SIGNUP_VERIFY_KEY);
+  }
+}, [showVerification, userEmail, verificationCode]);
 useEffect(() => {
   const verifyEmail = params.get("verify");
 
@@ -239,18 +356,24 @@ useEffect(() => {
     }
 
     try {
-      // FIX DOB FORMAT BEFORE SUBMIT
-      if (formData.dob) {
-        const parts = formData.dob.split("/");
-        if (parts.length === 3) {
-          const [dd, mm, yyyy] = parts;
-          formData.dob = `${yyyy}-${mm}-${dd}`; // Convert to YYYY-MM-DD
-        }
-      }
-      const response = await signUp(formData);
+      const payload = {
+        ...formData,
+        dob: formData.dob ? toIsoDob(formData.dob) : "",
+      };
+      const response = await signUp(payload);
       if (response.status === 201) {
         setUserEmail(formData.email);     // store email
         setShowVerification(true);        // show OTP screen
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            SIGNUP_VERIFY_KEY,
+            JSON.stringify({
+              showVerification: true,
+              userEmail: formData.email,
+              verificationCode: "",
+            })
+          );
+        }
       } else {
         setErrorMessage(
           response?.data?.error || "Error creating account. Please try again."
@@ -278,6 +401,7 @@ useEffect(() => {
 
   if (res?.status === 200) {
     toast.success("Email verified! Your account is now activated.");
+    clearSignupPersistedState();
     router.push("/login");
   } else {
     setVerifyError(res?.data?.error || "Invalid verification code");
@@ -292,6 +416,22 @@ const handleResend = async () => {
   } else {
     toast.error(res?.data?.error || "Failed to resend code");
   }
+};
+
+const handleCaptchaExpired = () => {
+  setFormData((prev) => ({ ...prev, recaptchaToken: "" }));
+  setErrors((prev) => ({
+    ...prev,
+    recaptcha: "Captcha expired. Please verify again.",
+  }));
+};
+
+const handleCaptchaErrored = () => {
+  setFormData((prev) => ({ ...prev, recaptchaToken: "" }));
+  setErrors((prev) => ({
+    ...prev,
+    recaptcha: "Captcha failed to load. Please try again.",
+  }));
 };
 
 
@@ -399,16 +539,14 @@ const handleResend = async () => {
     placeholder="Enter your Date of Birth (DD/MM/YYYY)"
     value={formData.dob}
     maxLength={10}
+    inputMode="numeric"
+    autoComplete="off"
     onChange={(e) => {
-      let input = e.target.value.replace(/[^\d]/g, "");
-
-      if (input.length > 2 && input.length <= 4) {
-        input = input.slice(0, 2) + "/" + input.slice(2);
-      } else if (input.length > 4) {
-        input = input.slice(0, 2) + "/" + input.slice(2, 4) + "/" + input.slice(4, 8);
-      }
-
-      setFormData({ ...formData, dob: input });
+      setFormData({ ...formData, dob: normalizeDobInput(e.target.value) });
+      setErrors({ ...errors, dob: "" });
+    }}
+    onBlur={() => {
+      setFormData((prev) => ({ ...prev, dob: toDobDisplay(prev.dob) }));
       setErrors({ ...errors, dob: "" });
     }}
     className={`w-full rounded-full border-2 px-2 py-1 pr-10 text-slate-900 bg-white
@@ -564,6 +702,8 @@ const handleResend = async () => {
               <div className="w-full sm:w-[60%] flex justify-end sm:justify-center">
                 <ResponsiveCaptcha
                   onChange={handleRecaptchaChange}
+                  onExpired={handleCaptchaExpired}
+                  onErrored={handleCaptchaErrored}
                   recaptchaRef={recaptchaRef}
                   siteKey={RECAPTCHA_SITE_KEY || ""}
                 />

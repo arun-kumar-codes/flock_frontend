@@ -41,6 +41,8 @@ interface Video {
     likes: number;
     is_liked: boolean;
     created_at: string;
+    published_at?: string;
+    scheduled_at?: string;
     description: string;
     title: string;
     creator: {
@@ -226,6 +228,27 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
     }
   };
 
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return "Unknown date/time";
+    try {
+      return new Date(dateString).toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid date/time";
+    }
+  };
+
+  const getPublishedTimestamp = () =>
+    video?.video?.published_at ||
+    video?.video?.scheduled_at ||
+    video?.video?.created_at ||
+    "";
+
   const formatDuration = (seconds: number) => {
     if (!seconds || isNaN(seconds) || seconds < 0) {
       return "0:00";
@@ -333,7 +356,7 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
                 </span>
                 <span className="flex items-center gap-1">
                   <CalendarIcon className="w-4 h-4" />
-                  {formatDate(video.video?.created_at || "")}
+                  Published: {formatDateTime(getPublishedTimestamp())}
                 </span>
               </div>
 

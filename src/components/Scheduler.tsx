@@ -396,42 +396,54 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     () => [
       {
         key: "in5",
-        label: () => `In 5 min (${formatTime(addMinutes(now, 5), currentFormat)})`,
-        get: () => addMinutes(now, 5),
+        label: () => `In 5 min (${formatTime(addMinutes(new Date(), 5), currentFormat)})`,
+        get: () => addMinutes(new Date(), 5),
       },
       {
         key: "in30",
-        label: () => `In 30 min (${formatTime(addMinutes(now, 30), currentFormat)})`,
-        get: () => addMinutes(now, 30),
+        label: () => `In 30 min (${formatTime(addMinutes(new Date(), 30), currentFormat)})`,
+        get: () => addMinutes(new Date(), 30),
       },
       {
         key: "in60",
-        label: () => `In 1 hour (${formatTime(addMinutes(now, 60), currentFormat)})`,
-        get: () => addMinutes(now, 60),
+        label: () => `In 1 hour (${formatTime(addMinutes(new Date(), 60), currentFormat)})`,
+        get: () => addMinutes(new Date(), 60),
       },
       {
         key: "tonight19",
-        label: () => `Tonight ${formatTime(setTimeOfDay(now, 19, 0), currentFormat)}`,
-        get: () => setTimeOfDay(now, 19, 0),
+        label: () => `Tonight ${formatTime(setTimeOfDay(new Date(), 19, 0), currentFormat)}`,
+        get: () => setTimeOfDay(new Date(), 19, 0),
       },
       {
         key: "tomorrow9",
-        label: () => `Tomorrow ${formatTime(setTimeOfDay(addMinutes(now, 24 * 60), 9, 0), currentFormat)}`,
-        get: () => setTimeOfDay(addMinutes(now, 24 * 60), 9, 0),
+        label: () =>
+          `Tomorrow ${formatTime(setTimeOfDay(addMinutes(new Date(), 24 * 60), 9, 0), currentFormat)}`,
+        get: () => setTimeOfDay(addMinutes(new Date(), 24 * 60), 9, 0),
       },
       {
         key: "in3d9",
-        label: () => `In 3 days ${formatTime(setTimeOfDay(addMinutes(now, 3 * 24 * 60), 9, 0), currentFormat)}`,
-        get: () => setTimeOfDay(addMinutes(now, 3 * 24 * 60), 9, 0),
+        label: () =>
+          `In 3 days ${formatTime(setTimeOfDay(addMinutes(new Date(), 3 * 24 * 60), 9, 0), currentFormat)}`,
+        get: () => setTimeOfDay(addMinutes(new Date(), 3 * 24 * 60), 9, 0),
       },
-      { key: "in7d", label: () => "In 7 days", get: () => addMinutes(now, 7 * 24 * 60) },
-      { key: "in30d", label: () => "In 30 days", get: () => addMinutes(now, 30 * 24 * 60) },
+      {
+        key: "in7d",
+        label: () => "In 7 days",
+        get: () => addMinutes(new Date(), 7 * 24 * 60),
+      },
+      {
+        key: "in30d",
+        label: () => "In 30 days",
+        get: () => addMinutes(new Date(), 30 * 24 * 60),
+      },
     ],
-    [now, currentFormat],
+    [currentFormat],
   )
 
   const quickPick = (target: Date) => {
-    const within = clamp(target, minDateTime, maxDate)
+    const minAllowed = new Date(Date.now() + 5 * 60 * 1000)
+    const maxD = addMinutes(new Date(), 365 * 24 * 60)
+    const within = clamp(target, minAllowed, maxD)
     if (within.getTime() !== target.getTime()) {
       setNote("Adjusted to the allowed window (5 minutes ahead minimum).")
     } else {
@@ -502,7 +514,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
     if (!value) return null
     const dateLabel = formatDate(value)
     const timeLabel = formatTime(value, currentFormat)
-    const diffMs = value.getTime() - now.getTime()
+    const diffMs = value.getTime() - Date.now()
     const diffMin = Math.max(0, Math.round(diffMs / 60_000))
     const diffHours = Math.round(diffMin / 60)
     const diffDays = Math.round(diffMin / (60 * 24))
@@ -515,7 +527,7 @@ export default function Scheduler({ value, onChange, label = "Schedule", timeFor
       rel = `in ${diffDays} day${diffDays === 1 ? "" : "s"}`
     }
     return { dateLabel, timeLabel, rel }
-  }, [value, now, currentFormat])
+  }, [value, currentFormat])
 
   return (
     <div className="w-full max-w-md sm:max-w-2xl lg:max-w-5xl rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6 lg:p-8 mt-3">

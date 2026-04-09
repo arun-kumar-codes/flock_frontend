@@ -7,12 +7,16 @@ type ResponsiveCaptchaProps = {
   onChange: (token: string | null) => void;
   recaptchaRef: React.RefObject<ReCAPTCHA | null>;
   siteKey: string;
+  onExpired?: () => void;
+  onErrored?: () => void;
 };
 
 export const ResponsiveCaptcha: React.FC<ResponsiveCaptchaProps> = ({
   onChange,
   recaptchaRef,
   siteKey,
+  onExpired,
+  onErrored,
 }) => {
   const [scale, setScale] = useState<number>(1);
 
@@ -44,6 +48,8 @@ export const ResponsiveCaptcha: React.FC<ResponsiveCaptchaProps> = ({
           ref={recaptchaRef}
           sitekey={siteKey}
           onChange={onChange}
+          onExpired={onExpired}
+          onErrored={onErrored}
           theme="light"
         />
       </div>

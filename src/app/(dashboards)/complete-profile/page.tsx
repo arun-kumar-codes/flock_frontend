@@ -24,6 +24,47 @@ export default function CompleteProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
+  const normalizeDobInput = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+  };
+
+  const toDobDisplay = (raw: string) => {
+    if (!raw) return "";
+    const trimmed = raw.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [yyyy, mm, dd] = trimmed.split("-");
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    return normalizeDobInput(trimmed);
+  };
+
+  const parseDob = (dob: string) => {
+    const display = toDobDisplay(dob);
+    const [dd, mm, yyyy] = display.split("/").map(Number);
+    if (!dd || !mm || !yyyy) return null;
+    if (mm < 1 || mm > 12) return null;
+    if (dd < 1 || dd > 31) return null;
+
+    const parsed = new Date(yyyy, mm - 1, dd);
+    if (
+      parsed.getFullYear() !== yyyy ||
+      parsed.getMonth() !== mm - 1 ||
+      parsed.getDate() !== dd
+    ) {
+      return null;
+    }
+
+    return parsed;
+  };
+
+  const toIsoDob = (dob: string) => {
+    const [dd, mm, yyyy] = toDobDisplay(dob).split("/");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const passwordRequirements = [
     { label: "At least 8 characters", test: (pwd: string) => pwd.length >= 8 },
     { label: "An uppercase letter", test: (pwd: string) => /[A-Z]/.test(pwd) },
@@ -46,14 +87,26 @@ export default function CompleteProfilePage() {
   }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "dob") {
+      setFormData({ ...formData, dob: normalizeDobInput(value) });
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const birthDate = parseDob(formData.dob);
+    if (!birthDate) {
+      toast.error("Please enter your date of birth as DD/MM/YYYY.");
+      return;
+    }
+
     // Simple 13+ check
-    const birthDate = new Date(formData.dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
@@ -73,7 +126,10 @@ export default function CompleteProfilePage() {
 
     setIsSubmitting(true);
     try {
-      const response = await updateUserProfile(formData);
+      const response = await updateUserProfile({
+        ...formData,
+        dob: toIsoDob(formData.dob),
+      });
       if (response.status === 200 || response.status === 201) {
         toast.success("Profile completed successfully!");
         
@@ -195,11 +251,18 @@ export default function CompleteProfilePage() {
                 </div>
                 <input
                   name="dob"
-                  type="date"
+                  type="text"
                   required
                   value={formData.dob}
                   onChange={handleChange}
+                  onBlur={() =>
+                    setFormData((prev) => ({ ...prev, dob: toDobDisplay(prev.dob) }))
+                  }
+                  maxLength={10}
+                  inputMode="numeric"
+                  autoComplete="off"
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                  placeholder="dd/mm/yyyy"
                 />
               </div>
               <p className="text-[10px] text-gray-400 ml-1">Must be at least 13 years old</p>

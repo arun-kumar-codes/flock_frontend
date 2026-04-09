@@ -1,6 +1,17 @@
 import { Metadata } from "next";
 import ClientVideoPage from "./ClientVideoPage";
 
+function toShareDescription(raw: string | undefined, fallback: string) {
+  if (!raw) return fallback;
+  const stripped = raw
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!stripped) return fallback;
+  return stripped.length > 160 ? `${stripped.slice(0, 157)}...` : stripped;
+}
+
 export async function generateMetadata(
   props: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
@@ -15,8 +26,10 @@ export async function generateMetadata(
     const video = data?.video;
 
     const title = video?.title || "Video";
-    const desc =
-      video?.description?.slice(0, 150) || "Watch this video on FLOCK";
+    const desc = toShareDescription(
+      video?.description,
+      "Watch this video on FLOCK"
+    );
 
     const image =
       video?.thumbnail ||

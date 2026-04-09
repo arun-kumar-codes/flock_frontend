@@ -19,6 +19,7 @@ import {
   toggleBlogLike,
 } from "@/api/content";
 import { INK_LABEL } from "@/constants/contentLabels";
+import { resolveScheduledAt } from "@/lib/schedule";
 import {
   PlusIcon,
   SearchIcon,
@@ -1243,11 +1244,7 @@ export default function BlogsPage() {
         hasChanges = true;
       }
 
-      if (
-        isEditScheduled &&
-        (!editScheduledAt ||
-          editScheduledAt <= new Date(Date.now() + 5 * 60 * 1000))
-      ) {
+      if (isEditScheduled && !editScheduledAt) {
         setUpdateError(
           "Please select a valid future date and time for scheduling."
         );
@@ -1257,8 +1254,12 @@ export default function BlogsPage() {
 
       const originalIsScheduled = Boolean(originalEditData.is_scheduled);
       const originalScheduledAt = originalEditData.scheduled_at || null;
-      const currentScheduledAt = editScheduledAt
-        ? editScheduledAt.toISOString()
+      const resolvedEditScheduled =
+        isEditScheduled && editScheduledAt
+          ? resolveScheduledAt(editScheduledAt)
+          : null;
+      const currentScheduledAt = resolvedEditScheduled
+        ? resolvedEditScheduled.toISOString()
         : null;
       const scheduleChanged =
         isEditScheduled !== originalIsScheduled ||
@@ -1389,12 +1390,7 @@ export default function BlogsPage() {
       return;
     }
 
-    if (
-      isScheduled &&
-      (!scheduledAt ||
-        scheduledAt <= new Date(Date.now() + 5 * 60 * 1000))
-    ) {
-      console.log("Invalid scheduled date:", scheduledAt);
+    if (isScheduled && !scheduledAt) {
       setCreateError(
         "Please select a valid future date and time for scheduling."
       );
@@ -1450,7 +1446,10 @@ export default function BlogsPage() {
       }
 
       if (isScheduled && scheduledAt) {
-        formData.append("scheduled_at", scheduledAt.toISOString());
+        formData.append(
+          "scheduled_at",
+          resolveScheduledAt(scheduledAt).toISOString()
+        );
       }
 
       if (embeddedImages.length > 0) {

@@ -269,12 +269,18 @@ export async function  getDashboardContent(creatorId?:string|undefined) {
 }
 
 
-export async function createVideo(data: any, signal?: AbortSignal) {
+export async function createVideo(
+  data: any,
+  signal?: AbortSignal,
+  onUploadProgress?: (progressEvent: any) => void
+) {
   try {
     const response = await axiosInstance.post('/video/create', data, {
       headers: {
         "Content-Type": "multipart/form-data"
-      }
+      },
+      signal,
+      onUploadProgress,
     });
     return response;
   } catch (error:any) {

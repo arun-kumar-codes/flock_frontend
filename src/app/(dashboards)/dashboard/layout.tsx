@@ -422,15 +422,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <span className="hidden sm:inline">Switch to Viewer</span>
                 </button>
 
-                {/* Creator Badge */}
-                <div
-                  className="flex items-center space-x-1 px-2 py-1.5 bg-purple-700 text-white rounded-2xl text-sm font-medium"
-                  title="Creator"
-                >
-                  <PenToolIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Creator</span>
-                </div>
-
                 {/* User dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button

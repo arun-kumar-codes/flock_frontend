@@ -49,6 +49,7 @@ import {
   getTaskStatus,
   cancelUpload,
 } from "@/api/content";
+import { resolveScheduledAt } from "@/lib/schedule";
 import TipTapEditor from "@/components/tiptap-editor";
 import TipTapContentDisplay from "@/components/tiptap-content-display";
 import Video from "@/components/Video";
@@ -226,6 +227,11 @@ export default function VideoDashboard() {
   const [isUploading, setIsUploading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const uploadTaskIdRef = useRef<string | null>(null);
+  const uploadStartedAtRef = useRef<number | null>(null);
+  const uploadProgressRef = useRef(0);
+  const uploadEtaSecondsRef = useRef<number | null>(null);
+  const backendProgressRef = useRef(0);
+  const backendProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Loading states for different actions
   const [loadingActions, setLoadingActions] = useState<{
@@ -347,12 +353,80 @@ const updateToast = (id: string, updates: Partial<{
   })
 }
 
+const formatEta = (seconds: number | null) => {
+  if (seconds === null || !Number.isFinite(seconds) || seconds <= 0) return "";
+  const rounded = Math.max(1, Math.round(seconds));
+  const mins = Math.floor(rounded / 60);
+  const secs = rounded % 60;
+  if (mins <= 0) return `${secs}s left`;
+  if (mins < 60) return `${mins}m ${secs.toString().padStart(2, "0")}s left`;
+  const hours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return `${hours}h ${remMins}m left`;
+}
+
+const extractBackendProgress = (payload: any): number | null => {
+  if (!payload) return null;
+
+  const candidates = [
+    payload?.progress,
+    payload?.percent,
+    payload?.percentage,
+    payload?.result?.progress,
+    payload?.result?.percent,
+    payload?.result?.percentage,
+    payload?.meta?.progress,
+    payload?.meta?.percent,
+    payload?.task?.progress,
+    payload?.task?.percent,
+  ];
+
+  for (const candidate of candidates) {
+    const numeric = Number(candidate);
+    if (Number.isFinite(numeric)) {
+      if (numeric <= 1 && numeric >= 0) return Math.round(numeric * 100);
+      if (numeric >= 0 && numeric <= 100) return Math.round(numeric);
+    }
+  }
+
+  const statusText = String(payload?.status || payload?.message || "");
+  const pctMatch = statusText.match(/(\d{1,3})\s*%/);
+  if (pctMatch) {
+    const parsed = Number(pctMatch[1]);
+    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100) return parsed;
+  }
+
+  return null;
+}
+
+const startBackendProgressFallback = () => {
+  if (backendProgressTimerRef.current) return;
+  backendProgressTimerRef.current = setInterval(() => {
+    if (backendProgressRef.current < 80) {
+      backendProgressRef.current += 2;
+    } else if (backendProgressRef.current < 92) {
+      backendProgressRef.current += 1;
+    } else if (backendProgressRef.current < 95) {
+      backendProgressRef.current += 0.5;
+    }
+    backendProgressRef.current = Math.min(95, backendProgressRef.current);
+  }, 1500);
+}
+
+const stopBackendProgressFallback = () => {
+  if (backendProgressTimerRef.current) {
+    clearInterval(backendProgressTimerRef.current);
+    backendProgressTimerRef.current = null;
+  }
+}
+
 
 // Polling function
 const pollTaskStatus = async (taskId: string, toastId: string) => {
   try {
     const response = await getTaskStatus(taskId);
     const { state, status, result, error } = response.data;
+    const backendProgress = extractBackendProgress(response.data);
 
     if (state === 'SUCCESS') {
       // Stop polling
@@ -366,6 +440,12 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
       localStorage.removeItem('videoUploadPolling')
 
       setCanCancel(false);
+      setIsUploading(false);
+      uploadProgressRef.current = 100;
+      uploadEtaSecondsRef.current = null;
+      uploadStartedAtRef.current = null;
+      backendProgressRef.current = 100;
+      stopBackendProgressFallback();
 
       // Update toast to success
       updateToast(toastId, {
@@ -387,6 +467,10 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
         pollingIntervalRef.current = null
       }
       setPollingTaskId(null)
+      setIsUploading(false);
+      uploadEtaSecondsRef.current = null;
+      uploadStartedAtRef.current = null;
+      stopBackendProgressFallback();
 
       // CLEAR LOCALSTORAGE
       localStorage.removeItem('videoUploadPolling')
@@ -409,6 +493,10 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
         pollingIntervalRef.current = null
       }
       setPollingTaskId(null)
+      setIsUploading(false);
+      uploadEtaSecondsRef.current = null;
+      uploadStartedAtRef.current = null;
+      stopBackendProgressFallback();
 
       // CLEAR LOCALSTORAGE
       localStorage.removeItem('videoUploadPolling')
@@ -424,19 +512,37 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
 
     }
     else if (state === 'STARTED') {
-      // Update toast when upload actually starts
+      const effectiveProgress =
+        backendProgress !== null
+          ? backendProgress
+          : Math.max(1, Math.round(backendProgressRef.current));
+      if (backendProgress === null) {
+        startBackendProgressFallback();
+      } else {
+        backendProgressRef.current = backendProgress;
+      }
       updateToast(toastId, {
         type: 'loading',
-        message: 'Uploading Video...',
-        description: status || 'Your video is being uploaded to the server.',
+        message: `Processing... ${effectiveProgress}%`,
+        description:
+          status || `Backend processing is ${effectiveProgress}% complete.`,
       })
     }
     else if (state === 'PENDING') {
-      // This ensures the "Processing" toast updates properly while queued
+      const effectiveProgress =
+        backendProgress !== null
+          ? backendProgress
+          : Math.max(1, Math.round(backendProgressRef.current || 1));
+      if (backendProgress === null) {
+        startBackendProgressFallback();
+      } else {
+        backendProgressRef.current = backendProgress;
+      }
       updateToast(toastId, {
         type: 'loading',
-        message: 'Processing video...',
-        description: 'Preparing your upload, please wait...',
+        message: `Queued... ${effectiveProgress}%`,
+        description:
+          status || `Preparing your upload (${effectiveProgress}%).`,
       })
     }
 
@@ -448,6 +554,10 @@ const pollTaskStatus = async (taskId: string, toastId: string) => {
       pollingIntervalRef.current = null
     }
     setPollingTaskId(null)
+    setIsUploading(false);
+    uploadEtaSecondsRef.current = null;
+    uploadStartedAtRef.current = null;
+    stopBackendProgressFallback();
 
     // CLEAR LOCALSTORAGE
     localStorage.removeItem('videoUploadPolling')
@@ -469,6 +579,7 @@ useEffect(() => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
     }
+    stopBackendProgressFallback()
   }
 }, [])
 
@@ -1303,11 +1414,7 @@ useEffect(() => {
         hasChanges = true;
       }
 
-      if (
-        isEditScheduled &&
-        (!editScheduledAt ||
-          editScheduledAt <= new Date(Date.now() + 5 * 60 * 1000))
-      ) {
+      if (isEditScheduled && !editScheduledAt) {
         setUpdateError(
           "Please select a valid future date and time for scheduling."
         );
@@ -1317,8 +1424,12 @@ useEffect(() => {
 
       const originalIsScheduled = Boolean(originalEditData.is_scheduled);
       const originalScheduledAt = originalEditData.scheduled_at || null;
-      const currentScheduledAt = editScheduledAt
-        ? editScheduledAt.toISOString()
+      const resolvedEditScheduled =
+        isEditScheduled && editScheduledAt
+          ? resolveScheduledAt(editScheduledAt)
+          : null;
+      const currentScheduledAt = resolvedEditScheduled
+        ? resolvedEditScheduled.toISOString()
         : null;
       const scheduleChanged =
         isEditScheduled !== originalIsScheduled ||
@@ -1441,11 +1552,7 @@ useEffect(() => {
       return;
     }
 
-    if (
-      isScheduled &&
-      (!scheduledAt ||
-        scheduledAt < new Date(Date.now() + 5 * 60 * 1000))
-    ) {
+    if (isScheduled && !scheduledAt) {
       setCreateError(
         "Please select a valid future date and time for scheduling."
       );
@@ -1465,6 +1572,11 @@ useEffect(() => {
         message: "Initiated",
         description: "Please wait, we are in process Dont cancel yet",
       });
+      uploadProgressRef.current = 0;
+      uploadEtaSecondsRef.current = null;
+      uploadStartedAtRef.current = null;
+      backendProgressRef.current = 0;
+      stopBackendProgressFallback();
 
       const formData = new FormData();
       formData.append("title", videoForm.title.trim());
@@ -1496,8 +1608,11 @@ useEffect(() => {
         formData.append("thumbnail", videoForm.thumbnail);
       }
 
-      if (scheduledAt && isScheduled) {
-        formData.append("scheduled_at", scheduledAt.toISOString());
+      if (isScheduled && scheduledAt) {
+        formData.append(
+          "scheduled_at",
+          resolveScheduledAt(scheduledAt).toISOString()
+        );
       }
 
       // Create abort controller
@@ -1506,7 +1621,33 @@ useEffect(() => {
 
       setIsUploading(true);
 
-      const response = await createVideo(formData, signal);
+      const response = await createVideo(formData, signal, (progressEvent: any) => {
+        const total = progressEvent?.total || 0;
+        const loaded = progressEvent?.loaded || 0;
+        if (!total) return;
+
+        const percent = Math.min(100, Math.max(0, Math.round((loaded / total) * 100)));
+        uploadProgressRef.current = percent;
+
+        const now = Date.now();
+        if (!uploadStartedAtRef.current) uploadStartedAtRef.current = now;
+        const elapsedSec = Math.max(1, (now - uploadStartedAtRef.current) / 1000);
+        const bytesPerSec = loaded / elapsedSec;
+        const remainingBytes = Math.max(0, total - loaded);
+        const eta = bytesPerSec > 0 ? remainingBytes / bytesPerSec : null;
+        uploadEtaSecondsRef.current = eta;
+
+        if (uploadToastId) {
+          updateToast(uploadToastId, {
+            type: "loading",
+            message: `Uploading... ${percent}%`,
+            description:
+              percent < 100
+                ? `Uploading file to server (${percent}%). ${formatEta(eta)}`
+                : "Upload complete. Starting processing...",
+          });
+        }
+      });
 
    if (response?.status === 202 && response?.data?.task_id) {
     
@@ -1528,6 +1669,8 @@ useEffect(() => {
   })
 
   setPollingTaskId(taskId)
+  backendProgressRef.current = 0;
+  stopBackendProgressFallback();
 
   // SAVE TO LOCALSTORAGE
   localStorage.setItem('videoUploadPolling', JSON.stringify({
@@ -1589,6 +1732,10 @@ useEffect(() => {
         });
         setTimeout(() => removeToast(uploadToastId!), 7000);
       }
+      setIsUploading(false);
+      uploadEtaSecondsRef.current = null;
+      uploadStartedAtRef.current = null;
+      stopBackendProgressFallback();
     } finally {
       setIsCreating(false);
     }
@@ -1605,6 +1752,9 @@ useEffect(() => {
     }
 
     setIsUploading(false);
+    uploadEtaSecondsRef.current = null;
+    uploadStartedAtRef.current = null;
+    stopBackendProgressFallback();
     setCreateError("Upload cancelled.");
   } catch (err) {
     console.error("Cancel failed:", err);
