@@ -10,6 +10,21 @@ import placeholderImg from "../../../../assets/profile.png";
 import { useDispatch } from "react-redux"
 import { setUser } from "@/slice/userSlice";
 
+const formatDobForDisplay = (rawDob?: string | null) => {
+  if (!rawDob) return "Not provided";
+  const datePart = rawDob.slice(0, 10);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+  if (!match) return datePart;
+
+  const [, year, month, day] = match;
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+};
+
 interface UserData {
   id: string
   username: string
@@ -298,13 +313,7 @@ export default function ProfilePage() {
     <div>
       <p className="text-sm font-medium text-gray-600">Date of Birth</p>
       <p className="text-gray-900 font-semibold">
-        {initialUser.dob
-          ? new Date(initialUser.dob).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })
-          : "Not provided"}
+        {formatDobForDisplay(initialUser.dob)}
       </p>
     </div>
   </div>

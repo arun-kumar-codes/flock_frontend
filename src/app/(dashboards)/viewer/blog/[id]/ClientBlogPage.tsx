@@ -264,11 +264,59 @@ export default function BlogDetailPage({
     }
   };
 
-  const getPublishedTimestamp = () =>
-    blog?.blog?.published_at ||
-    blog?.blog?.scheduled_at ||
-    blog?.blog?.created_at ||
-    "";
+  const parseDateValue = (dateString?: string | null) => {
+    if (!dateString) return null;
+    const parsed = new Date(dateString);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const getBlogVisibilityState = () => {
+    const status = String(blog?.blog?.status || "").toLowerCase();
+    const scheduledDate = parseDateValue(blog?.blog?.scheduled_at);
+    const scheduledInFuture = Boolean(
+      scheduledDate && scheduledDate.getTime() > Date.now()
+    );
+    const isScheduled =
+      Boolean(blog?.blog?.is_scheduled) ||
+      status === "scheduled" ||
+      scheduledInFuture;
+    const isDraft = Boolean(blog?.blog?.is_draft) || status === "draft";
+
+    if (isScheduled) return "scheduled";
+    if (isDraft) return "draft";
+    if (status === "published") return "published";
+    return status || "published";
+  };
+
+  const getBlogDateMeta = () => {
+    const visibility = getBlogVisibilityState();
+
+    if (visibility === "scheduled") {
+      return {
+        label: "Scheduled for",
+        value: blog?.blog?.scheduled_at || blog?.blog?.created_at || "",
+      };
+    }
+
+    if (visibility === "draft") {
+      return {
+        label: "Draft saved",
+        value: blog?.blog?.created_at || blog?.blog?.scheduled_at || "",
+      };
+    }
+
+    return {
+      label: "Published",
+      value:
+        blog?.blog?.published_at ||
+        blog?.blog?.created_at ||
+        blog?.blog?.scheduled_at ||
+        "",
+    };
+  };
+
+  const blogVisibility = getBlogVisibilityState();
+  const blogDateMeta = getBlogDateMeta();
 
   const calculateReadTime = (content: string): string => {
     const wordsPerMinute = 200;
@@ -361,7 +409,7 @@ export default function BlogDetailPage({
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  Published: {formatDateTime(getPublishedTimestamp())}
+                  {blogDateMeta.label}: {formatDateTime(blogDateMeta.value)}
                 </span>
               </div>
 
@@ -449,14 +497,14 @@ export default function BlogDetailPage({
                   )}
 
                   {/* Draft Status */}
-                  {blog.blog?.is_draft && (
+                  {blogVisibility === "draft" && (
                     <span className="inline-flex items-center px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 text-sm font-medium rounded-full border border-orange-200 dark:border-orange-700">
                       📄 Draft
                     </span>
                   )}
 
                   {/* Scheduled Status */}
-                  {blog.blog?.is_scheduled && (
+                  {blogVisibility === "scheduled" && (
                     <span className="inline-flex items-center px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm font-medium rounded-full border border-purple-200 dark:border-purple-700">
                       ⏰ Scheduled
                     </span>

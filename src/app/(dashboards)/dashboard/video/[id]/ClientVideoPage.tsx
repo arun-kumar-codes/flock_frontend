@@ -70,6 +70,8 @@ interface Video {
     age_restricted?: boolean;
     paid_promotion?: boolean;
     status?: string;
+    is_draft?: boolean;
+    is_scheduled?: boolean;
     show_comments?: boolean;
   };
 }
@@ -243,11 +245,59 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
     }
   };
 
-  const getPublishedTimestamp = () =>
-    video?.video?.published_at ||
-    video?.video?.scheduled_at ||
-    video?.video?.created_at ||
-    "";
+  const parseDateValue = (dateString?: string | null) => {
+    if (!dateString) return null;
+    const parsed = new Date(dateString);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const getVideoVisibilityState = () => {
+    const status = String(video?.video?.status || "").toLowerCase();
+    const scheduledDate = parseDateValue(video?.video?.scheduled_at);
+    const scheduledInFuture = Boolean(
+      scheduledDate && scheduledDate.getTime() > Date.now()
+    );
+    const isScheduled =
+      Boolean(video?.video?.is_scheduled) ||
+      status === "scheduled" ||
+      scheduledInFuture;
+    const isDraft = Boolean(video?.video?.is_draft) || status === "draft";
+
+    if (isScheduled) return "scheduled";
+    if (isDraft) return "draft";
+    if (status === "published") return "published";
+    return status || "published";
+  };
+
+  const getVideoDateMeta = () => {
+    const visibility = getVideoVisibilityState();
+
+    if (visibility === "scheduled") {
+      return {
+        label: "Scheduled for",
+        value: video?.video?.scheduled_at || video?.video?.created_at || "",
+      };
+    }
+
+    if (visibility === "draft") {
+      return {
+        label: "Draft saved",
+        value: video?.video?.created_at || video?.video?.scheduled_at || "",
+      };
+    }
+
+    return {
+      label: "Published",
+      value:
+        video?.video?.published_at ||
+        video?.video?.created_at ||
+        video?.video?.scheduled_at ||
+        "",
+    };
+  };
+
+  const videoVisibility = getVideoVisibilityState();
+  const videoDateMeta = getVideoDateMeta();
 
   const formatDuration = (seconds: number) => {
     if (!seconds || isNaN(seconds) || seconds < 0) {
@@ -356,7 +406,7 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
                 </span>
                 <span className="flex items-center gap-1">
                   <CalendarIcon className="w-4 h-4" />
-                  Published: {formatDateTime(getPublishedTimestamp())}
+                  {videoDateMeta.label}: {formatDateTime(videoDateMeta.value)}
                 </span>
               </div>
 
@@ -474,21 +524,28 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
                   )}
 
                   {/* Status Badge */}
-                  {video.video?.status && (
+                  {(video.video?.status ||
+                    video.video?.is_draft ||
+                    video.video?.is_scheduled ||
+                    video.video?.scheduled_at) && (
                     <span
                       className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                        video.video.status === "published"
+                        videoVisibility === "published"
                           ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700"
-                          : video.video.status === "draft"
+                          : videoVisibility === "draft"
                           ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700"
+                          : videoVisibility === "scheduled"
+                          ? "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-700"
                           : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
                       }`}
                     >
-                      {video.video.status === "published"
-                        ? "✅ Published"
-                        : video.video.status === "draft"
-                        ? "📝 Draft"
-                        : video.video.status}
+                      {videoVisibility === "published"
+                        ? "Published"
+                        : videoVisibility === "draft"
+                        ? "Draft"
+                        : videoVisibility === "scheduled"
+                        ? "Scheduled"
+                        : videoVisibility}
                     </span>
                   )}
 
@@ -851,3 +908,4 @@ export default function ClientVideoPage({ initialVideo, videoId }: { initialVide
     </div>
   );
 }
+

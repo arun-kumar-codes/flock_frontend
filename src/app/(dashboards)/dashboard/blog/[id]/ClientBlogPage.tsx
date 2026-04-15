@@ -66,6 +66,8 @@ interface Blog {
     image?: string;
     archived: boolean;
     status: string;
+    is_draft?: boolean;
+    is_scheduled?: boolean;
     is_liked: boolean;
     views?: number;
     readTime?: string;
@@ -272,11 +274,59 @@ export default function DashboardBlogDetailPage({
     }
   };
 
-  const getPublishedTimestamp = () =>
-    blog?.blog?.published_at ||
-    blog?.blog?.scheduled_at ||
-    blog?.blog?.created_at ||
-    "";
+  const parseDateValue = (dateString?: string | null) => {
+    if (!dateString) return null;
+    const parsed = new Date(dateString);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const getBlogVisibilityState = () => {
+    const status = String(blog?.blog?.status || "").toLowerCase();
+    const scheduledDate = parseDateValue(blog?.blog?.scheduled_at);
+    const scheduledInFuture = Boolean(
+      scheduledDate && scheduledDate.getTime() > Date.now()
+    );
+    const isScheduled =
+      Boolean(blog?.blog?.is_scheduled) ||
+      status === "scheduled" ||
+      scheduledInFuture;
+    const isDraft = Boolean(blog?.blog?.is_draft) || status === "draft";
+
+    if (isScheduled) return "scheduled";
+    if (isDraft) return "draft";
+    if (status === "published") return "published";
+    return status || "published";
+  };
+
+  const getBlogDateMeta = () => {
+    const visibility = getBlogVisibilityState();
+
+    if (visibility === "scheduled") {
+      return {
+        label: "Scheduled for",
+        value: blog?.blog?.scheduled_at || blog?.blog?.created_at || "",
+      };
+    }
+
+    if (visibility === "draft") {
+      return {
+        label: "Draft saved",
+        value: blog?.blog?.created_at || blog?.blog?.scheduled_at || "",
+      };
+    }
+
+    return {
+      label: "Published",
+      value:
+        blog?.blog?.published_at ||
+        blog?.blog?.created_at ||
+        blog?.blog?.scheduled_at ||
+        "",
+    };
+  };
+
+  const blogVisibility = getBlogVisibilityState();
+  const blogDateMeta = getBlogDateMeta();
 
   const calculateReadTime = (content: string): string => {
     const wordsPerMinute = 200;
@@ -371,7 +421,7 @@ export default function DashboardBlogDetailPage({
   </span>
   <span className="flex items-center gap-1 w-full xs:w-auto">
     <Calendar className="w-4 h-4" />
-    Published: {formatDateTime(getPublishedTimestamp())}
+    {blogDateMeta.label}: {formatDateTime(blogDateMeta.value)}
   </span>
 </div>
 
@@ -488,21 +538,28 @@ export default function DashboardBlogDetailPage({
                   )}
 
                   {/* Status Badge */}
-                  {blog.blog?.status && (
+                  {(blog.blog?.status ||
+                    blog.blog?.is_draft ||
+                    blog.blog?.is_scheduled ||
+                    blog.blog?.scheduled_at) && (
                     <span
                       className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${
-                        blog.blog.status === "published"
+                        blogVisibility === "published"
                           ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700"
-                          : blog.blog.status === "draft"
+                          : blogVisibility === "draft"
                           ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700"
+                          : blogVisibility === "scheduled"
+                          ? "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-700"
                           : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600"
                       }`}
                     >
-                      {blog.blog.status === "published"
-                        ? "✅ Published"
-                        : blog.blog.status === "draft"
-                        ? "📝 Draft"
-                        : blog.blog.status}
+                      {blogVisibility === "published"
+                        ? "Published"
+                        : blogVisibility === "draft"
+                        ? "Draft"
+                        : blogVisibility === "scheduled"
+                        ? "Scheduled"
+                        : blogVisibility}
                     </span>
                   )}
 
@@ -865,4 +922,5 @@ export default function DashboardBlogDetailPage({
     </div>
   );
 }
+
 

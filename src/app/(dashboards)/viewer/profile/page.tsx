@@ -10,6 +10,21 @@ import { toast } from "react-hot-toast";
 import { setUser } from "@/slice/userSlice";
 import profilePlaceholder from "@/assets/profile.png";
 
+const formatDobForDisplay = (rawDob?: string | null) => {
+  if (!rawDob) return "Not provided";
+  const datePart = rawDob.slice(0, 10);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+  if (!match) return datePart;
+
+  const [, year, month, day] = match;
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+};
+
 export default function ProfilePage() {
   const user = useSelector((state: any) => state.user);
   const dispatch = useDispatch();
@@ -348,13 +363,7 @@ export default function ProfilePage() {
     <div>
       <p className="text-sm font-medium theme-text-muted">Date of Birth</p>
       <p className="theme-text-primary font-semibold text-sm md:text-base">
-        {dob
-          ? new Date(dob).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })
-          : "Not provided"}
+        {formatDobForDisplay(dob)}
       </p>
     </div>
   </div>
