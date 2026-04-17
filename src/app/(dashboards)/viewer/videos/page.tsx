@@ -61,6 +61,8 @@ interface Video {
   likes: number;
   is_liked: boolean;
   created_at: string;
+  published_at?: string;
+  scheduled_at?: string;
   created_by: number;
   creator: Creator;
   comments: Comment[];
@@ -324,8 +326,20 @@ const requireAuth = (nextPath: string, cb: () => void) => {
     }
   };
 
+  const parseDateValue = (dateString?: string | null) => {
+    if (!dateString) return null;
+    const raw = String(dateString).trim();
+    if (!raw) return null;
+    const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(raw);
+    const normalized = hasTimezone ? raw : `${raw}Z`;
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const parsed = parseDateValue(dateString);
+    if (!parsed) return "Unknown date";
+    return parsed.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -582,7 +596,14 @@ const requireAuth = (nextPath: string, cb: () => void) => {
                             <div className="flex items-center text-xs theme-text-muted">
                               <span>{formatViews(video.views || 0)} views</span>
                               <span className="mx-1">•</span>
-                              <span>{formatDate(video.created_at)}</span>
+                              <span>
+                                {formatDate(
+                                  video.published_at ||
+                                    video.created_at ||
+                                    video.scheduled_at ||
+                                    ""
+                                )}
+                              </span>
                             </div>
 
                             <button

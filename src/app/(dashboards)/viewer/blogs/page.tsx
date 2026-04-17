@@ -55,6 +55,8 @@ interface Blog {
   content: string;
   author: Author;
   created_at: string;
+  published_at?: string;
+  scheduled_at?: string;
   created_by: number;
   comments: Comment[];
   comments_count: number;
@@ -338,8 +340,20 @@ const requireAuth = (nextPath: string, cb: () => void) => {
     }
   };
 
+  const parseDateValue = (dateString?: string | null) => {
+    if (!dateString) return null;
+    const raw = String(dateString).trim();
+    if (!raw) return null;
+    const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(raw);
+    const normalized = hasTimezone ? raw : `${raw}Z`;
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const parsed = parseDateValue(dateString);
+    if (!parsed) return "Unknown date";
+    return parsed.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -492,7 +506,14 @@ const requireAuth = (nextPath: string, cb: () => void) => {
                           {currentBlogs[0].author.username}
                         </span>
                         <span>•</span>
-                        <span>{formatDate(currentBlogs[0].created_at)}</span>
+                        <span>
+                          {formatDate(
+                            currentBlogs[0].published_at ||
+                              currentBlogs[0].created_at ||
+                              currentBlogs[0].scheduled_at ||
+                              ""
+                          )}
+                        </span>
                       </div>
                     </div>
 
@@ -584,7 +605,14 @@ const requireAuth = (nextPath: string, cb: () => void) => {
                           {blog.author.username}
                         </span>
                         <span>•</span>
-                        <span>{formatDate(blog.created_at)}</span>
+                        <span>
+                          {formatDate(
+                            blog.published_at ||
+                              blog.created_at ||
+                              blog.scheduled_at ||
+                              ""
+                          )}
+                        </span>
                       </div>
                     </div>
 

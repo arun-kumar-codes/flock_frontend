@@ -1537,10 +1537,10 @@ const handleBlogClick = (blog: Blog) => {
                       </div>
                     </div>
                   )}
-                  {/* Creator Name Overlay - Only on Hover and when profile picture exists */}
+                  {/* Creator Name Overlay - Always visible when profile picture exists */}
                             {creator.profile_picture && (
                               <div className="absolute inset-0 bg-black/0 transition-all duration-300 flex items-end mb-2 px-2">
-                                <div className="w-full bg-white/20 px-4 py-3 text-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
+                                <div className="w-full bg-white/20 px-4 py-3 text-center backdrop-blur-md opacity-100 transition-opacity duration-300 rounded-full">
                                   <h3 className="text-white font-semibold text-base truncate">
                                     {creator.display_name ?? creator.username ?? "Creator"}
                                   </h3>

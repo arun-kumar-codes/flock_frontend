@@ -262,7 +262,11 @@ export default function DashboardBlogDetailPage({
   const formatDateTime = (dateString: string) => {
     if (!dateString) return "Unknown date/time";
     try {
-      return new Date(dateString).toLocaleString("en-US", {
+      const raw = String(dateString).trim();
+      if (!raw) return "Unknown date/time";
+      const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(raw);
+      const normalized = hasTimezone ? raw : `${raw}Z`;
+      return new Date(normalized).toLocaleString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -276,7 +280,11 @@ export default function DashboardBlogDetailPage({
 
   const parseDateValue = (dateString?: string | null) => {
     if (!dateString) return null;
-    const parsed = new Date(dateString);
+    const raw = String(dateString).trim();
+    if (!raw) return null;
+    const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(raw);
+    const normalized = hasTimezone ? raw : `${raw}Z`;
+    const parsed = new Date(normalized);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   };
 

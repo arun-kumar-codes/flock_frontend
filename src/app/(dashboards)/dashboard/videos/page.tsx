@@ -98,6 +98,7 @@ interface VideoType {
   description: string;
   author: Author;
   created_at: string;
+  published_at?: string;
   created_by: number;
   comments: Comment[];
   comments_count: number;
@@ -923,8 +924,20 @@ useEffect(() => {
     return URL.createObjectURL(thumbnail);
   };
 
+  const parseDateValue = (dateString?: string | null) => {
+    if (!dateString) return null;
+    const raw = String(dateString).trim();
+    if (!raw) return null;
+    const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(raw);
+    const normalized = hasTimezone ? raw : `${raw}Z`;
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const parsed = parseDateValue(dateString);
+    if (!parsed) return "Unknown date";
+    return parsed.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -2567,9 +2580,8 @@ useEffect(() => {
                               <ClockIcon className="w-3 h-3" />
                               <span>
                                 Scheduled for{" "}
-                                {new Date(
-                                  item.scheduled_at + "z"
-                                ).toLocaleString()}
+                                {parseScheduledAt(item.scheduled_at)?.toLocaleString() ||
+                                  "Invalid date"}
                               </span>
                             </div>
                           ) : (
@@ -2605,7 +2617,12 @@ useEffect(() => {
                           <span className="flex items-center space-x-1">
                             <CalendarIcon className="w-3 h-3" />
                             <span>
-                              {new Date(item.created_at).toLocaleDateString()}
+                              {formatDate(
+                                item.published_at ||
+                                  item.created_at ||
+                                  item.scheduled_at ||
+                                  ""
+                              )}
                             </span>
                           </span>
                           {item.views !== undefined && item.views !== null && (
@@ -4259,7 +4276,12 @@ useEffect(() => {
                   <span className="flex items-center space-x-1">
                     <CalendarIcon className="w-4 h-4" />
                     <span>
-                      {new Date(viewVideo.created_at).toLocaleDateString()}
+                      {formatDate(
+                        viewVideo.published_at ||
+                          viewVideo.created_at ||
+                          viewVideo.scheduled_at ||
+                          ""
+                      )}
                     </span>
                   </span>
                   <span className="flex items-center space-x-1">

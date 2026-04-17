@@ -715,15 +715,7 @@ export default function BlogsPage() {
       // Now send for publish
       const response = await sendForPublish(blogId);
       if (response?.status === 200) {
-        setUserData((prev) => ({
-          ...prev,
-          content:
-            prev.content?.map((blog) =>
-              blog.id === blogId
-                ? { ...blog, status: "published", content: updatedContent }
-                : blog
-            ) || [],
-        }));
+        await fetchUserBlogs();
         setUpdateSuccess(
           "Blog published successfully with all images uploaded!"
         );
@@ -2189,9 +2181,8 @@ export default function BlogsPage() {
                                   <ClockIcon className="w-3 h-3" />
                                   <span>
                                     Scheduled for{" "}
-                                    {new Date(
-                                      item.scheduled_at + "z"
-                                    ).toLocaleString()}
+                                    {parseScheduledAt(item.scheduled_at)?.toLocaleString() ||
+                                      "Invalid date"}
                                   </span>
                                 </div>
                               ) : (
