@@ -1041,9 +1041,9 @@ useEffect(() => {
 
   useEffect(() => {
     if (user) {
-      if (!user.is_profile_completed) {
+      if (user.is_profile_completed === false) {
         router.push("/dashboard/profiles");
-      } else {
+      } else if (user.is_profile_completed === true) {
         setUserData((prev) => ({
           ...prev,
           email: user.email || "",

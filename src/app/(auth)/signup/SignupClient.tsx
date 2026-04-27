@@ -777,6 +777,7 @@ const handleCaptchaErrored = () => {
             Already have an account?{" "}
             <Link
               href="/login"
+              onClick={clearSignupPersistedState}
               className="font-bold text-white hover:text-purple-700"
             >
               Sign In

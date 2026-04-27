@@ -269,7 +269,7 @@ const itemVariants = {
               type="text"
               value={formData.username_or_email}
               onChange={(e) =>
-                handleChange("username_or_email", e.target.value.toLocaleLowerCase())
+                handleChange("username_or_email", e.target.value)
               }
               placeholder="Enter your email or username"
               className={`w-full rounded-full border-2 px-2 py-1 text-slate-900 bg-white focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 text-2xs ${
