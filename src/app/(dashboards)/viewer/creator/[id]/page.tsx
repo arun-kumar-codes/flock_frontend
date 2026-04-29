@@ -68,6 +68,14 @@ const formatDate = (dateString: string) => {
   });
 };
 
+const getContentSortValue = (item: any) => {
+  const rawDate =
+    item?.published_at || item?.created_at || item?.scheduled_at || item?.updated_at;
+  const parsedDate = rawDate ? new Date(rawDate).getTime() : NaN;
+  if (!Number.isNaN(parsedDate)) return parsedDate;
+  return Number(item?.id) || 0;
+};
+
 export default function CreatorProfilePage() {
   const user = useSelector((state: any) => state.user);
   const router = useRouter();
@@ -90,11 +98,11 @@ export default function CreatorProfilePage() {
 
           const publishedVideos = (videos || [])
             .filter((v: any) => v.status?.toLowerCase() === "published")
-            .sort((a: any, b: any) => a.id - b.id);
+            .sort((a: any, b: any) => getContentSortValue(b) - getContentSortValue(a));
 
           const publishedBlogs = (blogs || [])
             .filter((b: any) => b.status?.toLowerCase() === "published")
-            .sort((a: any, b: any) => a.id - b.id);
+            .sort((a: any, b: any) => getContentSortValue(b) - getContentSortValue(a));
 
           setCreator({
             ...creator,
