@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import ReduxProvider from "@/lib/ReduxProvider";
 import { Toaster } from "react-hot-toast";
@@ -68,6 +69,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         ></script>
+        {process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID ? (
+          <Script id="crisp-chatbox" strategy="afterInteractive">
+            {`
+              window.$crisp = [];
+              window.CRISP_WEBSITE_ID = "${process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID}";
+              (function () {
+                var d = document;
+                var s = d.createElement("script");
+                s.src = "https://client.crisp.chat/l.js";
+                s.async = 1;
+                d.getElementsByTagName("head")[0].appendChild(s);
+              })();
+            `}
+          </Script>
+        ) : null}
       </head>
 
       <body>
